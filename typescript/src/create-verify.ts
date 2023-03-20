@@ -8,10 +8,11 @@ const verifySubject = async (
   theirIdentityKey: BufferSource
 ) => {
   try {
+    const subject = concat([data, theirIdentityKey])
     const results = await Promise.all(
       certificates.map(({ identityKey, signature }) =>
         verifySignature(
-          concat([data, theirIdentityKey]),
+          subject,
           identityKey,
           signature
         )
