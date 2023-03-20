@@ -1,8 +1,36 @@
-typescript/coverage/
-typescript/dist/
-typescript/node_modules/
+# Miscellaneous files
 .DS_Store
 ._*
 *~
 *.log
 *.tgz
+
+# IDE-specific files
+.vscode/
+
+# Compiled object files
+*.o
+*.obj
+
+# Libraries
+*.lib
+*.a
+
+# Executables
+*.exe
+*.out
+
+# CMake-generated files
+cplusplus/CMakeCache.txt
+cplusplus/CMakeFiles/
+cplusplus/Makefile
+cplusplus/cmake_install.cmake
+cplusplus/install_manifest.txt
+
+# Build output directories
+cplusplus/build/
+cplusplus/bin/
+cplusplus/lib/
+typescript/coverage/
+typescript/dist/
+typescript/node_modules/
