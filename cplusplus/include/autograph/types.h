@@ -12,16 +12,26 @@ using KeyPair = struct {
   Chunk private_key;
 };
 
-using DecryptFunction = std::function<Chunk(const Chunk&)>;
+using Certificate = struct {
+  Chunk identity_key;
+  Chunk signature;
+};
 
-using DeriveKeyFunction = std::function<Chunk()>;
+using CalculateSafetyNumberFunction = std::function<Chunk(const Chunk&)>;
+
+using CertifyFunction = std::function<Chunk(const Chunk&)>;
+
+using DecryptFunction = std::function<Chunk(const Chunk&)>;
 
 using EncryptFunction = std::function<Chunk(const Chunk&)>;
 
+using VerifyFunction = std::function<bool(const Chunk&, const Chunk&)>;
+
 using Session = struct {
+  CertifyFunction certify;
   DecryptFunction decrypt;
-  DeriveKeyFunction derive_key;
   EncryptFunction encrypt;
+  VerifyFunction verify;
 };
 
 using SessionFunction = std::function<Session(const Chunk&)>;
@@ -32,3 +42,10 @@ using Handshake = struct {
 };
 
 using HandshakeFunction = std::function<Handshake(const Chunk&, const Chunk&)>;
+
+using Party = struct {
+  CalculateSafetyNumberFunction calculate_safety_number;
+  Chunk identity_key;
+  Chunk ephemeral_key;
+  HandshakeFunction handshake;
+};

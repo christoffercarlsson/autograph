@@ -22,24 +22,37 @@ set(SOURCES
     src/crypto/kdf.cpp
     src/crypto/sign_message.cpp
     src/crypto/verify_signature.cpp
-    src/calculate_safety_number.cpp
-    src/create-handshake.cpp
-    src/create-session.cpp
+    src/autograph.cpp
+    src/create_calculate_safety_number.cpp
+    src/create_certify.cpp
+    src/create_decrypt.cpp
+    src/create_encrypt.cpp
+    src/create_handshake.cpp
+    src/create_party.cpp
+    src/create_session.cpp
+    src/create_verify.cpp
     src/derive_secret_keys.cpp
-    src/generate_key_pair.cpp
-    src/init.cpp
+    src/generate_ephemeral_key_pair.cpp
+    src/get_transcript.cpp
+    src/verify_transcript.cpp
 )
 
 # Add header files
 set(HEADERS
-    include/autograph/calculate_safety_number.h
-    include/autograph/create-handshake.h
-    include/autograph/create-session.h
+    include/autograph/create_calculate_safety_number.h
+    include/autograph/create_certify.h
+    include/autograph/create_decrypt.h
+    include/autograph/create_encrypt.h
+    include/autograph/create_handshake.h
+    include/autograph/create_party.h
+    include/autograph/create_session.h
+    include/autograph/create_verify.h
     include/autograph/crypto.h
     include/autograph/derive_secret_keys.h
-    include/autograph/generate_key_pair.h
-    include/autograph/init.h
+    include/autograph/generate_ephemeral_key_pair.h
+    include/autograph/get_transcript.h
     include/autograph/types.h
+    include/autograph/verify_transcript.h
     include/autograph.h
 )
 
