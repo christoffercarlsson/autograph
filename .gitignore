@@ -1,0 +1,8 @@
+typescript/coverage/
+typescript/dist/
+typescript/node_modules/
+.DS_Store
+._*
+*~
+*.log
+*.tgz

@@ -1,0 +1,5 @@
+coverage
+dist
+.eslintrc.cjs
+.prettierrc.cjs
+jest.config.cjs
