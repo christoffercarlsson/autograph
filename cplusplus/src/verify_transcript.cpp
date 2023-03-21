@@ -1,5 +1,8 @@
 #include "autograph/verify_transcript.h"
 
+#include "autograph/decrypt.h"
+#include "autograph/verify_signature.h"
+
 bool verify_transcript(const Chunk &transcript, const Chunk &their_identity_key,
                        const Chunk &their_secret_key, const Chunk &ciphertext) {
   try {

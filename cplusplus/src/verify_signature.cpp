@@ -1,4 +1,6 @@
-#include "autograph/crypto.h"
+#include "autograph/verify_signature.h"
+
+#include "sodium.h"
 
 bool verify_signature(const Chunk &public_key, const Chunk &message,
                       const Chunk &signature) {

@@ -1,11 +1,6 @@
 #pragma once
 
-#include "crypto.h"
-
-using SecretKeys = struct {
-  Chunk our_secret_key;
-  Chunk their_secret_key;
-};
+#include "types.h"
 
 SecretKeys derive_secret_keys(bool is_initiator,
                               const KeyPair &our_ephemeral_key_pair,

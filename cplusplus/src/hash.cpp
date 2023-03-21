@@ -1,4 +1,6 @@
-#include "autograph/crypto.h"
+#include "autograph/hash.h"
+
+#include "sodium.h"
 
 void hash_sha512(const Chunk &message, Chunk &digest) {
   int result =

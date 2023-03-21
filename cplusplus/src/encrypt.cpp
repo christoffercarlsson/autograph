@@ -1,4 +1,7 @@
-#include "autograph/crypto.h"
+#include "autograph/encrypt.h"
+
+#include "autograph/index_to_nonce.h"
+#include "sodium.h"
 
 Chunk encrypt(const Chunk &key, const uint32_t index, const Chunk &plaintext) {
   Chunk ciphertext(plaintext.size() + crypto_aead_aes256gcm_ABYTES);

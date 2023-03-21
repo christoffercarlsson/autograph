@@ -1,6 +1,6 @@
 #pragma once
 
-#include "crypto.h"
+#include "types.h"
 
-VerifyFunction create_verify(const Chunk &our_private_key,
-                             const Chunk &their_public_key);
+VerifyFunction create_verify(const Chunk &their_identity_key,
+                             const DecryptFunction &decrypt);

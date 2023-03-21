@@ -1,25 +1,26 @@
 #include "autograph.h"
 
+#include "autograph/create_key_pair.h"
 #include "autograph/create_party.h"
-#include "autograph/generate_ephemeral_key_pair.h"
+#include "sodium.h"
 
 Party create_alice(const KeyPair &identity_key_pair) {
-  Party alice = create_party(true, identity_key_pair);
+  auto alice = create_party(true, identity_key_pair);
   return std::move(alice);
 }
 
 Party create_bob(const KeyPair &identity_key_pair) {
-  Party bob = create_party(false, identity_key_pair);
+  auto bob = create_party(false, identity_key_pair);
   return std::move(bob);
 }
 
 Party create_initiator(const KeyPair &identity_key_pair) {
-  Party initiator = create_alice(identity_key_pair);
+  auto initiator = create_alice(identity_key_pair);
   return std::move(initiator);
 }
 
 Party create_responder(const KeyPair &identity_key_pair) {
-  Party responder = create_bob(identity_key_pair);
+  auto responder = create_bob(identity_key_pair);
   return std::move(responder);
 }
 

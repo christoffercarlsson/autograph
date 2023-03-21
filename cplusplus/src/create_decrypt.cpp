@@ -1,5 +1,7 @@
 #include "autograph/create_decrypt.h"
 
+#include "autograph/decrypt.h"
+
 DecryptFunction create_decrypt(const Chunk &their_secret_key) {
   auto decrypt_function = [&their_secret_key](const Chunk &message) {
     uint32_t index = (message[0] << 24) | (message[1] << 16) |

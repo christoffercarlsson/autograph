@@ -1,11 +1,8 @@
 #include "autograph/generate_ephemeral_key_pair.h"
 
-KeyPair create_key_pair() {
-  KeyPair key_pair;
-  key_pair.public_key = Chunk(crypto_box_PUBLICKEYBYTES);
-  key_pair.private_key = Chunk(crypto_box_SECRETKEYBYTES);
-  return std::move(key_pair);
-}
+#include "autograph/create_key_pair.h"
+#include "autograph/types.h"
+#include "sodium.h"
 
 KeyPair generate_ephemeral_key_pair() {
   auto key_pair = create_key_pair();

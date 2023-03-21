@@ -1,5 +1,11 @@
 #include "autograph/create_session.h"
 
+#include "autograph/create_certify.h"
+#include "autograph/create_decrypt.h"
+#include "autograph/create_encrypt.h"
+#include "autograph/create_verify.h"
+#include "autograph/verify_transcript.h"
+
 SessionFunction create_session(const Chunk &our_private_key,
                                const Chunk &their_identity_key,
                                const Chunk &transcript,

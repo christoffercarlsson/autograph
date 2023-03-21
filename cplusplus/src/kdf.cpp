@@ -1,4 +1,6 @@
-#include "autograph/crypto.h"
+#include "autograph/kdf.h"
+
+#include "sodium.h"
 
 Chunk hmac_sha512(const Chunk &key, const Chunk &data) {
   Chunk digest(crypto_auth_hmacsha512_BYTES);

@@ -1,4 +1,6 @@
-#include "autograph/crypto.h"
+#include "autograph/sign_message.h"
+
+#include "sodium.h"
 
 Chunk sign_message(const Chunk &private_key, const Chunk &message) {
   Chunk signature(crypto_sign_BYTES);

@@ -1,5 +1,13 @@
 #include "autograph/create_calculate_safety_number.h"
 
+#include <algorithm>
+#include <string>
+
+#include "autograph/hash.h"
+
+constexpr unsigned int SAFETY_NUMBER_DIVISOR = 100000;
+constexpr unsigned int SAFETY_NUMBER_ITERATIONS = 5200;
+
 std::string encode_chunk(const Chunk &digest, int i) {
   unsigned int number = ((digest[i] << 24) | (digest[i + 1] << 16) |
                          (digest[i + 2] << 8) | digest[i + 3]) %

@@ -1,4 +1,6 @@
-#include "autograph/crypto.h"
+#include "autograph/diffie_hellman.h"
+
+#include "sodium.h"
 
 Chunk diffie_hellman(const Chunk &private_key, const Chunk &public_key) {
   Chunk shared_key(crypto_scalarmult_BYTES);

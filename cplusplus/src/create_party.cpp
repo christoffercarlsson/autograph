@@ -1,5 +1,9 @@
 #include "autograph/create_party.h"
 
+#include "autograph/create_calculate_safety_number.h"
+#include "autograph/create_handshake.h"
+#include "autograph/generate_ephemeral_key_pair.h"
+
 Party create_party(bool is_initiator, const KeyPair &identity_key_pair) {
   KeyPair ephemeral_key_pair = generate_ephemeral_key_pair();
   CalculateSafetyNumberFunction calculate_safety_number =

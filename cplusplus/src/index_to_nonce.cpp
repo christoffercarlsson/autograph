@@ -1,4 +1,6 @@
-#include "autograph/crypto.h"
+#include "autograph/index_to_nonce.h"
+
+#include "sodium.h"
 
 Chunk index_to_nonce(const uint32_t index) {
   Chunk nonce(crypto_aead_aes256gcm_NPUBBYTES);
