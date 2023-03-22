@@ -1,7 +1,7 @@
 import { Chunk, createFrom } from 'stedy/bytes'
 import { CalculateSafetyNumberFunction } from '../types'
 import { SAFETY_NUMBER_DIVISOR, SAFETY_NUMBER_ITERATIONS } from './constants'
-import hash from './crypto/hash'
+import hash from './hash'
 
 const encodeChunk = (chunk: Chunk) => {
   const [a, b, c, d, e] = chunk

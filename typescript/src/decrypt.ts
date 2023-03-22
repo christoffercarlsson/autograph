@@ -1,6 +1,6 @@
 import { fromInteger } from 'stedy/bytes'
 import { decrypt as decryptMessage } from 'stedy'
-import { AES_GCM_NONCE_SIZE } from '../constants'
+import { AES_GCM_NONCE_SIZE } from './constants'
 
 const decrypt = (
   key: BufferSource,

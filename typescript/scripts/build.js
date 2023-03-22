@@ -15,7 +15,7 @@ const run = async () => {
   }
   await build({
     ...sharedOptions,
-    entryPoints: ['src/index.ts'],
+    entryPoints: ['src/autograph.ts'],
     bundle: true,
     external: ['stedy'],
     splitting: true

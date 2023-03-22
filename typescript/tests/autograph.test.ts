@@ -6,7 +6,7 @@ import {
   createInitiator,
   generateKeyPair,
   generateResponder
-} from '../src'
+} from '../src/autograph'
 import { KeyPair, Party } from '../types'
 
 const verifyOwnership = async (
@@ -156,9 +156,7 @@ describe('The Autograph protocol', () => {
     const charlie = await generateResponder()
     const c = await charlie.handshake(alice.identityKey, alice.ephemeralKey)
     let a = await alice.handshake(charlie.identityKey, charlie.ephemeralKey)
-
     const { certify } = await c.session(a.ciphertext)
-
     const signature = await certify()
     alice = await createAlice(aliceKeyPair)
     const b = await bob.handshake(alice.identityKey, alice.ephemeralKey)

@@ -1,6 +1,6 @@
 import { createFrom } from 'stedy/bytes'
 import { DecryptFunction } from '../types'
-import decrypt from './crypto/decrypt'
+import decrypt from './decrypt'
 
 const createDecrypt =
   (theirSecretKey: BufferSource): DecryptFunction =>

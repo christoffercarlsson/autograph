@@ -1,6 +1,6 @@
 import { concat } from 'stedy/bytes'
 import { CertifyFunction } from '../types'
-import sign from './crypto/sign'
+import signMessage from './sign-message'
 
 const createCertify =
   (
@@ -8,6 +8,6 @@ const createCertify =
     theirPublicKey: BufferSource
   ): CertifyFunction =>
   (data?: BufferSource) =>
-    sign(ourPrivateKey, concat([data, theirPublicKey]))
+    signMessage(ourPrivateKey, concat([data, theirPublicKey]))
 
 export default createCertify

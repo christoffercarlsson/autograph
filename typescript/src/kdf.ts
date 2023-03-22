@@ -1,6 +1,6 @@
 import { alloc, createFrom } from 'stedy/bytes'
 import { hkdf } from 'stedy'
-import { HKDF_OUTPUT_SIZE, HKDF_SALT_SIZE } from '../constants'
+import { HKDF_OUTPUT_SIZE, HKDF_SALT_SIZE } from './constants'
 
 const kdf = (ikm: BufferSource, context: number) => {
   const salt = alloc(HKDF_SALT_SIZE)

@@ -1,6 +1,6 @@
 import { concat, createFrom } from 'stedy/bytes'
 import { Certificate, DecryptFunction, VerifyFunction } from '../types'
-import verifySignature from './crypto/verify'
+import verifySignature from './verify-signature'
 
 const verifySubject = async (
   certificates: Certificate[],
@@ -11,11 +11,7 @@ const verifySubject = async (
     const subject = concat([data, theirIdentityKey])
     const results = await Promise.all(
       certificates.map(({ identityKey, signature }) =>
-        verifySignature(
-          subject,
-          identityKey,
-          signature
-        )
+        verifySignature(subject, identityKey, signature)
       )
     )
     return results.length > 0 && results.every((result) => result === true)

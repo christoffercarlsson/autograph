@@ -1,5 +1,5 @@
-import decrypt from './crypto/decrypt'
-import verify from './crypto/verify'
+import decrypt from './decrypt'
+import verify from './verify-signature'
 
 const verifyTranscript = async (
   transcript: BufferSource,

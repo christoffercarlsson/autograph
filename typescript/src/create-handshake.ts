@@ -1,9 +1,9 @@
 import { HandshakeFunction, KeyPair } from '../types'
 import createSession from './create-session'
-import encrypt from './crypto/encrypt'
-import sign from './crypto/sign'
+import encrypt from './encrypt'
 import deriveSecretKeys from './derive-secret-keys'
 import getTranscript from './get-transcript'
+import signMessage from './sign-message'
 
 const createHandshake =
   (
@@ -19,19 +19,18 @@ const createHandshake =
       theirIdentityKey,
       theirEphemeralKey
     )
-    const signature = await sign(ourKeyPair.privateKey, transcript)
-    const [ourSecretKey, theirSecretKey] = await deriveSecretKeys(
+    const signature = await signMessage(ourKeyPair.privateKey, transcript)
+    const secretKeys = await deriveSecretKeys(
       isInitiator,
       ourEphemeralKeyPair.privateKey,
       theirEphemeralKey
     )
-    const ciphertext = await encrypt(ourSecretKey, 0, signature)
+    const ciphertext = await encrypt(secretKeys.ourSecretKey, 0, signature)
     const session = createSession(
       ourKeyPair.privateKey,
       theirIdentityKey,
       transcript,
-      ourSecretKey,
-      theirSecretKey
+      secretKeys
     )
     return { ciphertext, session }
   }

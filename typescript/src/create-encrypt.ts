@@ -1,6 +1,6 @@
 import { concat, fromInteger } from 'stedy/bytes'
 import { EncryptFunction } from '../types'
-import encrypt from './crypto/encrypt'
+import encrypt from './encrypt'
 
 const createEncrypt = (ourSecretKey: BufferSource): EncryptFunction => {
   let index = 0

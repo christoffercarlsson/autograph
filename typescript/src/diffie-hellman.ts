@@ -1,5 +1,5 @@
 import { diffieHellman as deriveSharedSecret } from 'stedy'
-import { DH_OUTPUT_SIZE } from '../constants'
+import { DH_OUTPUT_SIZE } from './constants'
 import { importPrivateKey, importPublicKey } from './import-key'
 
 const diffieHellman = async (

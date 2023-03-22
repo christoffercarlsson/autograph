@@ -26,6 +26,11 @@ export type Session = {
 
 export type SessionFunction = (ciphertext: BufferSource) => Promise<Session>
 
+export type SecretKeys = {
+  ourSecretKey: Chunk
+  theirSecretKey: Chunk
+}
+
 export type Handshake = {
   ciphertext: Chunk
   session: SessionFunction

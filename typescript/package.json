@@ -34,7 +34,7 @@
   "engines": {
     "node": ">=16.13.0"
   },
-  "exports": "./dist/src/index.js",
+  "exports": "./dist/src/autograph.js",
   "files": [
     "dist/src/**/*.js",
     "types.d.ts"

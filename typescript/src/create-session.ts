@@ -1,4 +1,4 @@
-import { SessionFunction } from '../types'
+import { SecretKeys, SessionFunction } from '../types'
 import createCertify from './create-certify'
 import createDecrypt from './create-decrypt'
 import createEncrypt from './create-encrypt'
@@ -10,8 +10,7 @@ const createSession =
     ourPrivateKey: BufferSource,
     theirIdentityKey: BufferSource,
     transcript: BufferSource,
-    ourSecretKey: BufferSource,
-    theirSecretKey: BufferSource
+    { ourSecretKey, theirSecretKey }: SecretKeys
   ): SessionFunction =>
   async (ciphertext: BufferSource) => {
     const verified = await verifyTranscript(

@@ -2,9 +2,9 @@ import { createFrom } from 'stedy/bytes'
 import { KeyPair, Party } from '../types'
 import createCalculateSafetyNumber from './create-calculate-safety-number'
 import createHandshake from './create-handshake'
-import { generateEphemeralKeyPair } from './generate-key-pair'
+import generateEphemeralKeyPair from './generate-ephemeral-key-pair'
 
-export const createParty = async (
+const createParty = async (
   isInitiator: boolean,
   identityKeyPair: KeyPair
 ): Promise<Party> => {
@@ -25,8 +25,4 @@ export const createParty = async (
   }
 }
 
-export const createAlice = (identityKeyPair: KeyPair) =>
-  createParty(true, identityKeyPair)
-
-export const createBob = (identityKeyPair: KeyPair) =>
-  createParty(false, identityKeyPair)
+export default createParty
