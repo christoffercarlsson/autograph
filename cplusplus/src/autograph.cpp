@@ -24,6 +24,27 @@ Party create_responder(const KeyPair &identity_key_pair) {
   return std::move(responder);
 }
 
+Party generate_party(bool is_initiator) {
+  auto identity_key_pair = generate_key_pair();
+  auto party = create_party(is_initiator, identity_key_pair);
+  return std::move(party);
+}
+
+Party generate_alice() {
+  auto alice = generate_party(true);
+  return std::move(alice);
+}
+
+Party generate_bob() {
+  auto bob = generate_party(false);
+  return std::move(bob);
+}
+
+Party generate_initiator() {
+  auto initiator = generate_alice();
+  return std::move(initiator);
+}
+
 KeyPair generate_key_pair() {
   auto key_pair = create_key_pair();
   int result = crypto_sign_keypair(key_pair.public_key.data(),
@@ -32,6 +53,11 @@ KeyPair generate_key_pair() {
     throw std::runtime_error("Failed to generate Ed25519 key pair");
   }
   return std::move(key_pair);
+}
+
+Party generate_responder() {
+  auto responder = generate_bob();
+  return std::move(responder);
 }
 
 void init() {

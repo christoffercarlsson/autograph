@@ -14,6 +14,14 @@ Party create_initiator(const KeyPair &identity_key_pair);
 
 Party create_responder(const KeyPair &identity_key_pair);
 
+Party generate_alice();
+
+Party generate_bob();
+
+Party generate_initiator();
+
 KeyPair generate_key_pair();
+
+Party generate_responder();
 
 void init();
