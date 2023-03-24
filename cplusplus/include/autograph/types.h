@@ -7,12 +7,12 @@ using Byte = unsigned char;
 
 using Chunk = std::vector<Byte>;
 
-using KeyPair = struct {
+using KeyPair = struct KeyPair {
   Chunk public_key;
   Chunk private_key;
 };
 
-using Certificate = struct {
+using Certificate = struct Certificate {
   Chunk identity_key;
   Chunk signature;
 };
@@ -30,7 +30,7 @@ using EncryptFunction = std::function<Chunk(const Chunk&)>;
 using VerifyFunction =
     std::function<bool(const CertificateList&, const Chunk&)>;
 
-using Session = struct {
+using Session = struct Session {
   CertifyFunction certify;
   DecryptFunction decrypt;
   EncryptFunction encrypt;
@@ -39,19 +39,19 @@ using Session = struct {
 
 using SessionFunction = std::function<Session(const Chunk&)>;
 
-using SecretKeys = struct {
+using SecretKeys = struct SecretKeys {
   Chunk our_secret_key;
   Chunk their_secret_key;
 };
 
-using Handshake = struct {
+using Handshake = struct Handshake {
   Chunk ciphertext;
   SessionFunction session;
 };
 
 using HandshakeFunction = std::function<Handshake(const Chunk&, const Chunk&)>;
 
-using Party = struct {
+using Party = struct Party {
   CalculateSafetyNumberFunction calculate_safety_number;
   Chunk ephemeral_key;
   HandshakeFunction handshake;
