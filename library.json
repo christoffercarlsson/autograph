@@ -1,0 +1,39 @@
+{
+  "name": "autograph",
+  "description": "A C++ implementation of the Autograph protocol",
+  "version": "0.1.0",
+  "authors": [
+    {
+      "name": "Christoffer Carlsson",
+      "email": "cc@christofferc.com",
+      "url": "https://christofferc.com"
+    }
+  ],
+  "build": {
+    "srcDir": "cplusplus/src",
+    "includeDir": "cplusplus/include"
+  },
+  "frameworks": "*",
+  "keywords": [
+    "security",
+    "identity",
+    "cryptography",
+    "privacy",
+    "authentication",
+    "freedom",
+    "verification",
+    "ed25519",
+    "hkdf",
+    "x25519",
+    "elliptic-curves",
+    "ownership",
+    "decentralization",
+    "diffie-hellman",
+    "aes-256-gcm"
+  ],
+  "license": "Unlicense",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/christoffercarlsson/autograph.git"
+  }
+}

@@ -40,6 +40,23 @@
     "types.d.ts"
   ],
   "homepage": "https://github.com/christoffercarlsson/autograph#readme",
+  "keywords": [
+    "security",
+    "identity",
+    "cryptography",
+    "privacy",
+    "authentication",
+    "freedom",
+    "verification",
+    "ed25519",
+    "hkdf",
+    "x25519",
+    "elliptic-curves",
+    "ownership",
+    "decentralization",
+    "diffie-hellman",
+    "aes-256-gcm"
+  ],
   "license": "Unlicense",
   "repository": {
     "type": "git",
