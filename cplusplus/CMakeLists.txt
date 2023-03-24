@@ -68,6 +68,9 @@ add_library(autograph ${SOURCES} ${HEADERS})
 # Link against libsodium
 target_link_libraries(autograph PRIVATE ${LIBSODIUM_LIBRARIES})
 
+# Set output name of the library
+set_target_properties(autograph PROPERTIES OUTPUT_NAME autograph)
+
 # Set include directories
 target_include_directories(autograph
     PUBLIC
@@ -75,6 +78,7 @@ target_include_directories(autograph
         $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
     PRIVATE
         ${CMAKE_CURRENT_SOURCE_DIR}/src
+        ${LIBSODIUM_INCLUDE_DIRS}
 )
 
 # Install headers and library
