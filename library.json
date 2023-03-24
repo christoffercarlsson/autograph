@@ -10,6 +10,10 @@
     }
   ],
   "build": {
+    "flags": [
+      "-I${env.LIBSODIUM_INCLUDE_DIR}",
+      "-L${env.LIBSODIUM_LIBRARY_DIR}"
+    ],
     "srcDir": "cplusplus/src",
     "includeDir": "cplusplus/include"
   },

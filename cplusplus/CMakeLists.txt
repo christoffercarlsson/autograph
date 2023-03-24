@@ -66,7 +66,7 @@ set(HEADERS
 add_library(autograph ${SOURCES} ${HEADERS})
 
 # Link against libsodium
-target_link_libraries(autograph PRIVATE sodium)
+target_link_libraries(autograph PRIVATE ${LIBSODIUM_LIBRARIES})
 
 # Set include directories
 target_include_directories(autograph
