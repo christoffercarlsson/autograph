@@ -1,5 +1,6 @@
 #include <algorithm>
 
+#include "autograph/constants.h"
 #include "sodium.h"
 
 constexpr unsigned char CONTEXT_INITIATOR = 0x00;
@@ -25,24 +26,17 @@ bool kdf(unsigned char *secret_key, const unsigned char *ikm,
 
 bool derive_secret_keys(unsigned char *our_secret_key,
                         unsigned char *their_secret_key, bool is_initiator,
-                        const unsigned char *our_private_key,
+                        unsigned char *our_private_key,
                         const unsigned char *their_public_key) {
   unsigned char ikm[crypto_scalarmult_BYTES];
   int dh_result = crypto_scalarmult(ikm, our_private_key, their_public_key);
-  if (dh_result != 0) {
-    return false;
-  }
   bool our_key_result =
       kdf(our_secret_key, ikm,
           is_initiator ? CONTEXT_INITIATOR : CONTEXT_RESPONDER);
-  if (!our_key_result) {
-    return false;
-  }
   bool their_key_result =
       kdf(their_secret_key, ikm,
           is_initiator ? CONTEXT_RESPONDER : CONTEXT_INITIATOR);
-  if (!their_key_result) {
-    return false;
-  }
-  return true;
+  sodium_memzero(our_private_key, PRIVATE_KEY_SIZE);
+  sodium_memzero(ikm, crypto_scalarmult_BYTES);
+  return dh_result == 0 && our_key_result && their_key_result;
 }
