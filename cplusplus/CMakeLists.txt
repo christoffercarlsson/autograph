@@ -11,54 +11,46 @@ pkg_check_modules(LIBSODIUM REQUIRED libsodium)
 
 # Add source files
 set(SOURCES
+    src/aes.cpp
+    src/autograph_init.cpp
     src/autograph.cpp
+    src/calculate_safety_number.cpp
+    src/certify_ownership.cpp
     src/create_calculate_safety_number.cpp
-    src/create_certify.cpp
-    src/create_decrypt.cpp
-    src/create_encrypt.cpp
     src/create_handshake.cpp
-    src/create_key_pair.cpp
-    src/create_party.cpp
     src/create_session.cpp
-    src/create_verify.cpp
-    src/decrypt.cpp
+    src/decrypt_message.cpp
     src/derive_secret_keys.cpp
-    src/diffie_hellman.cpp
-    src/encrypt.cpp
-    src/generate_ephemeral_key_pair.cpp
-    src/get_transcript.cpp
-    src/hash.cpp
-    src/index_to_nonce.cpp
-    src/kdf.cpp
+    src/encrypt_message.cpp
+    src/generate_key_pair.cpp
+    src/handshake.cpp
     src/sign_message.cpp
+    src/verify_ownership.cpp
+    src/verify_session.cpp
     src/verify_signature.cpp
-    src/verify_transcript.cpp
 )
 
 # Add header files
 set(HEADERS
+    include/autograph/aes.h
+    include/autograph/autograph_init.h
+    include/autograph/calculate_safety_number.h
+    include/autograph/certify_ownership.h
+    include/autograph/constants.h
+    include/autograph/core.h
     include/autograph/create_calculate_safety_number.h
-    include/autograph/create_certify.h
-    include/autograph/create_decrypt.h
-    include/autograph/create_encrypt.h
     include/autograph/create_handshake.h
-    include/autograph/create_key_pair.h
-    include/autograph/create_party.h
     include/autograph/create_session.h
-    include/autograph/create_verify.h
-    include/autograph/decrypt.h
+    include/autograph/decrypt_message.h
     include/autograph/derive_secret_keys.h
-    include/autograph/diffie_hellman.h
-    include/autograph/encrypt.h
-    include/autograph/generate_ephemeral_key_pair.h
-    include/autograph/get_transcript.h
-    include/autograph/hash.h
-    include/autograph/index_to_nonce.h
-    include/autograph/kdf.h
+    include/autograph/encrypt_message.h
+    include/autograph/generate_key_pair.h
+    include/autograph/handshake.h
     include/autograph/sign_message.h
     include/autograph/types.h
+    include/autograph/verify_ownership.h
+    include/autograph/verify_session.h
     include/autograph/verify_signature.h
-    include/autograph/verify_transcript.h
     include/autograph.h
 )
 

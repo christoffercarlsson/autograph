@@ -1,7 +1,6 @@
 #pragma once
 
-#include "types.h"
-
-SecretKeys derive_secret_keys(bool is_initiator,
-                              const KeyPair &our_ephemeral_key_pair,
-                              const Chunk &their_ephemeral_public_key);
+bool derive_secret_keys(unsigned char *our_secret_key,
+                        unsigned char *their_secret_key, bool is_initiator,
+                        const unsigned char *our_private_key,
+                        const unsigned char *their_public_key);

@@ -2,12 +2,10 @@
 
 #include "sodium.h"
 
-Chunk sign_message(const Chunk &private_key, const Chunk &message) {
-  Chunk signature(crypto_sign_BYTES);
-  int result = crypto_sign_detached(signature.data(), nullptr, message.data(),
-                                    message.size(), private_key.data());
-  if (result != 0) {
-    throw std::runtime_error("Failed to sign message");
-  }
-  return std::move(signature);
+bool sign_message(unsigned char *signature, const unsigned char *private_key,
+                  const unsigned char *message,
+                  const unsigned long long message_size) {
+  int result = crypto_sign_detached(signature, nullptr, message, message_size,
+                                    private_key);
+  return result == 0;
 }

@@ -3,9 +3,7 @@
 #include <functional>
 #include <vector>
 
-using Byte = unsigned char;
-
-using Chunk = std::vector<Byte>;
+using Chunk = std::vector<unsigned char>;
 
 using KeyPair = struct KeyPair {
   Chunk public_key;
@@ -38,11 +36,6 @@ using Session = struct Session {
 };
 
 using SessionFunction = std::function<Session(const Chunk&)>;
-
-using SecretKeys = struct SecretKeys {
-  Chunk our_secret_key;
-  Chunk their_secret_key;
-};
 
 using Handshake = struct Handshake {
   Chunk ciphertext;

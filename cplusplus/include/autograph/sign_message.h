@@ -1,5 +1,5 @@
 #pragma once
 
-#include "types.h"
-
-Chunk sign_message(const Chunk &private_key, const Chunk &message);
+bool sign_message(unsigned char *signature, const unsigned char *private_key,
+                  const unsigned char *message,
+                  unsigned long long message_size);

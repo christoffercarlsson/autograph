@@ -1,27 +1,50 @@
 #include "autograph.h"
 
-#include "autograph/create_key_pair.h"
-#include "autograph/create_party.h"
-#include "sodium.h"
+#include "autograph/autograph_init.h"
+#include "autograph/create_calculate_safety_number.h"
+#include "autograph/create_handshake.h"
+#include "autograph/generate_key_pair.h"
 
-Party create_alice(const KeyPair &identity_key_pair) {
-  auto alice = create_party(true, identity_key_pair);
-  return std::move(alice);
+KeyPair create_key_pair() {
+  KeyPair key_pair;
+  key_pair.public_key = Chunk(PUBLIC_KEY_SIZE);
+  key_pair.private_key = Chunk(PRIVATE_KEY_SIZE);
+  return std::move(key_pair);
 }
 
-Party create_bob(const KeyPair &identity_key_pair) {
-  auto bob = create_party(false, identity_key_pair);
-  return std::move(bob);
+KeyPair generate_session_key_pair() {
+  auto key_pair = create_key_pair();
+  bool success = generate_ephemeral_key_pair(key_pair.public_key.data(),
+                                             key_pair.private_key.data());
+  if (!success) {
+    throw std::runtime_error("Failed to generate ephemeral key pair");
+  }
+  return std::move(key_pair);
 }
 
-Party create_initiator(const KeyPair &identity_key_pair) {
-  auto initiator = create_alice(identity_key_pair);
-  return std::move(initiator);
+Party create_party(bool is_initiator, const KeyPair &identity_key_pair) {
+  auto ephemeral_key_pair = generate_session_key_pair();
+  auto calculate_safety_number =
+      create_calculate_safety_number(identity_key_pair.public_key);
+  auto handshake =
+      create_handshake(is_initiator, identity_key_pair, ephemeral_key_pair);
+  Party party = {
+      calculate_safety_number,
+      ephemeral_key_pair.public_key,
+      handshake,
+      identity_key_pair.public_key,
+  };
+  return std::move(party);
 }
 
-Party create_responder(const KeyPair &identity_key_pair) {
-  auto responder = create_bob(identity_key_pair);
-  return std::move(responder);
+KeyPair generate_key_pair() {
+  auto key_pair = create_key_pair();
+  bool success = generate_identity_key_pair(key_pair.public_key.data(),
+                                            key_pair.private_key.data());
+  if (!success) {
+    throw std::runtime_error("Failed to generate identity key pair");
+  }
+  return std::move(key_pair);
 }
 
 Party generate_party(bool is_initiator) {
@@ -30,38 +53,9 @@ Party generate_party(bool is_initiator) {
   return std::move(party);
 }
 
-Party generate_alice() {
-  auto alice = generate_party(true);
-  return std::move(alice);
-}
-
-Party generate_bob() {
-  auto bob = generate_party(false);
-  return std::move(bob);
-}
-
-Party generate_initiator() {
-  auto initiator = generate_alice();
-  return std::move(initiator);
-}
-
-KeyPair generate_key_pair() {
-  auto key_pair = create_key_pair();
-  int result = crypto_sign_keypair(key_pair.public_key.data(),
-                                   key_pair.private_key.data());
-  if (result != 0) {
-    throw std::runtime_error("Failed to generate Ed25519 key pair");
-  }
-  return std::move(key_pair);
-}
-
-Party generate_responder() {
-  auto responder = generate_bob();
-  return std::move(responder);
-}
-
 void init() {
-  if (sodium_init() != 0) {
-    throw std::runtime_error("Failed to initialize libsodium");
+  bool success = autograph_init();
+  if (!success) {
+    throw std::runtime_error("Failed to initialize Autograph");
   }
 }

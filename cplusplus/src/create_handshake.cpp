@@ -1,10 +1,8 @@
 #include "autograph/create_handshake.h"
 
+#include "autograph/constants.h"
 #include "autograph/create_session.h"
-#include "autograph/derive_secret_keys.h"
-#include "autograph/encrypt.h"
-#include "autograph/get_transcript.h"
-#include "autograph/sign_message.h"
+#include "autograph/handshake.h"
 
 HandshakeFunction create_handshake(bool is_initiator,
                                    const KeyPair &our_key_pair,
@@ -13,15 +11,23 @@ HandshakeFunction create_handshake(bool is_initiator,
                              &our_ephemeral_key_pair](
                                 const Chunk &their_identity_key,
                                 const Chunk &their_ephemeral_public_key) {
-    Chunk transcript =
-        get_transcript(is_initiator, our_key_pair, our_ephemeral_key_pair,
-                       their_identity_key, their_ephemeral_public_key);
-    Chunk signature = sign_message(our_key_pair.private_key, transcript);
-    SecretKeys secret_keys = derive_secret_keys(
-        is_initiator, our_ephemeral_key_pair, their_ephemeral_public_key);
-    Chunk ciphertext = encrypt(secret_keys.our_secret_key, 0, signature);
-    SessionFunction session = create_session(
-        our_key_pair.private_key, their_identity_key, transcript, secret_keys);
+    Chunk transcript(TRANSCRIPT_SIZE);
+    Chunk ciphertext(HANDSHAKE_SIZE);
+    Chunk our_secret_key(SECRET_KEY_SIZE);
+    Chunk their_secret_key(SECRET_KEY_SIZE);
+    bool success = handshake(
+        transcript.data(), ciphertext.data(), our_secret_key.data(),
+        their_secret_key.data(), is_initiator, our_key_pair.private_key.data(),
+        our_key_pair.public_key.data(),
+        our_ephemeral_key_pair.private_key.data(),
+        our_ephemeral_key_pair.public_key.data(), their_identity_key.data(),
+        their_ephemeral_public_key.data());
+    if (!success) {
+      throw std::runtime_error("Failed to perform handshake");
+    }
+    SessionFunction session =
+        create_session(our_key_pair.private_key, their_identity_key, transcript,
+                       our_secret_key, their_secret_key);
     Handshake handshake = {ciphertext, session};
     return std::move(handshake);
   };
