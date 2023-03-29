@@ -7,25 +7,25 @@
 namespace autograph {
 
 Party create_initiator(const KeyPair &identity_key_pair) {
-  auto party = party_create(true, identity_key_pair);
+  auto party = create_party(true, identity_key_pair);
   return std::move(party);
 }
 
 Party create_responder(const KeyPair &identity_key_pair) {
-  auto party = party_create(false, identity_key_pair);
+  auto party = create_party(false, identity_key_pair);
   return std::move(party);
 }
 
 void init() {
-  bool success = autograph_core_init();
-  if (!success) {
+  int result = autograph_core_init();
+  if (result != 0) {
     throw std::runtime_error("Failed to initialize Autograph");
   }
 }
 
 KeyPair generate_key_pair() {
-  auto keys = key_pair_identity();
-  return std::move(keys);
+  auto key_pair = generate_identity_key_pair();
+  return std::move(key_pair);
 }
 
 }  // namespace autograph

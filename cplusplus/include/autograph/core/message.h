@@ -1,6 +1,6 @@
 #pragma once
 
-constexpr unsigned int autograph_core_message_EXTRA_SIZE = 20;
+const unsigned int autograph_core_message_EXTRA_SIZE = 20;
 
 int autograph_core_message_decrypt(unsigned char *plaintext,
                                    const unsigned char *key,

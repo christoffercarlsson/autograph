@@ -41,7 +41,7 @@ using SessionFunction = std::function<Session(const Chunk&)>;
 
 using Handshake = struct Handshake {
   Chunk ciphertext;
-  SessionFunction verify_session;
+  SessionFunction establish_session;
 };
 
 using HandshakeFunction = std::function<Handshake(const Chunk&, const Chunk&)>;

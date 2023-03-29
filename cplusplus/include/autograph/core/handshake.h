@@ -1,9 +1,9 @@
 #pragma once
 
-constexpr unsigned char autograph_core_handshake_CONTEXT_INITIATOR = 0x00;
-constexpr unsigned char autograph_core_handshake_CONTEXT_RESPONDER = 0x01;
-constexpr unsigned int autograph_core_handshake_SIZE = 80;
-constexpr unsigned int autograph_core_handshake_TRANSCRIPT_SIZE = 128;
+const unsigned char autograph_core_handshake_CONTEXT_INITIATOR = 0x00;
+const unsigned char autograph_core_handshake_CONTEXT_RESPONDER = 0x01;
+const unsigned int autograph_core_handshake_SIZE = 80;
+const unsigned int autograph_core_handshake_TRANSCRIPT_SIZE = 128;
 
 int autograph_core_handshake(unsigned char *transcript,
                              unsigned char *ciphertext,

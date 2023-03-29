@@ -4,6 +4,6 @@
 
 namespace autograph {
 
-SafetyNumberFunction safety_number_create(const Chunk &our_identity_key);
+SafetyNumberFunction create_safety_number(const Chunk &our_identity_key);
 
 }  // namespace autograph

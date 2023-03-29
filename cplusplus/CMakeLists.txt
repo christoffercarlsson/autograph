@@ -45,6 +45,7 @@ set(HEADERS
     include/autograph/crypto/hash.h
     include/autograph/crypto/kdf.h
     include/autograph/crypto/sign.h
+    include/autograph/core.h
     include/autograph/handshake.h
     include/autograph/key_pair.h
     include/autograph/party.h

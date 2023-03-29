@@ -21,13 +21,16 @@
 *.out
 
 # CMake-generated files
-cplusplus/CMakeCache.txt
-cplusplus/CMakeFiles/
-cplusplus/Makefile
-cplusplus/cmake_install.cmake
-cplusplus/install_manifest.txt
+.cmake/
+CMakeCache.txt
+CMakeFiles/
+Makefile
+cmake_install.cmake
+compile_commands.json
+install_manifest.txt
 
 # Build output directories
+build/
 cplusplus/build/
 cplusplus/bin/
 cplusplus/lib/

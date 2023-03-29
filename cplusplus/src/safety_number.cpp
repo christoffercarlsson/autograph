@@ -4,7 +4,7 @@
 
 namespace autograph {
 
-SafetyNumberFunction safety_number_create(const Chunk &our_identity_key) {
+SafetyNumberFunction create_safety_number(const Chunk &our_identity_key) {
   auto safety_number_function =
       [&our_identity_key](const Chunk &their_identity_key) {
         Chunk safety_number(autograph_core_safety_number_SIZE);

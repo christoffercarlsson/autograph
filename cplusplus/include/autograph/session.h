@@ -4,7 +4,7 @@
 
 namespace autograph {
 
-SessionFunction session_create(const Chunk &our_private_key,
+SessionFunction create_session(const Chunk &our_private_key,
                                const Chunk &their_identity_key,
                                const Chunk &transcript,
                                const Chunk &our_secret_key,

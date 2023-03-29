@@ -4,6 +4,6 @@
 
 namespace autograph {
 
-Party party_create(bool is_initiator, const KeyPair &identity_key_pair);
+Party create_party(bool is_initiator, const KeyPair &identity_key_pair);
 
 }  // namespace autograph

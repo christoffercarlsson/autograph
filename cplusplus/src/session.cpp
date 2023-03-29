@@ -7,7 +7,7 @@
 
 namespace autograph {
 
-CertifyFunction session_create_certify(const Chunk &our_private_key,
+CertifyFunction create_session_certify(const Chunk &our_private_key,
                                        const Chunk &their_public_key) {
   auto certify_function = [&our_private_key,
                            &their_public_key](const Chunk &data) {
@@ -23,7 +23,7 @@ CertifyFunction session_create_certify(const Chunk &our_private_key,
   return std::move(certify_function);
 }
 
-DecryptFunction session_create_decrypt(const Chunk &their_secret_key) {
+DecryptFunction create_session_decrypt(const Chunk &their_secret_key) {
   auto decrypt_function = [&their_secret_key](const Chunk &message) {
     Chunk plaintext(message.size() - autograph_core_message_EXTRA_SIZE);
     int result = autograph_core_message_decrypt(plaintext.data(),
@@ -37,7 +37,7 @@ DecryptFunction session_create_decrypt(const Chunk &their_secret_key) {
   return std::move(decrypt_function);
 }
 
-EncryptFunction session_create_encrypt(const Chunk &our_secret_key) {
+EncryptFunction create_session_encrypt(const Chunk &our_secret_key) {
   auto encrypt_function = [&our_secret_key](const Chunk &plaintext) {
     Chunk ciphertext(plaintext.size() + autograph_core_message_EXTRA_SIZE);
     int result =
@@ -51,7 +51,7 @@ EncryptFunction session_create_encrypt(const Chunk &our_secret_key) {
   return std::move(encrypt_function);
 }
 
-Chunk session_extract_certificates(const CertificateList &certificates) {
+Chunk extract_certificates(const CertificateList &certificates) {
   Chunk result;
   for (const auto &certificate : certificates) {
     result.insert(result.end(), certificate.identity_key.begin(),
@@ -62,21 +62,21 @@ Chunk session_extract_certificates(const CertificateList &certificates) {
   return std::move(result);
 }
 
-VerifyFunction session_create_verify(const Chunk &their_identity_key,
+VerifyFunction create_session_verify(const Chunk &their_identity_key,
                                      const Chunk &their_secret_key) {
   auto verify_function = [&their_identity_key, &their_secret_key](
                              const CertificateList &certificates,
                              const Chunk &message) {
     int result = autograph_core_ownership_verify(
         their_identity_key.data(), their_secret_key.data(),
-        session_extract_certificates(certificates).data(), certificates.size(),
+        extract_certificates(certificates).data(), certificates.size(),
         message.data(), message.size());
     return result == 0;
   };
   return std::move(verify_function);
 }
 
-SessionFunction session_create(const Chunk &our_private_key,
+SessionFunction create_session(const Chunk &our_private_key,
                                const Chunk &their_identity_key,
                                const Chunk &transcript,
                                const Chunk &our_secret_key,
@@ -90,10 +90,10 @@ SessionFunction session_create(const Chunk &our_private_key,
     if (result != 0) {
       throw std::runtime_error("Handshake verification failed");
     }
-    auto certify = session_create_certify(our_private_key, their_identity_key);
-    auto decrypt = session_create_decrypt(their_secret_key);
-    auto encrypt = session_create_encrypt(our_secret_key);
-    auto verify = session_create_verify(their_identity_key, their_secret_key);
+    auto certify = create_session_certify(our_private_key, their_identity_key);
+    auto decrypt = create_session_decrypt(their_secret_key);
+    auto encrypt = create_session_encrypt(our_secret_key);
+    auto verify = create_session_verify(their_identity_key, their_secret_key);
     Session session = {certify, decrypt, encrypt, verify};
     return std::move(session);
   };

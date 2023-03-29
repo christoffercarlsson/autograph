@@ -6,11 +6,11 @@
 
 namespace autograph {
 
-Party party_create(bool is_initiator, const KeyPair &identity_key_pair) {
-  auto ephemeral_key_pair = key_pair_ephemeral();
+Party create_party(bool is_initiator, const KeyPair &identity_key_pair) {
+  auto ephemeral_key_pair = generate_ephemeral_key_pair();
   auto calculate_safety_number =
-      safety_number_create(identity_key_pair.public_key);
-  auto perform_handshake = handshake_create(is_initiator, identity_key_pair,
+      create_safety_number(identity_key_pair.public_key);
+  auto perform_handshake = create_handshake(is_initiator, identity_key_pair,
                                             ephemeral_key_pair.private_key,
                                             ephemeral_key_pair.public_key);
   Party party = {

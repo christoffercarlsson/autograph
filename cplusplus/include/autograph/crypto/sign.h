@@ -1,6 +1,6 @@
 #pragma once
 
-constexpr unsigned int autograph_crypto_sign_SIGNATURE_SIZE = 64;
+const unsigned int autograph_crypto_sign_SIGNATURE_SIZE = 64;
 
 bool autograph_crypto_sign(unsigned char *signature,
                            const unsigned char *private_key,

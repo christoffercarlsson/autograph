@@ -4,8 +4,8 @@
 
 namespace autograph {
 
-KeyPair key_pair_ephemeral();
+KeyPair generate_ephemeral_key_pair();
 
-KeyPair key_pair_identity();
+KeyPair generate_identity_key_pair();
 
 }  // namespace autograph

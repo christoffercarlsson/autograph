@@ -6,11 +6,11 @@
 
 namespace autograph {
 
-HandshakeFunction handshake_create(bool is_initiator,
+HandshakeFunction create_handshake(bool is_initiator,
                                    const KeyPair &our_key_pair,
                                    const Chunk &our_ephemeral_private_key,
                                    const Chunk &our_ephemeral_public_key) {
-  auto handshake_function =
+  auto perform_handshake =
       [is_initiator, &our_key_pair, &our_ephemeral_private_key,
        &our_ephemeral_public_key](const Chunk &their_identity_key,
                                   const Chunk &their_ephemeral_public_key) {
@@ -27,13 +27,13 @@ HandshakeFunction handshake_create(bool is_initiator,
         if (result != 0) {
           throw std::runtime_error("Failed to perform handshake");
         }
-        SessionFunction verify_session =
-            session_create(our_key_pair.private_key, their_identity_key,
+        SessionFunction establish_session =
+            create_session(our_key_pair.private_key, their_identity_key,
                            transcript, our_secret_key, their_secret_key);
-        Handshake handshake = {ciphertext, verify_session};
+        Handshake handshake = {ciphertext, establish_session};
         return std::move(handshake);
       };
-  return std::move(handshake_function);
+  return std::move(perform_handshake);
 }
 
 }  // namespace autograph
