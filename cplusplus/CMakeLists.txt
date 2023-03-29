@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.5)
 
-project(autograph VERSION 0.1.0 LANGUAGES CXX)
+project(autograph VERSION 0.2.0 LANGUAGES CXX)
 
 set(CMAKE_CXX_STANDARD 11)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
@@ -40,7 +40,6 @@ set(HEADERS
     include/autograph/core/ownership.h
     include/autograph/core/safety_number.h
     include/autograph/core/session.h
-    include/autograph/core.h
     include/autograph/crypto/aes.h
     include/autograph/crypto/diffie_hellman.h
     include/autograph/crypto/hash.h
