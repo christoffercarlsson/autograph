@@ -1,3 +1,3 @@
 #pragma once
 
-bool autograph_core_init();
+int autograph_core_init();

@@ -6,6 +6,6 @@ constexpr unsigned int autograph_core_safety_number_DIVISOR = 100000;
 constexpr unsigned int autograph_core_safety_number_FINGERPRINT_SIZE = 30;
 constexpr unsigned int autograph_core_safety_number_ITERATIONS = 5200;
 
-bool autograph_core_safety_number(unsigned char *safety_number,
-                                  const unsigned char *our_identity_key,
-                                  const unsigned char *their_identity_key);
+int autograph_core_safety_number(unsigned char *safety_number,
+                                 const unsigned char *our_identity_key,
+                                 const unsigned char *their_identity_key);

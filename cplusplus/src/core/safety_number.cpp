@@ -34,9 +34,9 @@ std::string autograph_core_safety_number_fingerprint(
   return std::move(fingerprint);
 }
 
-bool autograph_core_safety_number(unsigned char *safety_number,
-                                  const unsigned char *our_identity_key,
-                                  const unsigned char *their_identity_key) {
+int autograph_core_safety_number(unsigned char *safety_number,
+                                 const unsigned char *our_identity_key,
+                                 const unsigned char *their_identity_key) {
   auto our_fingerprint =
       autograph_core_safety_number_fingerprint(our_identity_key);
   auto their_fingerprint =
@@ -54,8 +54,8 @@ bool autograph_core_safety_number(unsigned char *safety_number,
     result.insert(result.end(), our_fingerprint.begin(), our_fingerprint.end());
   }
   if (result.size() != autograph_core_safety_number_SIZE) {
-    return false;
+    return -1;
   }
   std::move(result.begin(), result.end(), safety_number);
-  return true;
+  return 0;
 }

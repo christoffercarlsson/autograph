@@ -64,28 +64,32 @@ bool autograph_core_handshake_keys(unsigned char *our_secret_key,
   return dh_result && our_key_result && their_key_result;
 }
 
-bool autograph_core_handshake(unsigned char *transcript,
-                              unsigned char *ciphertext,
-                              unsigned char *our_secret_key,
-                              unsigned char *their_secret_key,
-                              bool is_initiator,
-                              const unsigned char *our_private_identity_key,
-                              const unsigned char *our_public_identity_key,
-                              unsigned char *our_private_ephemeral_key,
-                              const unsigned char *our_public_ephemeral_key,
-                              const unsigned char *their_public_identity_key,
-                              const unsigned char *their_public_ephemeral_key) {
+int autograph_core_handshake(unsigned char *transcript,
+                             unsigned char *ciphertext,
+                             unsigned char *our_secret_key,
+                             unsigned char *their_secret_key,
+                             const unsigned int is_initiator,
+                             const unsigned char *our_private_identity_key,
+                             const unsigned char *our_public_identity_key,
+                             unsigned char *our_private_ephemeral_key,
+                             const unsigned char *our_public_ephemeral_key,
+                             const unsigned char *their_public_identity_key,
+                             const unsigned char *their_public_ephemeral_key) {
+  bool initiator = is_initiator == 1;
   autograph_core_handshake_transcript(
-      transcript, is_initiator, our_public_identity_key,
-      our_public_ephemeral_key, their_public_identity_key,
-      their_public_ephemeral_key);
+      transcript, initiator, our_public_identity_key, our_public_ephemeral_key,
+      their_public_identity_key, their_public_ephemeral_key);
   bool derive_result = autograph_core_handshake_keys(
-      our_secret_key, their_secret_key, is_initiator, our_private_ephemeral_key,
+      our_secret_key, their_secret_key, initiator, our_private_ephemeral_key,
       their_public_ephemeral_key);
   if (!derive_result) {
-    return false;
+    return -1;
   }
-  return autograph_core_handshake_ciphertext(ciphertext, transcript,
-                                             our_private_identity_key,
-                                             our_private_ephemeral_key);
+  bool ciphertext_result = autograph_core_handshake_ciphertext(
+      ciphertext, transcript, our_private_identity_key,
+      our_private_ephemeral_key);
+  if (!ciphertext_result) {
+    return -1;
+  }
+  return 0;
 }

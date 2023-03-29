@@ -17,9 +17,9 @@ KeyPair key_pair_create() {
 
 KeyPair key_pair_ephemeral() {
   auto key_pair = key_pair_create();
-  bool success = autograph_core_key_pair_ephemeral(key_pair.public_key.data(),
-                                                   key_pair.private_key.data());
-  if (!success) {
+  int result = autograph_core_key_pair_ephemeral(key_pair.public_key.data(),
+                                                 key_pair.private_key.data());
+  if (result != 0) {
     throw std::runtime_error("Failed to generate ephemeral key pair");
   }
   return std::move(key_pair);
@@ -27,9 +27,9 @@ KeyPair key_pair_ephemeral() {
 
 KeyPair key_pair_identity() {
   auto key_pair = key_pair_create();
-  bool success = autograph_core_key_pair_identity(key_pair.public_key.data(),
-                                                  key_pair.private_key.data());
-  if (!success) {
+  int result = autograph_core_key_pair_identity(key_pair.public_key.data(),
+                                                key_pair.private_key.data());
+  if (result != 0) {
     throw std::runtime_error("Failed to generate identity key pair");
   }
   return std::move(key_pair);

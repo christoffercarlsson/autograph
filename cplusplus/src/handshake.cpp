@@ -18,13 +18,13 @@ HandshakeFunction handshake_create(bool is_initiator,
         Chunk ciphertext(autograph_core_handshake_SIZE);
         Chunk our_secret_key(autograph_crypto_kdf_KEY_SIZE);
         Chunk their_secret_key(autograph_crypto_kdf_KEY_SIZE);
-        bool success = autograph_core_handshake(
+        int result = autograph_core_handshake(
             transcript.data(), ciphertext.data(), our_secret_key.data(),
-            their_secret_key.data(), is_initiator,
+            their_secret_key.data(), is_initiator ? 1 : 0,
             our_key_pair.private_key.data(), our_key_pair.public_key.data(),
             our_ephemeral_private_key.data(), our_ephemeral_public_key.data(),
             their_identity_key.data(), their_ephemeral_public_key.data());
-        if (!success) {
+        if (result != 0) {
           throw std::runtime_error("Failed to perform handshake");
         }
         SessionFunction session =
