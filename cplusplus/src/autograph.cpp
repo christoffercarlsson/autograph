@@ -23,7 +23,7 @@ void init() {
   }
 }
 
-KeyPair key_pair() {
+KeyPair generate_key_pair() {
   auto keys = key_pair_identity();
   return std::move(keys);
 }

@@ -10,6 +10,6 @@ Party create_responder(const KeyPair &identity_key_pair);
 
 void init();
 
-KeyPair key_pair();
+KeyPair generate_key_pair();
 
 }  // namespace autograph

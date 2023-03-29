@@ -27,10 +27,10 @@ HandshakeFunction handshake_create(bool is_initiator,
         if (result != 0) {
           throw std::runtime_error("Failed to perform handshake");
         }
-        SessionFunction session =
+        SessionFunction verify_session =
             session_create(our_key_pair.private_key, their_identity_key,
                            transcript, our_secret_key, their_secret_key);
-        Handshake handshake = {ciphertext, session};
+        Handshake handshake = {ciphertext, verify_session};
         return std::move(handshake);
       };
   return std::move(handshake_function);

@@ -41,15 +41,15 @@ using SessionFunction = std::function<Session(const Chunk&)>;
 
 using Handshake = struct Handshake {
   Chunk ciphertext;
-  SessionFunction session;
+  SessionFunction verify_session;
 };
 
 using HandshakeFunction = std::function<Handshake(const Chunk&, const Chunk&)>;
 
 using Party = struct Party {
-  SafetyNumberFunction safety_number;
+  SafetyNumberFunction calculate_safety_number;
   Chunk ephemeral_key;
-  HandshakeFunction handshake;
+  HandshakeFunction perform_handshake;
   Chunk identity_key;
 };
 
