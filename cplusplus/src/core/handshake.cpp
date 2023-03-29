@@ -17,14 +17,27 @@ void autograph_core_handshake_transcript(
     const unsigned char *their_ephemeral_key) {
   auto result =
       std::vector<unsigned char>(autograph_core_handshake_TRANSCRIPT_SIZE);
-  result.insert(result.end(), our_identity_key,
-                our_identity_key + autograph_core_key_pair_PUBLIC_KEY_SIZE);
-  result.insert(result.end(), our_ephemeral_key,
-                our_ephemeral_key + autograph_core_key_pair_PUBLIC_KEY_SIZE);
-  result.insert(result.end(), their_identity_key,
-                their_identity_key + autograph_core_key_pair_PUBLIC_KEY_SIZE);
-  result.insert(result.end(), their_ephemeral_key,
-                their_ephemeral_key + autograph_core_key_pair_PUBLIC_KEY_SIZE);
+  if (is_initiator) {
+    result.insert(result.end(), our_identity_key,
+                  our_identity_key + autograph_core_key_pair_PUBLIC_KEY_SIZE);
+    result.insert(result.end(), their_identity_key,
+                  their_identity_key + autograph_core_key_pair_PUBLIC_KEY_SIZE);
+    result.insert(result.end(), our_ephemeral_key,
+                  our_ephemeral_key + autograph_core_key_pair_PUBLIC_KEY_SIZE);
+    result.insert(
+        result.end(), their_ephemeral_key,
+        their_ephemeral_key + autograph_core_key_pair_PUBLIC_KEY_SIZE);
+  } else {
+    result.insert(result.end(), their_identity_key,
+                  their_identity_key + autograph_core_key_pair_PUBLIC_KEY_SIZE);
+    result.insert(result.end(), our_identity_key,
+                  our_identity_key + autograph_core_key_pair_PUBLIC_KEY_SIZE);
+    result.insert(
+        result.end(), their_ephemeral_key,
+        their_ephemeral_key + autograph_core_key_pair_PUBLIC_KEY_SIZE);
+    result.insert(result.end(), our_ephemeral_key,
+                  our_ephemeral_key + autograph_core_key_pair_PUBLIC_KEY_SIZE);
+  }
   std::move(result.begin(), result.end(), transcript);
 }
 
