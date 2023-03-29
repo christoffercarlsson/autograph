@@ -1,10 +1,12 @@
 #pragma once
 
-bool handshake(unsigned char *transcript, unsigned char *ciphertext,
-               unsigned char *our_secret_key, unsigned char *their_secret_key,
-               bool is_initiator, const unsigned char *our_private_identity_key,
-               const unsigned char *our_public_identity_key,
-               const unsigned char *our_private_ephemeral_key,
-               const unsigned char *our_public_ephemeral_key,
-               const unsigned char *their_public_identity_key,
-               const unsigned char *their_public_ephemeral_key);
+#include "types.h"
+
+namespace autograph {
+
+HandshakeFunction handshake_create(bool is_initiator,
+                                   const KeyPair &our_key_pair,
+                                   const Chunk &our_ephemeral_private_key,
+                                   const Chunk &our_ephemeral_public_key);
+
+}

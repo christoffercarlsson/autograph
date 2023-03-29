@@ -3,6 +3,8 @@
 #include <functional>
 #include <vector>
 
+namespace autograph {
+
 using Chunk = std::vector<unsigned char>;
 
 using KeyPair = struct KeyPair {
@@ -17,13 +19,13 @@ using Certificate = struct Certificate {
 
 using CertificateList = std::vector<Certificate>;
 
-using CalculateSafetyNumberFunction = std::function<Chunk(const Chunk&)>;
-
 using CertifyFunction = std::function<Chunk(const Chunk&)>;
 
 using DecryptFunction = std::function<Chunk(const Chunk&)>;
 
 using EncryptFunction = std::function<Chunk(const Chunk&)>;
+
+using SafetyNumberFunction = std::function<Chunk(const Chunk&)>;
 
 using VerifyFunction =
     std::function<bool(const CertificateList&, const Chunk&)>;
@@ -45,8 +47,10 @@ using Handshake = struct Handshake {
 using HandshakeFunction = std::function<Handshake(const Chunk&, const Chunk&)>;
 
 using Party = struct Party {
-  CalculateSafetyNumberFunction calculate_safety_number;
+  SafetyNumberFunction safety_number;
   Chunk ephemeral_key;
   HandshakeFunction handshake;
   Chunk identity_key;
 };
+
+}  // namespace autograph

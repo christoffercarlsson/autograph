@@ -11,46 +11,47 @@ pkg_check_modules(LIBSODIUM REQUIRED libsodium)
 
 # Add source files
 set(SOURCES
-    src/aes.cpp
-    src/autograph_init.cpp
+    src/core/handshake.cpp
+    src/core/init.cpp
+    src/core/key_pair.cpp
+    src/core/message.cpp
+    src/core/ownership.cpp
+    src/core/safety_number.cpp
+    src/core/session.cpp
+    src/crypto/aes.cpp
+    src/crypto/diffie_hellman.cpp
+    src/crypto/hash.cpp
+    src/crypto/kdf.cpp
+    src/crypto/sign.cpp
     src/autograph.cpp
-    src/calculate_safety_number.cpp
-    src/certify_ownership.cpp
-    src/create_calculate_safety_number.cpp
-    src/create_handshake.cpp
-    src/create_session.cpp
-    src/decrypt_message.cpp
-    src/derive_secret_keys.cpp
-    src/encrypt_message.cpp
-    src/generate_key_pair.cpp
     src/handshake.cpp
-    src/sign_message.cpp
-    src/verify_ownership.cpp
-    src/verify_session.cpp
-    src/verify_signature.cpp
+    src/key_pair.cpp
+    src/party.cpp
+    src/safety_number.cpp
+    src/session.cpp
 )
 
 # Add header files
 set(HEADERS
-    include/autograph/aes.h
-    include/autograph/autograph_init.h
-    include/autograph/calculate_safety_number.h
-    include/autograph/certify_ownership.h
-    include/autograph/constants.h
+    include/autograph/core/handshake.h
+    include/autograph/core/init.h
+    include/autograph/core/key_pair.h
+    include/autograph/core/message.h
+    include/autograph/core/ownership.h
+    include/autograph/core/safety_number.h
+    include/autograph/core/session.h
     include/autograph/core.h
-    include/autograph/create_calculate_safety_number.h
-    include/autograph/create_handshake.h
-    include/autograph/create_session.h
-    include/autograph/decrypt_message.h
-    include/autograph/derive_secret_keys.h
-    include/autograph/encrypt_message.h
-    include/autograph/generate_key_pair.h
+    include/autograph/crypto/aes.h
+    include/autograph/crypto/diffie_hellman.h
+    include/autograph/crypto/hash.h
+    include/autograph/crypto/kdf.h
+    include/autograph/crypto/sign.h
     include/autograph/handshake.h
-    include/autograph/sign_message.h
+    include/autograph/key_pair.h
+    include/autograph/party.h
+    include/autograph/safety_number.h
+    include/autograph/session.h
     include/autograph/types.h
-    include/autograph/verify_ownership.h
-    include/autograph/verify_session.h
-    include/autograph/verify_signature.h
     include/autograph.h
 )
 
@@ -83,6 +84,5 @@ install(TARGETS autograph EXPORT autographTargets
 install(DIRECTORY include/ DESTINATION include)
 install(EXPORT autographTargets
     FILE autographTargets.cmake
-    NAMESPACE autograph::
     DESTINATION lib/cmake/autograph
 )

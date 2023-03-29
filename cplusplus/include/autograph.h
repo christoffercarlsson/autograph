@@ -1,12 +1,15 @@
 #pragma once
 
-#include "autograph/constants.h"
 #include "autograph/types.h"
 
-Party create_party(bool is_initiator, const KeyPair &identity_key_pair);
+namespace autograph {
 
-Party generate_party(bool is_initiator);
+Party create_initiator(const KeyPair &identity_key_pair);
 
-KeyPair generate_key_pair();
+Party create_responder(const KeyPair &identity_key_pair);
 
 void init();
+
+KeyPair key_pair();
+
+}  // namespace autograph
