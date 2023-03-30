@@ -1,7 +1,7 @@
+import { hash } from 'stedy'
 import { Chunk, createFrom } from 'stedy/bytes'
-import { CalculateSafetyNumberFunction } from '../types'
+import { SafetyNumberFunction } from '../types'
 import { SAFETY_NUMBER_DIVISOR, SAFETY_NUMBER_ITERATIONS } from './constants'
-import hash from './hash'
 
 const encodeChunk = (chunk: Chunk) => {
   const [a, b, c, d, e] = chunk
@@ -32,9 +32,9 @@ const calculateSafetyNumber = async (
   return createFrom(fingerprints.sort().join(''))
 }
 
-const createCalculateSafetyNumber =
-  (ourIdentityKey: BufferSource): CalculateSafetyNumberFunction =>
+const createSafetyNumber =
+  (ourIdentityKey: BufferSource): SafetyNumberFunction =>
   (theirIdentityKey: BufferSource) =>
     calculateSafetyNumber(ourIdentityKey, theirIdentityKey)
 
-export default createCalculateSafetyNumber
+export default createSafetyNumber

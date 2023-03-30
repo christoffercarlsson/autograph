@@ -1,11 +1,13 @@
 export const AES_GCM_NONCE_SIZE = 12
 export const DH_OUTPUT_SIZE = 32
+export const HANDSHAKE_SIZE = 80
 export const HKDF_SALT_SIZE = 64
-export const HKDF_OUTPUT_SIZE = 32
 export const CONTEXT_INITIATOR = 0
 export const CONTEXT_RESPONDER = 1
 export const PUBLIC_KEY_SIZE = 32
 export const PRIVATE_KEY_SIZE = 32
+export const SAFETY_NUMBER_SIZE = 60
 export const SAFETY_NUMBER_DIVISOR = 100000
 export const SAFETY_NUMBER_ITERATIONS = 5200
+export const SECRET_KEY_SIZE = 32
 export const SIGNATURE_SIZE = 64

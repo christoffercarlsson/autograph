@@ -1,4 +1,13 @@
-import { importKey } from 'stedy'
+import { exportKey, importKey } from 'stedy'
+import { KeyPair } from '../types'
+
+export const exportKeyPair = async ({
+  publicKey,
+  privateKey
+}: KeyPair): Promise<KeyPair> => ({
+  publicKey: await exportKey(publicKey),
+  privateKey: await exportKey(privateKey)
+})
 
 export const importPrivateKey = (key: BufferSource) =>
   importKey(key, false, false)

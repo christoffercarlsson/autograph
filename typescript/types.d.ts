@@ -1,6 +1,6 @@
 import { Chunk } from 'stedy/bytes'
 
-export type CalculateSafetyNumberFunction = (
+export type SafetyNumberFunction = (
   theirIdentityKey: BufferSource
 ) => Promise<Chunk>
 
@@ -26,14 +26,9 @@ export type Session = {
 
 export type SessionFunction = (ciphertext: BufferSource) => Promise<Session>
 
-export type SecretKeys = {
-  ourSecretKey: Chunk
-  theirSecretKey: Chunk
-}
-
 export type Handshake = {
   ciphertext: Chunk
-  session: SessionFunction
+  establishSession: SessionFunction
 }
 
 export type HandshakeFunction = (
@@ -47,8 +42,8 @@ export type KeyPair = {
 }
 
 export type Party = {
-  calculateSafetyNumber: CalculateSafetyNumberFunction
+  calculateSafetyNumber: SafetyNumberFunction
   ephemeralKey: Chunk
-  handshake: HandshakeFunction
+  performHandshake: HandshakeFunction
   identityKey: Chunk
 }
