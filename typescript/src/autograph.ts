@@ -1,3 +1,4 @@
+import { generateSignKeyPair as generateEd25519KeyPair } from 'stedy'
 import { KeyPair } from '../types'
 import {
   HANDSHAKE_SIZE,
@@ -6,8 +7,11 @@ import {
   SAFETY_NUMBER_SIZE,
   SIGNATURE_SIZE
 } from './constants'
-import { generateKeyPair } from './key-pair'
 import createParty from './party'
+import { exportKeyPair } from './utils'
+
+const generateKeyPair = async () =>
+  exportKeyPair(await generateEd25519KeyPair())
 
 const createInitiator = (identityKeyPair: KeyPair) =>
   createParty(true, identityKeyPair)
