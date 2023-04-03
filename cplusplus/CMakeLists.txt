@@ -1,86 +1,73 @@
 cmake_minimum_required(VERSION 3.5)
 
-project(autograph VERSION 0.2.0 LANGUAGES CXX)
+if(DEFINED AUTOGRAPH_TOOLCHAIN
+   AND DEFINED AUTOGRAPH_ARCH
+   AND NOT "${AUTOGRAPH_TOOLCHAIN}" STREQUAL ""
+   AND NOT "${AUTOGRAPH_ARCH}" STREQUAL "")
+  include(toolchains/${AUTOGRAPH_TOOLCHAIN}.toolchain.cmake)
+endif()
 
-set(CMAKE_CXX_STANDARD 11)
+if(APPLE)
+  set(CMAKE_C_ARCHIVE_CREATE "<CMAKE_AR> Scr <TARGET> <LINK_FLAGS> <OBJECTS>")
+  set(CMAKE_CXX_ARCHIVE_CREATE "<CMAKE_AR> Scr <TARGET> <LINK_FLAGS> <OBJECTS>")
+  set(CMAKE_C_ARCHIVE_FINISH
+      "<CMAKE_RANLIB> -no_warning_for_no_symbols -c <TARGET>")
+  set(CMAKE_CXX_ARCHIVE_FINISH
+      "<CMAKE_RANLIB> -no_warning_for_no_symbols -c <TARGET>")
+endif()
+
+project(
+  autograph
+  VERSION 0.2.0
+  LANGUAGES C CXX)
+
+set(CMAKE_C_STANDARD 11)
+set(CMAKE_CXX_STANDARD 17)
+set(CMAKE_C_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
+set(CMAKE_MESSAGE_LOG_LEVEL ERROR)
 
-# Find the libsodium package
-find_package(PkgConfig REQUIRED)
-pkg_check_modules(LIBSODIUM REQUIRED libsodium)
+execute_process(COMMAND "/bin/bash"
+                        ${CMAKE_CURRENT_SOURCE_DIR}/scripts/sodium-version.sh)
+execute_process(
+  COMMAND "/bin/bash" ${CMAKE_CURRENT_SOURCE_DIR}/scripts/sodium-sources.sh
+  OUTPUT_VARIABLE SODIUM_SOURCES)
+string(REPLACE "\n" ";" SODIUM_SOURCES ${SODIUM_SOURCES})
 
-# Add source files
-set(SOURCES
-    src/core/handshake.cpp
-    src/core/init.cpp
-    src/core/key_pair.cpp
-    src/core/message.cpp
-    src/core/ownership.cpp
-    src/core/safety_number.cpp
-    src/core/session.cpp
-    src/crypto/aes.cpp
-    src/crypto/diffie_hellman.cpp
-    src/crypto/hash.cpp
-    src/crypto/kdf.cpp
-    src/crypto/sign.cpp
-    src/autograph.cpp
-    src/handshake.cpp
-    src/party.cpp
-    src/safety_number.cpp
-    src/session.cpp
-)
+if(DEFINED AUTOGRAPH_CORE AND AUTOGRAPH_CORE EQUAL 1)
+  file(GLOB_RECURSE AUTOGRAPH_SOURCES src/core/*.cpp src/crypto/*.cpp)
+else()
+  file(GLOB_RECURSE AUTOGRAPH_SOURCES src/*.cpp)
+endif()
 
-# Add header files
-set(HEADERS
-    include/autograph/core/handshake.h
-    include/autograph/core/init.h
-    include/autograph/core/key_pair.h
-    include/autograph/core/message.h
-    include/autograph/core/ownership.h
-    include/autograph/core/safety_number.h
-    include/autograph/core/session.h
-    include/autograph/crypto/aes.h
-    include/autograph/crypto/diffie_hellman.h
-    include/autograph/crypto/hash.h
-    include/autograph/crypto/kdf.h
-    include/autograph/crypto/sign.h
-    include/autograph/core.h
-    include/autograph/handshake.h
-    include/autograph/party.h
-    include/autograph/safety_number.h
-    include/autograph/session.h
-    include/autograph/types.h
-    include/autograph.h
-)
+add_library(autograph STATIC ${SODIUM_SOURCES} ${AUTOGRAPH_SOURCES})
 
-# Add library target
-add_library(autograph ${SOURCES} ${HEADERS})
+target_include_directories(
+  autograph
+  PUBLIC $<INSTALL_INTERFACE:include>
+         $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
+  PRIVATE include/autograph libsodium/src/libsodium/include
+          libsodium/src/libsodium/include/sodium)
 
-# Link against libsodium
-target_link_libraries(autograph PRIVATE ${LIBSODIUM_LIBRARIES})
+target_compile_definitions(autograph PRIVATE CONFIGURED)
 
-# Set output name of the library
-set_target_properties(autograph PROPERTIES OUTPUT_NAME autograph)
+install(
+  TARGETS autograph
+  EXPORT autographTargets
+  ARCHIVE DESTINATION lib
+  LIBRARY DESTINATION lib
+  RUNTIME DESTINATION bin
+  INCLUDES
+  DESTINATION include)
 
-# Set include directories
-target_include_directories(autograph
-    PUBLIC
-        $<INSTALL_INTERFACE:include>
-        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
-    PRIVATE
-        ${CMAKE_CURRENT_SOURCE_DIR}/src
-        ${LIBSODIUM_INCLUDE_DIRS}
-)
+if(DEFINED AUTOGRAPH_CORE AND AUTOGRAPH_CORE EQUAL 1)
+  install(FILES include/autograph.h DESTINATION include)
+else()
+  install(FILES include/autograph.hpp DESTINATION include)
+  install(FILES include/autograph/types.hpp DESTINATION include/autograph)
+endif()
 
-# Install headers and library
-install(TARGETS autograph EXPORT autographTargets
-    ARCHIVE DESTINATION lib
-    LIBRARY DESTINATION lib
-    RUNTIME DESTINATION bin
-    INCLUDES DESTINATION include
-)
-install(DIRECTORY include/ DESTINATION include)
-install(EXPORT autographTargets
-    FILE autographTargets.cmake
-    DESTINATION lib/cmake/autograph
-)
+install(
+  EXPORT autographTargets
+  FILE autographTargets.cmake
+  DESTINATION lib/cmake/autograph)

@@ -1,0 +1,10 @@
+set(CMAKE_SYSTEM_NAME Darwin)
+set(CMAKE_OSX_SYSROOT "watchsimulator")
+
+set(CMAKE_OSX_DEPLOYMENT_TARGET "5.0" CACHE STRING "Minimum watchOS deployment target")
+set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -arch ${AUTOGRAPH_ARCH} -mwatchos-simulator-version-min=${CMAKE_OSX_DEPLOYMENT_TARGET}")
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -arch ${AUTOGRAPH_ARCH} -mwatchos-simulator-version-min=${CMAKE_OSX_DEPLOYMENT_TARGET}")
+set(CMAKE_XCODE_ATTRIBUTE_WATCHOS_DEPLOYMENT_TARGET "${CMAKE_OSX_DEPLOYMENT_TARGET}")
+
+# Set the watchOS target platform version
+set(CMAKE_XCODE_ATTRIBUTE_TARGETED_DEVICE_FAMILY "4")

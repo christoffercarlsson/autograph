@@ -1,0 +1,10 @@
+set(CMAKE_SYSTEM_NAME Darwin)
+set(CMAKE_OSX_SYSROOT "iphonesimulator")
+
+set(CMAKE_OSX_DEPLOYMENT_TARGET "11.0" CACHE STRING "Minimum iOS deployment target")
+set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -arch ${AUTOGRAPH_ARCH} -mios-simulator-version-min=${CMAKE_OSX_DEPLOYMENT_TARGET}")
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -arch ${AUTOGRAPH_ARCH} -mios-simulator-version-min=${CMAKE_OSX_DEPLOYMENT_TARGET}")
+set(CMAKE_XCODE_ATTRIBUTE_IPHONEOS_DEPLOYMENT_TARGET "${CMAKE_OSX_DEPLOYMENT_TARGET}")
+
+# Set the iOS target platform version (iPhone and iPad)
+set(CMAKE_XCODE_ATTRIBUTE_TARGETED_DEVICE_FAMILY "1,2")

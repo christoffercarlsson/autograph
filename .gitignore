@@ -7,20 +7,21 @@
 
 # IDE-specific files
 .vscode/
+*.xcodeproj
 
 # Compiled object files
 *.o
 *.obj
 
-# Libraries
-*.lib
-*.a
-
 # Executables
 *.exe
 *.out
 
-# CMake-generated files
+# C++-specific files
+build/
+cplusplus/build/
+cplusplus/bin/
+cplusplus/lib/
 .cmake/
 CMakeCache.txt
 CMakeFiles/
@@ -29,11 +30,18 @@ cmake_install.cmake
 compile_commands.json
 install_manifest.txt
 
-# Build output directories
-build/
-cplusplus/build/
-cplusplus/bin/
-cplusplus/lib/
+# Swift-specific files
+.build/
+.swiftpm/
+swift/.build/
+swift/Packages/
+swift/xcuserdata/
+swift/DerivedData/
+swift/.swiftpm/config/registries.json
+swift/.swiftpm/xcode/package.xcworkspace/contents.xcworkspacedata
+swift/.netrc
+
+# TypeScript-specific files
 typescript/coverage/
 typescript/dist/
 typescript/node_modules/

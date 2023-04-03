@@ -1,14 +1,15 @@
-#include "autograph/crypto/kdf.h"
-
+#include "constants.hpp"
+#include "crypto.hpp"
 #include "sodium.h"
 
-bool autograph_crypto_kdf(unsigned char *secret_key, const unsigned char *ikm,
-                          const unsigned char context) {
-  unsigned char salt[crypto_auth_hmacsha512_BYTES];
-  sodium_memzero(salt, crypto_auth_hmacsha512_BYTES);
-  unsigned char prk[crypto_auth_hmacsha512_BYTES];
-  int extract_result =
-      crypto_auth_hmacsha512(prk, ikm, crypto_scalarmult_BYTES, salt);
+namespace autograph {
+
+bool kdf(unsigned char *secret_key, const unsigned char *ikm,
+         const unsigned char context) {
+  unsigned char salt[DIGEST_SIZE];
+  sodium_memzero(salt, DIGEST_SIZE);
+  unsigned char prk[DIGEST_SIZE];
+  int extract_result = crypto_auth_hmacsha512(prk, ikm, DH_OUTPUT_SIZE, salt);
   if (extract_result != 0) {
     return false;
   }
@@ -19,3 +20,5 @@ bool autograph_crypto_kdf(unsigned char *secret_key, const unsigned char *ikm,
   }
   return true;
 }
+
+}  // namespace autograph

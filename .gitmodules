@@ -1,0 +1,4 @@
+[submodule "cplusplus/libsodium"]
+	path = cplusplus/libsodium
+	url = https://github.com/jedisct1/libsodium
+	branch = stable

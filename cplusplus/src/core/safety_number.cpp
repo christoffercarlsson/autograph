@@ -1,46 +1,44 @@
-#include "autograph/core/safety_number.h"
-
 #include <algorithm>
 #include <string>
 
-#include "autograph/core/key_pair.h"
-#include "autograph/crypto/hash.h"
+#include "autograph.h"
+#include "constants.hpp"
+#include "crypto.hpp"
 
-std::string autograph_core_safety_number_chunk(const unsigned char *digest,
-                                               const unsigned int i) {
+namespace autograph {
+
+std::string encode_chunk(const unsigned char *digest, const unsigned int i) {
   int number = ((digest[i] << 24) | (digest[i + 1] << 16) |
                 (digest[i + 2] << 8) | digest[i + 3]) %
-               autograph_core_safety_number_DIVISOR;
+               SAFETY_NUMBER_DIVISOR;
   std::string digits = std::to_string(number);
-  digits.resize(autograph_core_safety_number_CHUNK_SIZE, '0');
+  digits.resize(SAFETY_NUMBER_CHUNK_SIZE, '0');
   return std::move(digits);
 }
 
-std::string autograph_core_safety_number_fingerprint(
-    const unsigned char *identity_key) {
-  unsigned char digest[autograph_crypto_hash_DIGEST_SIZE];
-  bool hash_result = autograph_crypto_hash(
-      digest, identity_key, autograph_core_key_pair_PUBLIC_KEY_SIZE,
-      autograph_core_safety_number_ITERATIONS);
+std::string calculate_fingerprint(const unsigned char *identity_key) {
+  unsigned char digest[DIGEST_SIZE];
+  bool hash_result =
+      hash(digest, identity_key, PUBLIC_KEY_SIZE, SAFETY_NUMBER_ITERATIONS);
   std::string fingerprint;
   if (!hash_result) {
     return std::move(fingerprint);
   }
-  for (int i = 0; i < autograph_core_safety_number_FINGERPRINT_SIZE;
-       i += autograph_core_safety_number_CHUNK_SIZE) {
-    std::string chunk = autograph_core_safety_number_chunk(digest, i);
+  for (int i = 0; i < SAFETY_NUMBER_FINGERPRINT_SIZE;
+       i += SAFETY_NUMBER_CHUNK_SIZE) {
+    std::string chunk = encode_chunk(digest, i);
     fingerprint.insert(fingerprint.end(), chunk.begin(), chunk.end());
   }
   return std::move(fingerprint);
 }
 
-int autograph_core_safety_number(unsigned char *safety_number,
-                                 const unsigned char *our_identity_key,
-                                 const unsigned char *their_identity_key) {
-  auto our_fingerprint =
-      autograph_core_safety_number_fingerprint(our_identity_key);
-  auto their_fingerprint =
-      autograph_core_safety_number_fingerprint(their_identity_key);
+}  // namespace autograph
+
+int autograph_safety_number(unsigned char *safety_number,
+                            const unsigned char *our_identity_key,
+                            const unsigned char *their_identity_key) {
+  auto our_fingerprint = autograph::calculate_fingerprint(our_identity_key);
+  auto their_fingerprint = autograph::calculate_fingerprint(their_identity_key);
   std::string result;
   if (std::lexicographical_compare(
           our_fingerprint.begin(), our_fingerprint.end(),
@@ -53,7 +51,7 @@ int autograph_core_safety_number(unsigned char *safety_number,
                   their_fingerprint.end());
     result.insert(result.end(), our_fingerprint.begin(), our_fingerprint.end());
   }
-  if (result.size() != autograph_core_safety_number_SIZE) {
+  if (result.size() != autograph::SAFETY_NUMBER_SIZE) {
     return -1;
   }
   std::move(result.begin(), result.end(), safety_number);

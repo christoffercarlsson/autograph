@@ -1,39 +1,38 @@
-#include "autograph.h"
+#include "autograph.hpp"
 
-#include "autograph/core/init.h"
-#include "autograph/core/key_pair.h"
-#include "autograph/party.h"
+#include "autograph.h"
+#include "private.hpp"
 
 namespace autograph {
 
-Party create_initiator(unsigned char* ephemeral_public_key,
-                       const unsigned char* private_key,
-                       const unsigned char* public_key) {
-  auto party =
-      create_party(ephemeral_public_key, true, private_key, public_key);
+Party create_initiator(const unsigned char *identity_private_key,
+                       const unsigned char *identity_public_key,
+                       unsigned char *ephemeral_private_key,
+                       const unsigned char *ephemeral_public_key) {
+  auto party = create_party(true, identity_private_key, identity_public_key,
+                            ephemeral_private_key, ephemeral_public_key);
   return std::move(party);
 }
 
-Party create_responder(unsigned char* ephemeral_public_key,
-                       const unsigned char* private_key,
-                       const unsigned char* public_key) {
-  auto party =
-      create_party(ephemeral_public_key, false, private_key, public_key);
+Party create_responder(const unsigned char *identity_private_key,
+                       const unsigned char *identity_public_key,
+                       unsigned char *ephemeral_private_key,
+                       const unsigned char *ephemeral_public_key) {
+  auto party = create_party(false, identity_private_key, identity_public_key,
+                            ephemeral_private_key, ephemeral_public_key);
   return std::move(party);
 }
 
-void init() {
-  int result = autograph_core_init();
-  if (result != 0) {
-    throw std::runtime_error("Failed to initialize Autograph");
-  }
+bool generate_ephemeral_key_pair(unsigned char *private_key,
+                                 unsigned char *public_key) {
+  return autograph_key_pair_ephemeral(private_key, public_key) == 0;
 }
 
-void generate_key_pair(unsigned char* private_key, unsigned char* public_key) {
-  int result = autograph_core_key_pair_identity(private_key, public_key);
-  if (result != 0) {
-    throw std::runtime_error("Failed to generate identity key pair");
-  }
+bool generate_identity_key_pair(unsigned char *private_key,
+                                unsigned char *public_key) {
+  return autograph_key_pair_identity(private_key, public_key) == 0;
 }
+
+bool init() { return autograph_init() == 0; }
 
 }  // namespace autograph
