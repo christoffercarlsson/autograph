@@ -1,6 +1,6 @@
 #include "autograph/core/handshake.h"
 
-#include <vector>
+#include <algorithm>
 
 #include "autograph/core/key_pair.h"
 #include "autograph/crypto/aes.h"
@@ -9,36 +9,35 @@
 #include "autograph/crypto/sign.h"
 #include "sodium.h"
 
+void autograph_core_handshake_transcript_write(
+    unsigned char *transcript, const unsigned char *first_key,
+    const unsigned char *second_key, const unsigned char *third_key,
+    const unsigned char *fourth_key) {
+  std::copy(first_key, first_key + autograph_core_key_pair_PUBLIC_KEY_SIZE,
+            transcript);
+  std::copy(second_key, second_key + autograph_core_key_pair_PUBLIC_KEY_SIZE,
+            transcript + autograph_core_key_pair_PUBLIC_KEY_SIZE);
+  std::copy(third_key, third_key + autograph_core_key_pair_PUBLIC_KEY_SIZE,
+            transcript + 2 * autograph_core_key_pair_PUBLIC_KEY_SIZE);
+  std::copy(fourth_key, fourth_key + autograph_core_key_pair_PUBLIC_KEY_SIZE,
+            transcript + 3 * autograph_core_key_pair_PUBLIC_KEY_SIZE);
+}
+
 void autograph_core_handshake_transcript(
     unsigned char *transcript, bool is_initiator,
     const unsigned char *our_identity_key,
     const unsigned char *our_ephemeral_key,
     const unsigned char *their_identity_key,
     const unsigned char *their_ephemeral_key) {
-  auto result =
-      std::vector<unsigned char>(autograph_core_handshake_TRANSCRIPT_SIZE);
   if (is_initiator) {
-    result.insert(result.end(), our_identity_key,
-                  our_identity_key + autograph_core_key_pair_PUBLIC_KEY_SIZE);
-    result.insert(result.end(), their_identity_key,
-                  their_identity_key + autograph_core_key_pair_PUBLIC_KEY_SIZE);
-    result.insert(result.end(), our_ephemeral_key,
-                  our_ephemeral_key + autograph_core_key_pair_PUBLIC_KEY_SIZE);
-    result.insert(
-        result.end(), their_ephemeral_key,
-        their_ephemeral_key + autograph_core_key_pair_PUBLIC_KEY_SIZE);
+    autograph_core_handshake_transcript_write(
+        transcript, our_identity_key, their_identity_key, our_ephemeral_key,
+        their_ephemeral_key);
   } else {
-    result.insert(result.end(), their_identity_key,
-                  their_identity_key + autograph_core_key_pair_PUBLIC_KEY_SIZE);
-    result.insert(result.end(), our_identity_key,
-                  our_identity_key + autograph_core_key_pair_PUBLIC_KEY_SIZE);
-    result.insert(
-        result.end(), their_ephemeral_key,
-        their_ephemeral_key + autograph_core_key_pair_PUBLIC_KEY_SIZE);
-    result.insert(result.end(), our_ephemeral_key,
-                  our_ephemeral_key + autograph_core_key_pair_PUBLIC_KEY_SIZE);
+    autograph_core_handshake_transcript_write(
+        transcript, their_identity_key, our_identity_key, their_ephemeral_key,
+        our_ephemeral_key);
   }
-  std::move(result.begin(), result.end(), transcript);
 }
 
 bool autograph_core_handshake_ciphertext(unsigned char *ciphertext,
