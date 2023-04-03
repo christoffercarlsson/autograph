@@ -1,56 +1,56 @@
 #pragma once
 
 #include <functional>
-#include <vector>
+
+#include "autograph/core/handshake.h"
+#include "autograph/core/key_pair.h"
+#include "autograph/core/safety_number.h"
+#include "autograph/crypto/kdf.h"
+#include "autograph/crypto/sign.h"
 
 namespace autograph {
 
-using Chunk = std::vector<unsigned char>;
+using Handshake = unsigned char[autograph_core_handshake_SIZE];
 
-using KeyPair = struct KeyPair {
-  Chunk public_key;
-  Chunk private_key;
-};
+using PrivateKey = unsigned char[autograph_core_key_pair_PRIVATE_KEY_SIZE];
 
-using Certificate = struct Certificate {
-  Chunk identity_key;
-  Chunk signature;
-};
+using PublicKey = unsigned char[autograph_core_key_pair_PUBLIC_KEY_SIZE];
 
-using CertificateList = std::vector<Certificate>;
+using SafetyNumber = unsigned char[autograph_core_safety_number_SIZE];
 
-using CertifyFunction = std::function<Chunk(const Chunk&)>;
+using Signature = unsigned char[autograph_crypto_sign_SIGNATURE_SIZE];
 
-using DecryptFunction = std::function<Chunk(const Chunk&)>;
+using CertifyFunction = std::function<void(unsigned char*, const unsigned char*,
+                                           const unsigned long long)>;
 
-using EncryptFunction = std::function<Chunk(const Chunk&)>;
+using DecryptFunction = std::function<void(unsigned char*, const unsigned char*,
+                                           const unsigned long long)>;
 
-using SafetyNumberFunction = std::function<Chunk(const Chunk&)>;
+using EncryptFunction = std::function<void(unsigned char*, const unsigned char*,
+                                           const unsigned long long)>;
+
+using SafetyNumberFunction =
+    std::function<void(unsigned char*, const unsigned char*)>;
 
 using VerifyFunction =
-    std::function<bool(const CertificateList&, const Chunk&)>;
+    std::function<bool(const unsigned char*, const unsigned long long,
+                       const unsigned char*, const unsigned long long)>;
 
-using Session = struct Session {
+struct Session {
   CertifyFunction certify;
   DecryptFunction decrypt;
   EncryptFunction encrypt;
   VerifyFunction verify;
 };
 
-using SessionFunction = std::function<Session(const Chunk&)>;
+using SessionFunction = std::function<Session(const unsigned char*)>;
 
-using Handshake = struct Handshake {
-  Chunk ciphertext;
-  SessionFunction establish_session;
-};
+using HandshakeFunction = std::function<SessionFunction(
+    unsigned char*, const unsigned char*, const unsigned char*)>;
 
-using HandshakeFunction = std::function<Handshake(const Chunk&, const Chunk&)>;
-
-using Party = struct Party {
+struct Party {
   SafetyNumberFunction calculate_safety_number;
-  Chunk ephemeral_key;
   HandshakeFunction perform_handshake;
-  Chunk identity_key;
 };
 
 }  // namespace autograph

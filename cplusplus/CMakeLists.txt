@@ -25,7 +25,6 @@ set(SOURCES
     src/crypto/sign.cpp
     src/autograph.cpp
     src/handshake.cpp
-    src/key_pair.cpp
     src/party.cpp
     src/safety_number.cpp
     src/session.cpp
@@ -47,7 +46,6 @@ set(HEADERS
     include/autograph/crypto/sign.h
     include/autograph/core.h
     include/autograph/handshake.h
-    include/autograph/key_pair.h
     include/autograph/party.h
     include/autograph/safety_number.h
     include/autograph/session.h

@@ -7,86 +7,73 @@
 
 namespace autograph {
 
-CertifyFunction create_session_certify(const Chunk &our_private_key,
-                                       const Chunk &their_public_key) {
-  auto certify_function = [&our_private_key,
-                           &their_public_key](const Chunk &data) {
-    Chunk signature(autograph_crypto_sign_SIGNATURE_SIZE);
+CertifyFunction create_session_certify(const unsigned char *our_private_key,
+                                       const unsigned char *their_public_key) {
+  auto certify_function = [our_private_key, their_public_key](
+                              unsigned char *signature,
+                              const unsigned char *data,
+                              const unsigned long long data_size) {
     int result = autograph_core_ownership_certify(
-        signature.data(), our_private_key.data(), their_public_key.data(),
-        data.data(), data.size());
+        signature, our_private_key, their_public_key, data, data_size);
     if (result != 0) {
       throw std::runtime_error("Certification failed");
     }
-    return std::move(signature);
   };
   return std::move(certify_function);
 }
 
-DecryptFunction create_session_decrypt(const Chunk &their_secret_key) {
-  auto decrypt_function = [&their_secret_key](const Chunk &message) {
-    Chunk plaintext(message.size() - autograph_core_message_EXTRA_SIZE);
-    int result = autograph_core_message_decrypt(plaintext.data(),
-                                                their_secret_key.data(),
-                                                message.data(), message.size());
-    if (result != 0) {
-      throw std::runtime_error("Decryption failed");
-    }
-    return std::move(plaintext);
-  };
+DecryptFunction create_session_decrypt(const unsigned char *their_secret_key) {
+  auto decrypt_function =
+      [their_secret_key](unsigned char *plaintext, const unsigned char *message,
+                         const unsigned long long message_size) {
+        int result = autograph_core_message_decrypt(plaintext, their_secret_key,
+                                                    message, message_size);
+        if (result != 0) {
+          throw std::runtime_error("Decryption failed");
+        }
+      };
   return std::move(decrypt_function);
 }
 
-EncryptFunction create_session_encrypt(const Chunk &our_secret_key) {
-  auto encrypt_function = [&our_secret_key](const Chunk &plaintext) {
-    Chunk ciphertext(plaintext.size() + autograph_core_message_EXTRA_SIZE);
-    int result =
-        autograph_core_message_encrypt(ciphertext.data(), our_secret_key.data(),
-                                       plaintext.data(), plaintext.size());
+EncryptFunction create_session_encrypt(const unsigned char *our_secret_key) {
+  auto encrypt_function = [our_secret_key](
+                              unsigned char *ciphertext,
+                              const unsigned char *plaintext,
+                              const unsigned long long plaintext_size) {
+    int result = autograph_core_message_encrypt(ciphertext, our_secret_key,
+                                                plaintext, plaintext_size);
     if (result != 0) {
       throw std::runtime_error("Encryption failed");
     }
-    return std::move(ciphertext);
   };
   return std::move(encrypt_function);
 }
 
-Chunk extract_certificates(const CertificateList &certificates) {
-  Chunk result;
-  for (const auto &certificate : certificates) {
-    result.insert(result.end(), certificate.identity_key.begin(),
-                  certificate.identity_key.end());
-    result.insert(result.end(), certificate.signature.begin(),
-                  certificate.signature.end());
-  }
-  return std::move(result);
-}
-
-VerifyFunction create_session_verify(const Chunk &their_identity_key,
-                                     const Chunk &their_secret_key) {
-  auto verify_function = [&their_identity_key, &their_secret_key](
-                             const CertificateList &certificates,
-                             const Chunk &message) {
+VerifyFunction create_session_verify(const unsigned char *their_identity_key,
+                                     const unsigned char *their_secret_key) {
+  auto verify_function = [their_identity_key, their_secret_key](
+                             const unsigned char *certificates,
+                             const unsigned long long certificate_count,
+                             const unsigned char *message,
+                             const unsigned long long message_size) {
     int result = autograph_core_ownership_verify(
-        their_identity_key.data(), their_secret_key.data(),
-        extract_certificates(certificates).data(), certificates.size(),
-        message.data(), message.size());
+        their_identity_key, their_secret_key, certificates, certificate_count,
+        message, message_size);
     return result == 0;
   };
   return std::move(verify_function);
 }
 
-SessionFunction create_session(const Chunk &our_private_key,
-                               const Chunk &their_identity_key,
-                               const Chunk &transcript,
-                               const Chunk &our_secret_key,
-                               const Chunk &their_secret_key) {
-  auto session_function = [&our_private_key, &their_identity_key, &transcript,
-                           &our_secret_key,
-                           &their_secret_key](const Chunk &ciphertext) {
-    int result =
-        autograph_core_session(transcript.data(), their_identity_key.data(),
-                               their_secret_key.data(), ciphertext.data());
+SessionFunction create_session(const unsigned char *our_private_key,
+                               const unsigned char *their_identity_key,
+                               const unsigned char *transcript,
+                               const unsigned char *our_secret_key,
+                               const unsigned char *their_secret_key) {
+  auto session_function = [our_private_key, their_identity_key, transcript,
+                           our_secret_key, their_secret_key](
+                              const unsigned char *their_ciphertext) {
+    int result = autograph_core_session(transcript, their_identity_key,
+                                        their_secret_key, their_ciphertext);
     if (result != 0) {
       throw std::runtime_error("Handshake verification failed");
     }

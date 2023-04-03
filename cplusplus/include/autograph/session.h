@@ -4,10 +4,10 @@
 
 namespace autograph {
 
-SessionFunction create_session(const Chunk &our_private_key,
-                               const Chunk &their_identity_key,
-                               const Chunk &transcript,
-                               const Chunk &our_secret_key,
-                               const Chunk &their_secret_key);
+SessionFunction create_session(const unsigned char* our_private_key,
+                               const unsigned char* their_identity_key,
+                               const unsigned char* transcript,
+                               const unsigned char* our_secret_key,
+                               const unsigned char* their_secret_key);
 
 }

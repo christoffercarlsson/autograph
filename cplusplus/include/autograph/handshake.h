@@ -4,9 +4,10 @@
 
 namespace autograph {
 
-HandshakeFunction create_handshake(bool is_initiator,
-                                   const KeyPair &our_key_pair,
-                                   const Chunk &our_ephemeral_private_key,
-                                   const Chunk &our_ephemeral_public_key);
+HandshakeFunction create_handshake(
+    bool is_initiator, const unsigned char* our_identity_private_key,
+    const unsigned char* our_identity_public_key,
+    const unsigned char* our_ephemeral_private_key,
+    const unsigned char* our_ephemeral_public_key);
 
 }

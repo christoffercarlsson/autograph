@@ -4,18 +4,17 @@
 
 namespace autograph {
 
-SafetyNumberFunction create_safety_number(const Chunk &our_identity_key) {
-  auto safety_number_function =
-      [&our_identity_key](const Chunk &their_identity_key) {
-        Chunk safety_number(autograph_core_safety_number_SIZE);
-        int result = autograph_core_safety_number(safety_number.data(),
-                                                  our_identity_key.data(),
-                                                  their_identity_key.data());
-        if (result != 0) {
-          throw std::runtime_error("Failed to calculate safety number");
-        }
-        return std::move(safety_number);
-      };
+SafetyNumberFunction create_safety_number(
+    const unsigned char *our_identity_key) {
+  auto safety_number_function = [our_identity_key](
+                                    unsigned char *safety_number,
+                                    const unsigned char *their_identity_key) {
+    int result = autograph_core_safety_number(safety_number, our_identity_key,
+                                              their_identity_key);
+    if (result != 0) {
+      throw std::runtime_error("Failed to calculate safety number");
+    }
+  };
   return std::move(safety_number_function);
 }
 
