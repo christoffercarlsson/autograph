@@ -1,6 +1,6 @@
 # The Autograph Protocol
 
-Revision 3 (Draft 1), 2023-03-13
+Revision 3 (Draft 2), 2023-04-19
 
 Christoffer Carlsson (editor)
 
@@ -94,10 +94,12 @@ the initiator, and the role **Bob** to refer to the responder.
 
 Autograph will use the following elliptic curve public keys:
 
-| Name | Definition                                | Form    |
-| :--- | :---------------------------------------- | :------ |
-| IK   | A long-term identity key used for signing | Ed25519 |
-| EK   | An ephemeral key used for key agreement   | X25519  |
+| Name           | Definition            | Form    |
+| :------------- | :-------------------- | :------ |
+| IK<sub>A</sub> | Alice's identity key  | Ed25519 |
+| EK<sub>A</sub> | Alice's ephemeral key | X25519  |
+| IK<sub>B</sub> | Bob's identity key    | Ed25519 |
+| EK<sub>B</sub> | Bob's ephemeral key   | X25519  |
 
 All public keys have corresponding private keys, but to simplify description
 this document will focus on the public keys.
@@ -108,12 +110,15 @@ use the little-endian encoding as specified in \[[5](#7-references)\]. The
 resulting byte sequences for X25519 and Ed25519 public keys will be 32 bytes
 long.
 
-Each party has an Ed25519 public key used for signing (IK<sub>A</sub> for Alice,
-IK<sub>B</sub> for Bob).
+Prior to a protocol run each party has two key pairs:
 
-During a handshake the two parties involved will each generate an ephemeral
-X25519 key pair with public key EK (EK<sub>A</sub> for Alice, EK<sub>B</sub> for
-Bob).
+1. An Ed25519 identity key pair with public key IK used for signing
+   (IK<sub>A</sub> for Alice, IK<sub>B</sub> for Bob).
+2. An X25519 ephemeral key pair with public key EK (EK<sub>A</sub> for Alice,
+   EK<sub>B</sub> for Bob) used for key agreement.
+
+Identity key pairs can be used in multiple protocol runs. Ephemeral key pairs
+are only used once for a single protocol run.
 
 During a handshake each party involved will derive a 32-byte secret key SK
 (SK<sub>A</sub> for Alice, SK<sub>B</sub> for Bob).
@@ -143,10 +148,7 @@ performing the following steps:
 Through some mechanism, each party obtains the other party's identity key IK
 (IK<sub>A</sub> for Alice, IK<sub>B</sub> for Bob).
 
-Alice generates an ephemeral X25519 key pair EK<sub>A</sub> and sends the public
-key to Bob.
-
-Bob generates an ephemeral X25519 key pair EK<sub>B</sub>.
+Alice sends her EK<sub>A</sub> public key to Bob.
 
 Upon receiving EK<sub>A</sub> from Alice, Bob creates a signature S<sub>B</sub>
 by calculating:
@@ -174,7 +176,7 @@ key, producing the ciphertext H<sub>B</sub>:
 
 H<sub>B</sub> = ENCRYPT(SK<sub>B</sub>, 0, S<sub>B</sub>)
 
-Bob sends EK<sub>B</sub> and H<sub>B</sub> to Alice.
+Bob sends his EK<sub>B</sub> public key and H<sub>B</sub> to Alice.
 
 Upon receiving EK<sub>B</sub> and H<sub>B</sub> from Bob, Alice repeats the
 above DH and KDF calculations to derive the SK<sub>A</sub> and SK<sub>B</sub>
@@ -286,18 +288,18 @@ The plaintext data that Alice wants to send to Bob is represented by the byte
 sequence D<sub>NA</sub>.
 
 Alice encrypts the plaintext D<sub>NA</sub> using the secret key SK<sub>A</sub>,
-producing the ciphertext M<sub>NA</sub>. She prepends the message index N to the
-ciphtertext, producing the message NM<sub>NA</sub>:
+producing the ciphertext E<sub>NA</sub>. She prepends the message index N to the
+ciphtertext, producing the message M<sub>NA</sub>:
 
-M<sub>NA</sub> = ENCRYPT(SK<sub>A</sub>, N, D<sub>NA</sub>)\
-NM<sub>NA</sub> = N || M<sub>NA</sub>
+E<sub>NA</sub> = ENCRYPT(SK<sub>A</sub>, N, D<sub>NA</sub>)\
+M<sub>NA</sub> = N || E<sub>NA</sub>
 
-Alice sends NM<sub>NA</sub> to Bob.
+Alice sends M<sub>NA</sub> to Bob.
 
-Upon receiving NM<sub>NA</sub> from Alice, Bob attempts to decrypt the
-ciphertext M<sub>NA</sub>:
+Upon receiving M<sub>NA</sub> from Alice, Bob attempts to decrypt the ciphertext
+E<sub>NA</sub>:
 
-D<sub>NA</sub> = DECRYPT(SK<sub>A</sub>, N, M<sub>NA</sub>)
+D<sub>NA</sub> = DECRYPT(SK<sub>A</sub>, N, E<sub>NA</sub>)
 
 If the decryption fails Bob aborts the protocol.
 
@@ -402,8 +404,13 @@ data D<sub>NB</sub>.
 
 ### 4.1 Key compromise
 
-Compromise of a party's long-term identity private key IK allows impersonation
-of that party to others.
+If a party's long-term identity private key IK is compromised, an attacker may
+impersonate that party to others.
+
+If a party's ephemeral private key EK is compromised prior to a given protocol
+run, an attacker may derive SK and thereby have the ability to tamper with the
+contents of the encrypted messages M being sent between the two parties involved
+in that protocol run.
 
 ### 4.2 Identity verification
 

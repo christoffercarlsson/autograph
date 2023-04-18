@@ -2,26 +2,25 @@ attacker[active]
 
 principal Alice[
   knows public salt, ci, cr
+  knows private ma
   knows private ika
+  knows private eka
   pika = G^ika
+  peka = G^eka
 ]
 
 principal Bob[
   knows public salt, ci, cr
+  knows private mb
   knows private ikb
+  knows private ekb
   pikb = G^ikb
-]
-
-principal Alice[
-  generates eka
-  peka = G^eka
+  pekb = G^ekb
 ]
 
 Alice -> Bob: [pika], peka
 
 principal Bob[
-  generates ekb
-  pekb = G^ekb
   tb = CONCAT(pika, pikb, peka, pekb)
   sb = SIGN(ikb, tb)
   kmb = peka^ekb
@@ -48,7 +47,6 @@ Alice -> Bob: ha
 principal Bob[
   sab = AEAD_DEC(skab, ha, nil)?
   _ = SIGNVERIF(pika, tb, sab)?
-  knows private mb
   cb = AEAD_ENC(skbb, mb, nil)
 ]
 
@@ -56,7 +54,6 @@ Bob -> Alice: cb
 
 principal Alice[
   _ = AEAD_DEC(skba, cb, nil)?
-  knows private ma
   ca = AEAD_ENC(skaa, ma, nil)
 ]
 
