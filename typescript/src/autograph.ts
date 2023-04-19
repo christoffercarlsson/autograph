@@ -1,4 +1,7 @@
-import { generateSignKeyPair as generateEd25519KeyPair } from 'stedy'
+import {
+  generateKeyPair as generateX25519KeyPair,
+  generateSignKeyPair as generateEd25519KeyPair
+} from 'stedy'
 import { KeyPair } from '../types'
 import {
   HANDSHAKE_SIZE,
@@ -10,14 +13,31 @@ import {
 import createParty from './party'
 import { exportKeyPair } from './utils'
 
-const generateKeyPair = async () =>
+const generateIdentityKeyPair = async () =>
   exportKeyPair(await generateEd25519KeyPair())
 
-const createInitiator = (identityKeyPair: KeyPair) =>
-  createParty(true, identityKeyPair)
+const generateEphemeralKeyPair = async () =>
+  exportKeyPair(await generateX25519KeyPair())
 
-const createResponder = (identityKeyPair: KeyPair) =>
-  createParty(false, identityKeyPair)
+const createInitiator = async (
+  identityKeyPair: KeyPair,
+  ephemeralKeyPair?: KeyPair
+) =>
+  createParty(
+    true,
+    identityKeyPair,
+    ephemeralKeyPair || (await generateEphemeralKeyPair())
+  )
+
+const createResponder = async (
+  identityKeyPair: KeyPair,
+  ephemeralKeyPair?: KeyPair
+) =>
+  createParty(
+    false,
+    identityKeyPair,
+    ephemeralKeyPair || (await generateEphemeralKeyPair())
+  )
 
 export {
   HANDSHAKE_SIZE,
@@ -27,5 +47,6 @@ export {
   SIGNATURE_SIZE,
   createInitiator,
   createResponder,
-  generateKeyPair
+  generateIdentityKeyPair,
+  generateEphemeralKeyPair
 }

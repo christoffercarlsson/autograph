@@ -1,18 +1,13 @@
-import { generateKeyPair as generateX25519KeyPair } from 'stedy'
 import { createFrom } from 'stedy/bytes'
 import { KeyPair, Party } from '../types'
 import createHandshake from './handshake'
 import createSafetyNumber from './safety-number'
-import { exportKeyPair } from './utils'
 
-const generateEphemeralKeyPair = async () =>
-  exportKeyPair(await generateX25519KeyPair())
-
-const createParty = async (
+const createParty = (
   isInitiator: boolean,
-  identityKeyPair: KeyPair
-): Promise<Party> => {
-  const ephemeralKeyPair = await generateEphemeralKeyPair()
+  identityKeyPair: KeyPair,
+  ephemeralKeyPair: KeyPair
+): Party => {
   const calculateSafetyNumber = createSafetyNumber(identityKeyPair.publicKey)
   const performHandshake = createHandshake(
     isInitiator,

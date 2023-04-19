@@ -13,7 +13,7 @@ export type EncryptFunction = (message: BufferSource) => Promise<Chunk>
 export type Certificate = { identityKey: BufferSource; signature: BufferSource }
 
 export type VerifyFunction = (
-  certificates: Certificate[],
+  certificates: Certificate[] | Certificate,
   message?: BufferSource
 ) => Promise<boolean>
 
@@ -27,7 +27,7 @@ export type Session = {
 export type SessionFunction = (ciphertext: BufferSource) => Promise<Session>
 
 export type Handshake = {
-  ciphertext: Chunk
+  handshake: Chunk
   establishSession: SessionFunction
 }
 

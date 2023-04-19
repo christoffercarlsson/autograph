@@ -27,13 +27,10 @@ const calculateTranscript = (
 
 const deriveSecretKeys = async (
   isInitiator: boolean,
-  ourEphemeralPrivateKey: BufferSource,
-  theirEphemeralPublicKey: BufferSource
+  ourPrivateKey: BufferSource,
+  theirPublicKey: BufferSource
 ): Promise<SecretKeys> => {
-  const sharedSecret = await diffieHellman(
-    ourEphemeralPrivateKey,
-    theirEphemeralPublicKey
-  )
+  const sharedSecret = await diffieHellman(ourPrivateKey, theirPublicKey)
   const a = await kdf(sharedSecret, CONTEXT_INITIATOR)
   const b = await kdf(sharedSecret, CONTEXT_RESPONDER)
   const [ourSecretKey, theirSecretKey] = isInitiator ? [a, b] : [b, a]
@@ -43,32 +40,32 @@ const deriveSecretKeys = async (
 const createHandshake =
   (
     isInitiator: boolean,
-    ourKeyPair: KeyPair,
+    ourIdentityKeyPair: KeyPair,
     ourEphemeralKeyPair: KeyPair
   ): HandshakeFunction =>
   async (theirIdentityKey: BufferSource, theirEphemeralKey: BufferSource) => {
     const transcript = calculateTranscript(
       isInitiator,
-      ourKeyPair.publicKey,
+      ourIdentityKeyPair.publicKey,
       ourEphemeralKeyPair.publicKey,
       theirIdentityKey,
       theirEphemeralKey
     )
-    const signature = await sign(ourKeyPair.privateKey, transcript)
+    const signature = await sign(ourIdentityKeyPair.privateKey, transcript)
     const { ourSecretKey, theirSecretKey } = await deriveSecretKeys(
       isInitiator,
       ourEphemeralKeyPair.privateKey,
       theirEphemeralKey
     )
-    const ciphertext = await encrypt(ourSecretKey, 0, signature)
+    const handshake = await encrypt(ourSecretKey, 0, signature)
     const establishSession = createSession(
-      ourKeyPair.privateKey,
+      ourIdentityKeyPair.privateKey,
       theirIdentityKey,
       transcript,
       ourSecretKey,
       theirSecretKey
     )
-    return { ciphertext, establishSession }
+    return { handshake, establishSession }
   }
 
 export default createHandshake

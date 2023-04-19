@@ -32,10 +32,13 @@ const verifySession = async (
 const createCertify =
   (
     ourPrivateKey: BufferSource,
-    theirPublicKey: BufferSource
+    theirPublicKey: BufferSource,
+    decrypt: DecryptFunction
   ): CertifyFunction =>
-  (data?: BufferSource) =>
-    sign(ourPrivateKey, concat([data, theirPublicKey]))
+  async (message?: BufferSource) => {
+    const data = message ? await decrypt(message) : createFrom([])
+    return sign(ourPrivateKey, concat([data, theirPublicKey]))
+  }
 
 const createDecrypt =
   (theirSecretKey: BufferSource): DecryptFunction =>
@@ -56,13 +59,14 @@ const createEncrypt = (ourSecretKey: BufferSource): EncryptFunction => {
 
 const createVerify =
   (theirIdentityKey: BufferSource, decrypt: DecryptFunction): VerifyFunction =>
-  async (certificates: Certificate[], message?: BufferSource) => {
-    const data = message ? await decrypt(message) : createFrom()
+  async (certificates: Certificate[] | Certificate, message?: BufferSource) => {
     try {
+      const data = message ? await decrypt(message) : createFrom()
       const subject = concat([data, theirIdentityKey])
       const results = await Promise.all(
-        certificates.map(({ identityKey, signature }) =>
-          verifySignature(subject, identityKey, signature)
+        (Array.isArray(certificates) ? certificates : [certificates]).map(
+          ({ identityKey, signature }) =>
+            verifySignature(subject, identityKey, signature)
         )
       )
       return results.length > 0 && results.every((result) => result === true)
@@ -79,18 +83,18 @@ const createSession =
     ourSecretKey: BufferSource,
     theirSecretKey: BufferSource
   ): SessionFunction =>
-  async (ciphertext: BufferSource) => {
+  async (handshake: BufferSource) => {
     const verified = await verifySession(
       transcript,
       theirIdentityKey,
       theirSecretKey,
-      ciphertext
+      handshake
     )
     if (!verified) {
       throw new Error('Handshake verification failed')
     }
-    const certify = createCertify(ourPrivateKey, theirIdentityKey)
     const decrypt = createDecrypt(theirSecretKey)
+    const certify = createCertify(ourPrivateKey, theirIdentityKey, decrypt)
     const encrypt = createEncrypt(ourSecretKey)
     const verify = createVerify(theirIdentityKey, decrypt)
     return {
