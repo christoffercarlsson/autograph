@@ -2,3 +2,6 @@
 	path = cplusplus/libsodium
 	url = https://github.com/jedisct1/libsodium
 	branch = stable
+[submodule "cplusplus/catch2"]
+	path = cplusplus/catch2
+	url = https://github.com/catchorg/Catch2
