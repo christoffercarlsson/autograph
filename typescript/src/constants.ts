@@ -1,4 +1,5 @@
-export const AES_GCM_NONCE_SIZE = 12
+export const CHACHA20_POLY1305_CIPHER = 'ChaCha20-Poly1305'
+export const CHACHA20_POLY1305_NONCE_SIZE = 12
 export const DH_OUTPUT_SIZE = 32
 export const HANDSHAKE_SIZE = 80
 export const HKDF_SALT_SIZE = 64

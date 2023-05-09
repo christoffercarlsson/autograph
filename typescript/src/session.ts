@@ -7,7 +7,7 @@ import {
   SessionFunction,
   VerifyFunction
 } from '../types'
-import { decrypt, encrypt } from './crypto/aes'
+import { decrypt, encrypt } from './crypto/cipher'
 import { sign, verify as verifySignature } from './crypto/sign'
 
 const verifySession = async (

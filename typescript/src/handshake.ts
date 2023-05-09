@@ -5,7 +5,7 @@ import diffieHellman from './crypto/diffie-hellman'
 import kdf from './crypto/kdf'
 import { CONTEXT_INITIATOR, CONTEXT_RESPONDER } from './constants'
 import { concat } from 'stedy/bytes'
-import { encrypt } from './crypto/aes'
+import { encrypt } from './crypto/cipher'
 
 type SecretKeys = {
   ourSecretKey: BufferSource

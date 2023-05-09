@@ -1,6 +1,6 @@
 # The Autograph Protocol
 
-Revision 3 (Draft 2), 2023-04-19
+Revision 3 (Draft 3), 2023-05-09
 
 Christoffer Carlsson (editor)
 
@@ -47,24 +47,23 @@ Autograph provides cryptographic deniability and forward secrecy.
 This document will use the following notation:
 
 - The concatenation of byte sequences **X** and **Y** is **X || Y**.
-- **ENCRYPT(K, N, M)** represents the AES \[[1](#7-references)\] in
-  Galois/Counter Mode (GCM) \[[2](#7-references)\] encryption of plaintext M
-  with the 256-bit key K. The nonce N is a 32-bit big-endian unsigned integer
-  padded on the left with 8 zero-filled bytes. The 128-bit authentication tag is
-  appended to the ciphertext.
-- **DECRYPT(K, N, C)** represents the AES-GCM decryption of ciphertext C with
-  the key K and nonce N.
+- **ENCRYPT(K, N, M)** represents the ChaCha20-Poly1305 \[[1](#7-references)\]
+  encryption of plaintext M with the 256-bit key K. The nonce N is a 32-bit
+  big-endian unsigned integer padded on the left with 8 zero-filled bytes. The
+  128-bit authentication tag is appended to the ciphertext.
+- **DECRYPT(K, N, C)** represents the ChaCha20-Poly1305 decryption of ciphertext
+  C with the key K and nonce N.
 - **DH(PK1, PK2)** represents 32 bytes of shared secret output from the X25519
-  \[[3](#7-references)\] Elliptic Curve Diffie-Hellman (ECDH)
-  \[[4](#7-references)\] function involving the key pairs represented by public
+  \[[2](#7-references)\] Elliptic Curve Diffie-Hellman (ECDH)
+  \[[3](#7-references)\] function involving the key pairs represented by public
   keys PK1 and PK2.
 - **SIGN(PK, M)** represents a byte sequence that is an Edwards-curve Digital
-  Signature Algorithm (EdDSA) \[[5](#7-references)\] signature on the byte
+  Signature Algorithm (EdDSA) \[[4](#7-references)\] signature on the byte
   sequence M and verifies with the public key PK, and was created using PK's
   corresponding private key. The signing and verification function will be
-  Ed25519 \[[6](#7-references)\].
+  Ed25519 \[[5](#7-references)\].
 - **KDF(KM, C)** represents 32 bytes of output from the HKDF algorithm
-  \[[7](#7-references)\], using SHA-512 \[[8](#7-references)\], with inputs:
+  \[[6](#7-references)\], using SHA-512 \[[7](#7-references)\], with inputs:
   - Input keying material = The byte sequence KM.
   - Salt = A zero-filled byte sequence with the same length as the output of
     SHA-512 (64 bytes).
@@ -105,8 +104,8 @@ All public keys have corresponding private keys, but to simplify description
 this document will focus on the public keys.
 
 In Autograph, X25519 public keys will use the little-endian encoding of the
-u-coordinate as specified in \[[3](#7-references)\]. Ed25519 public keys will
-use the little-endian encoding as specified in \[[5](#7-references)\]. The
+u-coordinate as specified in \[[2](#7-references)\]. Ed25519 public keys will
+use the little-endian encoding as specified in \[[4](#7-references)\]. The
 resulting byte sequences for X25519 and Ed25519 public keys will be 32 bytes
 long.
 
@@ -448,34 +447,29 @@ trusted third parties.
 
 ## 7. References
 
-[1] M. Dworkin, E. Barker, J. Nechvatal, J. Foti, L. Bassham, E. Roback, and J.
-Dray Jr, "Advanced Encryption Standard (AES)"; Federal Information Processing
-Standards Publication 197; November 2001.
-<https://nvlpubs.nist.gov/nistpubs/FIPS/NIST.FIPS.197.pdf>
+[1] Y. Nir and A. Langley, “ChaCha20 and Poly1305 for IETF Protocols”; Internet
+Research Task Force; RFC 8439; June 2018. <https://www.ietf.org/rfc/rfc8439.txt>
 
-[2] D. McGrew and J. Viega, “The Galois/Counter Mode of Operation (GCM)”;
-Submission to NIST Modes of Operation Process; January, 2004.
-
-[3] A. Langley, M. Hamburg, and S. Turner, “Elliptic Curves for Security”;
+[2] A. Langley, M. Hamburg, and S. Turner, “Elliptic Curves for Security”;
 Internet Engineering Task Force; RFC 7748; January 2016.
-<http://www.ietf.org/rfc/rfc7748.txt>
+<https://www.ietf.org/rfc/rfc7748.txt>
 
-[4] D. McGrew, K. Igoe, and M. Salter, “Fundamental Elliptic Curve Cryptography
+[3] D. McGrew, K. Igoe, and M. Salter, “Fundamental Elliptic Curve Cryptography
 Algorithms”; Internet Engineering Task Force; RFC 6090; February 2011.
-<http://www.ietf.org/rfc/rfc6090.txt>
+<https://www.ietf.org/rfc/rfc6090.txt>
 
-[5] S. Josefsson and I. Liusvaara, “Edwards-Curve Digital Signature Algorithm
+[4] S. Josefsson and I. Liusvaara, “Edwards-Curve Digital Signature Algorithm
 (EdDSA)”; Internet Engineering Task Force; RFC 8032; January 2017.
-<http://www.ietf.org/rfc/rfc8032.txt>
+<https://www.ietf.org/rfc/rfc8032.txt>
 
-[6] D. Bernstein, N. Duif, T. Lange, P. Schwabe, and B. Yang, "High-speed
+[5] D. Bernstein, N. Duif, T. Lange, P. Schwabe, and B. Yang, "High-speed
 high-security signatures"; September 2011.
 <https://ed25519.cr.yp.to/ed25519-20110926.pdf>
 
-[7] H. Krawczyk and P. Eronen, “HMAC-based Extract-and-Expand Key Derivation
+[6] H. Krawczyk and P. Eronen, “HMAC-based Extract-and-Expand Key Derivation
 Function (HKDF)”; Internet Engineering Task Force; RFC 5869; May 2010.
-<http://www.ietf.org/rfc/rfc5869.txt>
+<https://www.ietf.org/rfc/rfc5869.txt>
 
-[8] National Institute of Standards and Technology, "Secure Hash Standard
+[7] National Institute of Standards and Technology, "Secure Hash Standard
 (SHS)"; Federal Information Processing Standards Publication 180-4;
 August, 2015. <https://nvlpubs.nist.gov/nistpubs/FIPS/NIST.FIPS.180-4.pdf>
