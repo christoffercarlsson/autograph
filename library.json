@@ -10,12 +10,16 @@
     }
   ],
   "build": {
+    "includeDir": "cplusplus/include",
     "flags": [
-      "-I${env.LIBSODIUM_INCLUDE_DIR}",
-      "-L${env.LIBSODIUM_LIBRARY_DIR}"
+      "-D CONFIGURED",
+      "-I cplusplus/libsodium/src/libsodium/include",
+      "-I cplusplus/libsodium/src/libsodium/include/sodium",
+      "-I cplusplus/include",
+      "-I cplusplus/include/autograph"
     ],
-    "srcDir": "cplusplus/src",
-    "includeDir": "cplusplus/include"
+    "srcDir": "cplusplus",
+    "srcFilter": "+<src> -<tests> +<libsodium/src/libsodium> -<libsodium/src/libsodium/include>"
   },
   "frameworks": "*",
   "keywords": [
@@ -29,16 +33,19 @@
     "ed25519",
     "hkdf",
     "x25519",
+    "chacha20-poly1305",
     "elliptic-curves",
     "ownership",
     "decentralization",
-    "diffie-hellman",
-    "aes-256-gcm"
+    "diffie-hellman"
   ],
   "license": "Unlicense",
   "platforms": "*",
   "repository": {
     "type": "git",
     "url": "https://github.com/christoffercarlsson/autograph.git"
+  },
+  "scripts": {
+    "postinstall": "cplusplus/scripts/sodium-version.sh"
   }
 }
