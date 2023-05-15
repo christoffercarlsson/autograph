@@ -36,6 +36,14 @@ else
   AUTOGRAPH_CORE=0
 fi
 
+AUTOGRAPH_TESTS=$(tr '[:upper:]' '[:lower:]' <<< "${AUTOGRAPH_TESTS}")
+if [[ "${AUTOGRAPH_TESTS}" == "1" || "${AUTOGRAPH_TESTS}" == "true" ]]
+then
+  AUTOGRAPH_TESTS=1
+else
+  AUTOGRAPH_TESTS=0
+fi
+
 AUTOGRAPH_BUILD_TYPE=$(tr '[:upper:]' '[:lower:]' <<< "${AUTOGRAPH_BUILD_TYPE}")
 if [[ "${AUTOGRAPH_BUILD_TYPE}" == "d" || "${AUTOGRAPH_BUILD_TYPE}" == "debug" ]]
 then
@@ -48,6 +56,7 @@ generate_cmake() {
   rm -rf "${TARGET_DIR}"
   cmake --no-warn-unused-cli \
         -DAUTOGRAPH_CORE=${AUTOGRAPH_CORE} \
+        -DAUTOGRAPH_TESTS=${AUTOGRAPH_TESTS} \
         -DAUTOGRAPH_TOOLCHAIN=${TOOLCHAIN} \
         -DAUTOGRAPH_ARCH=${TARGET_ARCH} \
         -DCMAKE_BUILD_TYPE=${AUTOGRAPH_BUILD_TYPE} \

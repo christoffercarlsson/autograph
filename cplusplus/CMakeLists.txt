@@ -51,15 +51,20 @@ target_include_directories(
 
 target_compile_definitions(autograph PRIVATE CONFIGURED)
 
-file(GLOB_RECURSE AUTOGRAPH_TEST_SOURCES tests/*.cpp)
-
-add_subdirectory(catch2)
-add_executable(autograph-tests ${AUTOGRAPH_TEST_SOURCES})
-target_link_libraries(autograph-tests PRIVATE autograph Catch2::Catch2WithMain)
-target_include_directories(autograph-tests PRIVATE include include/autograph)
+if(DEFINED AUTOGRAPH_TESTS AND AUTOGRAPH_TESTS EQUAL 1)
+  file(GLOB_RECURSE AUTOGRAPH_TEST_SOURCES tests/*.cpp)
+  add_subdirectory(catch2)
+  add_executable(autograph-tests ${AUTOGRAPH_TEST_SOURCES})
+  target_link_libraries(autograph-tests PRIVATE autograph
+                                                Catch2::Catch2WithMain)
+  target_include_directories(autograph-tests PRIVATE include include/autograph)
+  set(AUTOGRAPH_INSTALL_TARGETS autograph autograph-tests)
+else()
+  set(AUTOGRAPH_INSTALL_TARGETS autograph)
+endif()
 
 install(
-  TARGETS autograph autograph-tests
+  TARGETS ${AUTOGRAPH_INSTALL_TARGETS}
   EXPORT autographTargets
   ARCHIVE DESTINATION lib
   LIBRARY DESTINATION lib

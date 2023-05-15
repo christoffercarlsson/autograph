@@ -2,6 +2,9 @@
 
 set -e
 
+export AUTOGRAPH_CORE=1
+export AUTOGRAPH_TESTS=0
+
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 SOURCE_DIR="$(cd "${SCRIPT_DIR}/.." && pwd)"
 SOURCE_INCLUDE_DIR="${SOURCE_DIR}/include"
@@ -9,8 +12,6 @@ PREFIX="${SOURCE_DIR}/build/apple"
 TARGET_INCLUDE_DIR="${PREFIX}/include"
 XCFRAMEWORK_ARGS=""
 RIMRAF_ARGS=""
-
-export AUTOGRAPH_CORE=1
 
 swift_module_map() {
   echo 'module Clibautograph {'

@@ -2,6 +2,19 @@
 
 set -e
 
+while [ $# -gt 0 ]; do
+  case $1 in
+    -t | --tests | --with-tests)
+      export AUTOGRAPH_TESTS=1
+      shift
+      ;;
+    *)
+      echo "Invalid option: $1" >&2
+      exit 1
+      ;;
+  esac
+done
+
 sudo -v
 
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
