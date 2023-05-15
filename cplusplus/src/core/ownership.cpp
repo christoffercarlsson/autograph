@@ -3,24 +3,22 @@
 #include "autograph.h"
 #include "constants.hpp"
 #include "crypto.hpp"
-#include "types.hpp"
 
 namespace autograph {
 
-bool calculate_subject(ByteVector &subject,
+bool calculate_subject(std::vector<unsigned char> &subject,
                        const unsigned char *their_public_key,
                        const unsigned char *their_secret_key,
                        const unsigned char *message,
                        const unsigned long long message_size) {
   if (message != nullptr && message_size > 0) {
-    const unsigned long long data_size = message_size - MESSAGE_EXTRA_SIZE;
-    unsigned char data[data_size];
-    bool decrypt_result =
-        autograph_decrypt(data, their_secret_key, message, message_size) == 0;
+    std::vector<unsigned char> data(message_size - MESSAGE_EXTRA_SIZE);
+    bool decrypt_result = autograph_decrypt(data.data(), their_secret_key,
+                                            message, message_size) == 0;
     if (!decrypt_result) {
       return false;
     }
-    subject.insert(subject.end(), data, data + data_size);
+    subject.insert(subject.end(), data.begin(), data.end());
   }
   subject.insert(subject.end(), their_public_key,
                  their_public_key + PUBLIC_KEY_SIZE);
@@ -35,7 +33,7 @@ int autograph_certify(unsigned char *signature,
                       const unsigned char *their_secret_key,
                       const unsigned char *message,
                       const unsigned long long message_size) {
-  autograph::ByteVector subject;
+  std::vector<unsigned char> subject;
   bool subject_result = autograph::calculate_subject(
       subject, their_public_key, their_secret_key, message, message_size);
   if (!subject_result) {
@@ -56,7 +54,7 @@ int autograph_verify(const unsigned char *their_public_key,
   if (certificates == nullptr || certificate_count == 0) {
     return -1;
   }
-  autograph::ByteVector subject;
+  std::vector<unsigned char> subject;
   bool subject_result = autograph::calculate_subject(
       subject, their_public_key, their_secret_key, message, message_size);
   if (!subject_result) {

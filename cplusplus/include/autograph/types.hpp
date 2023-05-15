@@ -5,23 +5,22 @@
 
 namespace autograph {
 
-using ByteVector = std::vector<unsigned char>;
+using Bytes = std::vector<unsigned char>;
 
 struct KeyPair {
-  ByteVector private_key;
-  ByteVector public_key;
+  Bytes private_key;
+  Bytes public_key;
 };
 
-using CertifyFunction = std::function<ByteVector(const ByteVector &)>;
+using CertifyFunction = std::function<Bytes(const Bytes &)>;
 
-using DecryptFunction = std::function<ByteVector(const ByteVector &)>;
+using DecryptFunction = std::function<Bytes(const Bytes &)>;
 
-using EncryptFunction = std::function<ByteVector(const ByteVector &)>;
+using EncryptFunction = std::function<Bytes(const Bytes &)>;
 
-using SafetyNumberFunction = std::function<ByteVector(const ByteVector &)>;
+using SafetyNumberFunction = std::function<Bytes(const Bytes &)>;
 
-using VerifyFunction =
-    std::function<bool(const ByteVector &, const ByteVector &)>;
+using VerifyFunction = std::function<bool(const Bytes &, const Bytes &)>;
 
 struct Session {
   CertifyFunction certify;
@@ -30,15 +29,15 @@ struct Session {
   VerifyFunction verify;
 };
 
-using SessionFunction = std::function<Session(const ByteVector &)>;
+using SessionFunction = std::function<Session(const Bytes &)>;
 
 struct Handshake {
-  ByteVector handshake;
+  Bytes message;
   SessionFunction establish_session;
 };
 
 using HandshakeFunction =
-    std::function<Handshake(const ByteVector &, const ByteVector &)>;
+    std::function<Handshake(const Bytes &, const Bytes &)>;
 
 struct Party {
   SafetyNumberFunction calculate_safety_number;

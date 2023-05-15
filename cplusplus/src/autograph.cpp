@@ -21,8 +21,8 @@ Party create_responder(const KeyPair &identity_key_pair,
 }
 
 KeyPair create_key_pair() {
-  ByteVector private_key(PRIVATE_KEY_SIZE);
-  ByteVector public_key(PUBLIC_KEY_SIZE);
+  Bytes private_key(PRIVATE_KEY_SIZE);
+  Bytes public_key(PUBLIC_KEY_SIZE);
   KeyPair key_pair = {private_key, public_key};
   return std::move(key_pair);
 }
@@ -47,6 +47,11 @@ KeyPair generate_identity_key_pair() {
   return std::move(key_pair);
 }
 
-bool init() { return autograph_init() == 0; }
+void init() {
+  bool success = autograph_init() == 0;
+  if (!success) {
+    throw std::runtime_error("Initialization failed");
+  }
+}
 
 }  // namespace autograph

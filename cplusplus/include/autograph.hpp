@@ -14,6 +14,6 @@ KeyPair generate_ephemeral_key_pair();
 
 KeyPair generate_identity_key_pair();
 
-bool init();
+void init();
 
 }  // namespace autograph

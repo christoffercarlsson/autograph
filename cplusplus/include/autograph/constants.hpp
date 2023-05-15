@@ -4,8 +4,8 @@ namespace autograph {
 
 constexpr unsigned int CHACHA_NONCE_SIZE = 12;
 constexpr unsigned int CHACHA_TAG_SIZE = 16;
-constexpr unsigned int CONTEXT_INITIATOR = 0x00;
-constexpr unsigned int CONTEXT_RESPONDER = 0x01;
+constexpr unsigned char CONTEXT_INITIATOR = 0x00;
+constexpr unsigned char CONTEXT_RESPONDER = 0x01;
 constexpr unsigned int DH_OUTPUT_SIZE = 32;
 constexpr unsigned int DIGEST_SIZE = 64;
 constexpr unsigned int MESSAGE_EXTRA_SIZE = 4 + CHACHA_TAG_SIZE;

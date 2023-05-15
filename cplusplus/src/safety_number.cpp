@@ -3,10 +3,10 @@
 
 namespace autograph {
 
-SafetyNumberFunction create_safety_number(const ByteVector &our_identity_key) {
+SafetyNumberFunction create_safety_number(const Bytes &our_identity_key) {
   auto safety_number_function =
-      [our_identity_key](const ByteVector &their_identity_key) {
-        ByteVector safety_number(SAFETY_NUMBER_SIZE);
+      [&our_identity_key](const Bytes &their_identity_key) {
+        Bytes safety_number(SAFETY_NUMBER_SIZE);
         bool success = autograph_safety_number(safety_number.data(),
                                                our_identity_key.data(),
                                                their_identity_key.data()) == 0;

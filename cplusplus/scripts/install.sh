@@ -17,6 +17,13 @@ done
 
 sudo -v
 
+if [[ "${AUTOGRAPH_TESTS}" == "1" ]]
+then
+  echo "Installing with tests..."
+else
+  echo "Installing without any tests..."
+fi
+
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 TARGET_DIR="$(realpath "$(${SCRIPT_DIR}/build.sh)")"
 

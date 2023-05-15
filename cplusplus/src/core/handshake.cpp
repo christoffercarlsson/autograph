@@ -1,9 +1,11 @@
 #include <algorithm>
+#include <vector>
 
 #include "autograph.h"
 #include "constants.hpp"
 #include "crypto.hpp"
 #include "sodium.h"
+#include "types.hpp"
 
 namespace autograph {
 
@@ -34,47 +36,40 @@ void calculate_transcript(unsigned char *transcript, const bool is_initiator,
   }
 }
 
-bool calculate_ciphertext(unsigned char *ciphertext,
+bool calculate_ciphertext(unsigned char *message,
                           const unsigned char *transcript,
                           const unsigned char *our_private_key,
                           const unsigned char *our_secret_key) {
-  unsigned char signature[SIGNATURE_SIZE];
+  Bytes signature(SIGNATURE_SIZE);
   bool signature_result =
-      sign(signature, our_private_key, transcript, TRANSCRIPT_SIZE);
+      sign(signature.data(), our_private_key, transcript, TRANSCRIPT_SIZE);
   if (!signature_result) {
     return false;
   }
-  return encrypt(ciphertext, our_secret_key, 0, signature, SIGNATURE_SIZE);
+  return encrypt(message, our_secret_key, 0, signature.data(),
+                 signature.size());
 }
 
 bool derive_keys(unsigned char *our_secret_key, unsigned char *their_secret_key,
                  const bool is_initiator, unsigned char *our_private_key,
                  const unsigned char *their_public_key) {
-  unsigned char ikm[DH_OUTPUT_SIZE];
-  bool dh_result = diffie_hellman(ikm, our_private_key, their_public_key);
-  sodium_memzero(our_private_key, PRIVATE_KEY_SIZE);
-  sodium_memzero(ikm, DH_OUTPUT_SIZE);
-  if (!dh_result) {
-    return false;
-  }
+  Bytes ikm(DH_OUTPUT_SIZE);
+  bool dh_result =
+      diffie_hellman(ikm.data(), our_private_key, their_public_key);
   bool our_key_result =
-      kdf(our_secret_key, ikm,
+      kdf(our_secret_key, ikm.data(),
           is_initiator ? CONTEXT_INITIATOR : CONTEXT_RESPONDER);
-  if (!our_key_result) {
-    return false;
-  }
   bool their_key_result =
-      kdf(their_secret_key, ikm,
+      kdf(their_secret_key, ikm.data(),
           is_initiator ? CONTEXT_RESPONDER : CONTEXT_INITIATOR);
-  if (!their_key_result) {
-    return false;
-  }
-  return true;
+  sodium_memzero(our_private_key, PRIVATE_KEY_SIZE);
+  sodium_memzero(ikm.data(), DH_OUTPUT_SIZE);
+  return dh_result && our_key_result && their_key_result;
 }
 
 }  // namespace autograph
 
-int autograph_handshake(unsigned char *transcript, unsigned char *ciphertext,
+int autograph_handshake(unsigned char *transcript, unsigned char *message,
                         unsigned char *our_secret_key,
                         unsigned char *their_secret_key,
                         const unsigned int is_initiator,
@@ -95,8 +90,7 @@ int autograph_handshake(unsigned char *transcript, unsigned char *ciphertext,
     return -1;
   }
   bool ciphertext_result = autograph::calculate_ciphertext(
-      ciphertext, transcript, our_private_identity_key,
-      our_private_ephemeral_key);
+      message, transcript, our_private_identity_key, our_private_ephemeral_key);
   if (!ciphertext_result) {
     return -1;
   }
