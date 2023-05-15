@@ -4,13 +4,18 @@
 #include "autograph.h"
 #include "constants.hpp"
 #include "crypto.hpp"
+#include "types.hpp"
 
 namespace autograph {
 
 std::string encode_chunk(const unsigned char *digest, const unsigned int i) {
-  int number = ((digest[i] << 24) | (digest[i + 1] << 16) |
-                (digest[i + 2] << 8) | digest[i + 3]) %
-               SAFETY_NUMBER_DIVISOR;
+  const unsigned long long a = digest[i];
+  const unsigned long long b = digest[i + 1];
+  const unsigned long long c = digest[i + 2];
+  const unsigned long long d = digest[i + 3];
+  const unsigned long long e = digest[i + 4];
+  const unsigned int number =
+      (a << 32 | b << 24 | c << 16 | d << 8 | e) % SAFETY_NUMBER_DIVISOR;
   std::string digits = std::to_string(number);
   digits.resize(SAFETY_NUMBER_CHUNK_SIZE, '0');
   return std::move(digits);

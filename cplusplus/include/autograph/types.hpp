@@ -1,34 +1,27 @@
 #pragma once
 
 #include <functional>
+#include <vector>
 
 namespace autograph {
 
-using Handshake = unsigned char[80];
+using ByteVector = std::vector<unsigned char>;
 
-using PrivateKey = unsigned char[32];
+struct KeyPair {
+  ByteVector private_key;
+  ByteVector public_key;
+};
 
-using PublicKey = unsigned char[32];
+using CertifyFunction = std::function<ByteVector(const ByteVector &)>;
 
-using SafetyNumber = unsigned char[60];
+using DecryptFunction = std::function<ByteVector(const ByteVector &)>;
 
-using Signature = unsigned char[64];
+using EncryptFunction = std::function<ByteVector(const ByteVector &)>;
 
-using CertifyFunction = std::function<bool(
-    unsigned char *, const unsigned char *, const unsigned long long)>;
-
-using DecryptFunction = std::function<bool(
-    unsigned char *, const unsigned char *, const unsigned long long)>;
-
-using EncryptFunction = std::function<bool(
-    unsigned char *, const unsigned char *, const unsigned long long)>;
-
-using SafetyNumberFunction =
-    std::function<bool(unsigned char *, const unsigned char *)>;
+using SafetyNumberFunction = std::function<ByteVector(const ByteVector &)>;
 
 using VerifyFunction =
-    std::function<bool(const unsigned char *, const unsigned long long,
-                       const unsigned char *, const unsigned long long)>;
+    std::function<bool(const ByteVector &, const ByteVector &)>;
 
 struct Session {
   CertifyFunction certify;
@@ -37,14 +30,15 @@ struct Session {
   VerifyFunction verify;
 };
 
-using SessionResult = std::pair<bool, Session>;
+using SessionFunction = std::function<Session(const ByteVector &)>;
 
-using SessionFunction = std::function<SessionResult(const unsigned char *)>;
+struct Handshake {
+  ByteVector handshake;
+  SessionFunction establish_session;
+};
 
-using HandshakeResult = std::pair<bool, SessionFunction>;
-
-using HandshakeFunction = std::function<HandshakeResult(
-    unsigned char *, const unsigned char *, const unsigned char *)>;
+using HandshakeFunction =
+    std::function<Handshake(const ByteVector &, const ByteVector &)>;
 
 struct Party {
   SafetyNumberFunction calculate_safety_number;

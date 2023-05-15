@@ -4,21 +4,15 @@
 
 namespace autograph {
 
-Party create_initiator(const unsigned char *identity_private_key,
-                       const unsigned char *identity_public_key,
-                       unsigned char *ephemeral_private_key,
-                       const unsigned char *ephemeral_public_key);
+Party create_initiator(const KeyPair &identity_key_pair,
+                       KeyPair &ephemeral_key_pair);
 
-Party create_responder(const unsigned char *identity_private_key,
-                       const unsigned char *identity_public_key,
-                       unsigned char *ephemeral_private_key,
-                       const unsigned char *ephemeral_public_key);
+Party create_responder(const KeyPair &identity_key_pair,
+                       KeyPair &ephemeral_key_pair);
 
-bool generate_ephemeral_key_pair(unsigned char *private_key,
-                                 unsigned char *public_key);
+KeyPair generate_ephemeral_key_pair();
 
-bool generate_identity_key_pair(unsigned char *private_key,
-                                unsigned char *public_key);
+KeyPair generate_identity_key_pair();
 
 bool init();
 

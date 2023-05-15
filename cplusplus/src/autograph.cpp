@@ -1,36 +1,50 @@
 #include "autograph.hpp"
 
+#include <stdexcept>
+#include <string>
+
 #include "autograph.h"
 #include "private.hpp"
 
 namespace autograph {
 
-Party create_initiator(const unsigned char *identity_private_key,
-                       const unsigned char *identity_public_key,
-                       unsigned char *ephemeral_private_key,
-                       const unsigned char *ephemeral_public_key) {
-  auto party = create_party(true, identity_private_key, identity_public_key,
-                            ephemeral_private_key, ephemeral_public_key);
+Party create_initiator(const KeyPair &identity_key_pair,
+                       KeyPair &ephemeral_key_pair) {
+  auto party = create_party(true, identity_key_pair, ephemeral_key_pair);
   return std::move(party);
 }
 
-Party create_responder(const unsigned char *identity_private_key,
-                       const unsigned char *identity_public_key,
-                       unsigned char *ephemeral_private_key,
-                       const unsigned char *ephemeral_public_key) {
-  auto party = create_party(false, identity_private_key, identity_public_key,
-                            ephemeral_private_key, ephemeral_public_key);
+Party create_responder(const KeyPair &identity_key_pair,
+                       KeyPair &ephemeral_key_pair) {
+  auto party = create_party(false, identity_key_pair, ephemeral_key_pair);
   return std::move(party);
 }
 
-bool generate_ephemeral_key_pair(unsigned char *private_key,
-                                 unsigned char *public_key) {
-  return autograph_key_pair_ephemeral(private_key, public_key) == 0;
+KeyPair create_key_pair() {
+  ByteVector private_key(PRIVATE_KEY_SIZE);
+  ByteVector public_key(PUBLIC_KEY_SIZE);
+  KeyPair key_pair = {private_key, public_key};
+  return std::move(key_pair);
 }
 
-bool generate_identity_key_pair(unsigned char *private_key,
-                                unsigned char *public_key) {
-  return autograph_key_pair_identity(private_key, public_key) == 0;
+KeyPair generate_ephemeral_key_pair() {
+  auto key_pair = create_key_pair();
+  bool success = autograph_key_pair_ephemeral(key_pair.private_key.data(),
+                                              key_pair.public_key.data()) == 0;
+  if (!success) {
+    throw std::runtime_error("Ephemeral key pair generation failed");
+  }
+  return std::move(key_pair);
+}
+
+KeyPair generate_identity_key_pair() {
+  auto key_pair = create_key_pair();
+  bool success = autograph_key_pair_identity(key_pair.private_key.data(),
+                                             key_pair.public_key.data()) == 0;
+  if (!success) {
+    throw std::runtime_error("Identity key pair generation failed");
+  }
+  return std::move(key_pair);
 }
 
 bool init() { return autograph_init() == 0; }

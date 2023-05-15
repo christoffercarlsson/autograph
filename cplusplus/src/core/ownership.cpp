@@ -3,10 +3,11 @@
 #include "autograph.h"
 #include "constants.hpp"
 #include "crypto.hpp"
+#include "types.hpp"
 
 namespace autograph {
 
-bool calculate_subject(std::vector<unsigned char> &subject,
+bool calculate_subject(ByteVector &subject,
                        const unsigned char *their_public_key,
                        const unsigned char *their_secret_key,
                        const unsigned char *message,
@@ -34,7 +35,7 @@ int autograph_certify(unsigned char *signature,
                       const unsigned char *their_secret_key,
                       const unsigned char *message,
                       const unsigned long long message_size) {
-  std::vector<unsigned char> subject;
+  autograph::ByteVector subject;
   bool subject_result = autograph::calculate_subject(
       subject, their_public_key, their_secret_key, message, message_size);
   if (!subject_result) {
@@ -55,7 +56,7 @@ int autograph_verify(const unsigned char *their_public_key,
   if (certificates == nullptr || certificate_count == 0) {
     return -1;
   }
-  std::vector<unsigned char> subject;
+  autograph::ByteVector subject;
   bool subject_result = autograph::calculate_subject(
       subject, their_public_key, their_secret_key, message, message_size);
   if (!subject_result) {

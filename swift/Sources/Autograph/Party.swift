@@ -14,8 +14,6 @@ internal func createParty(
   )
   return Party(
     calculateSafetyNumber: calculateSafetyNumber,
-    ephemeralKey: ephemeralKeyPair.publicKey,
-    identityKey: identityKeyPair.publicKey,
     performHandshake: performHandshake
   )
 }

@@ -1,4 +1,3 @@
-import { createFrom } from 'stedy/bytes'
 import { KeyPair, Party } from '../types'
 import createHandshake from './handshake'
 import createSafetyNumber from './safety-number'
@@ -16,9 +15,7 @@ const createParty = (
   )
   return {
     calculateSafetyNumber,
-    ephemeralKey: createFrom(ephemeralKeyPair.publicKey),
-    performHandshake,
-    identityKey: createFrom(identityKeyPair.publicKey)
+    performHandshake
   }
 }
 

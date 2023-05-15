@@ -43,7 +43,5 @@ export type KeyPair = {
 
 export type Party = {
   calculateSafetyNumber: SafetyNumberFunction
-  ephemeralKey: Chunk
   performHandshake: HandshakeFunction
-  identityKey: Chunk
 }

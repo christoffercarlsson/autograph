@@ -55,19 +55,13 @@ public typealias HandshakeFunction = (Bytes, Bytes) throws -> SessionFunction
 
 public class Party {
   var calculateSafetyNumber: SafetyNumberFunction
-  var ephemeralKey: Bytes
-  var identityKey: Bytes
   var performHandshake: HandshakeFunction
 
   init(
     calculateSafetyNumber: @escaping SafetyNumberFunction,
-    ephemeralKey: Bytes,
-    identityKey: Bytes,
     performHandshake: @escaping HandshakeFunction
   ) {
     self.calculateSafetyNumber = calculateSafetyNumber
-    self.ephemeralKey = ephemeralKey
-    self.identityKey = identityKey
     self.performHandshake = performHandshake
   }
 }
