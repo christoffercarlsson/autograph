@@ -1,6 +1,5 @@
 import { concat, createFrom, fromInteger } from 'stedy/bytes'
 import {
-  Certificate,
   CertifyFunction,
   DecryptFunction,
   EncryptFunction,
@@ -9,15 +8,16 @@ import {
 } from '../types'
 import { decrypt, encrypt } from './crypto/cipher'
 import { sign, verify as verifySignature } from './crypto/sign'
+import { PUBLIC_KEY_SIZE, SIGNATURE_SIZE } from './constants'
 
 const verifySession = async (
   transcript: BufferSource,
   theirIdentityKey: BufferSource,
   theirSecretKey: BufferSource,
-  ciphertext: BufferSource
+  message: BufferSource
 ) => {
   try {
-    const signature = await decrypt(theirSecretKey, 0, ciphertext)
+    const signature = await decrypt(theirSecretKey, 0, message)
     const verified = await verifySignature(
       transcript,
       theirIdentityKey,
@@ -59,15 +59,17 @@ const createEncrypt = (ourSecretKey: BufferSource): EncryptFunction => {
 
 const createVerify =
   (theirIdentityKey: BufferSource, decrypt: DecryptFunction): VerifyFunction =>
-  async (certificates: Certificate[] | Certificate, message?: BufferSource) => {
+  async (certificates: BufferSource, message?: BufferSource) => {
     try {
       const data = message ? await decrypt(message) : createFrom()
       const subject = concat([data, theirIdentityKey])
       const results = await Promise.all(
-        (Array.isArray(certificates) ? certificates : [certificates]).map(
-          ({ identityKey, signature }) =>
-            verifySignature(subject, identityKey, signature)
-        )
+        createFrom(certificates)
+          .split(PUBLIC_KEY_SIZE + SIGNATURE_SIZE)
+          .map((certificate) => {
+            const [identityKey, signature] = certificate.read(PUBLIC_KEY_SIZE)
+            return verifySignature(subject, identityKey, signature)
+          })
       )
       return results.length > 0 && results.every((result) => result === true)
     } catch (error) {
@@ -83,12 +85,12 @@ const createSession =
     ourSecretKey: BufferSource,
     theirSecretKey: BufferSource
   ): SessionFunction =>
-  async (handshake: BufferSource) => {
+  async (message: BufferSource) => {
     const verified = await verifySession(
       transcript,
       theirIdentityKey,
       theirSecretKey,
-      handshake
+      message
     )
     if (!verified) {
       throw new Error('Handshake verification failed')

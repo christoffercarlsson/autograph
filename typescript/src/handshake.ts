@@ -57,7 +57,7 @@ const createHandshake =
       ourEphemeralKeyPair.privateKey,
       theirEphemeralKey
     )
-    const handshake = await encrypt(ourSecretKey, 0, signature)
+    const message = await encrypt(ourSecretKey, 0, signature)
     const establishSession = createSession(
       ourIdentityKeyPair.privateKey,
       theirIdentityKey,
@@ -65,7 +65,7 @@ const createHandshake =
       ourSecretKey,
       theirSecretKey
     )
-    return { handshake, establishSession }
+    return { message, establishSession }
   }
 
 export default createHandshake

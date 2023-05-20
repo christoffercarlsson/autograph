@@ -55,7 +55,7 @@ describe('Handshake', () => {
       }
     }
   }
-  const handshakes = {
+  const messages = {
     alice: createFrom([
       157, 61, 99, 76, 123, 207, 247, 194, 32, 224, 244, 148, 38, 107, 158, 13,
       66, 237, 6, 32, 9, 98, 120, 172, 63, 45, 144, 194, 251, 88, 48, 88, 129,
@@ -91,7 +91,7 @@ describe('Handshake', () => {
       keyPairs.bob.identity.publicKey,
       keyPairs.bob.ephemeral.publicKey
     )
-    expect(a.handshake).toEqual(handshakes.alice)
-    expect(b.handshake).toEqual(handshakes.bob)
+    expect(a.message).toEqual(messages.alice)
+    expect(b.message).toEqual(messages.bob)
   })
 })

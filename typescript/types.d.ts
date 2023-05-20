@@ -1,19 +1,17 @@
-import { Chunk } from 'stedy/bytes'
+import { Chunk as Bytes } from 'stedy/bytes'
 
 export type SafetyNumberFunction = (
   theirIdentityKey: BufferSource
-) => Promise<Chunk>
+) => Promise<Bytes>
 
-export type CertifyFunction = (data?: BufferSource) => Promise<Chunk>
+export type CertifyFunction = (data?: BufferSource) => Promise<Bytes>
 
-export type DecryptFunction = (message: BufferSource) => Promise<Chunk>
+export type DecryptFunction = (message: BufferSource) => Promise<Bytes>
 
-export type EncryptFunction = (message: BufferSource) => Promise<Chunk>
-
-export type Certificate = { identityKey: BufferSource; signature: BufferSource }
+export type EncryptFunction = (message: BufferSource) => Promise<Bytes>
 
 export type VerifyFunction = (
-  certificates: Certificate[] | Certificate,
+  certificates: BufferSource,
   message?: BufferSource
 ) => Promise<boolean>
 
@@ -24,10 +22,10 @@ export type Session = {
   verify: VerifyFunction
 }
 
-export type SessionFunction = (ciphertext: BufferSource) => Promise<Session>
+export type SessionFunction = (message: BufferSource) => Promise<Session>
 
 export type Handshake = {
-  handshake: Chunk
+  message: Bytes
   establishSession: SessionFunction
 }
 
