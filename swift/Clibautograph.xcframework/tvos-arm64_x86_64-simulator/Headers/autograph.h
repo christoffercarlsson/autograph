@@ -17,10 +17,10 @@ int autograph_decrypt(unsigned char *plaintext, const unsigned char *key,
                       const unsigned long long message_size);
 
 int autograph_encrypt(unsigned char *message, const unsigned char *key,
-                      const unsigned char *plaintext,
+                      const unsigned int index, const unsigned char *plaintext,
                       const unsigned long long plaintext_size);
 
-int autograph_handshake(unsigned char *transcript, unsigned char *ciphertext,
+int autograph_handshake(unsigned char *transcript, unsigned char *message,
                         unsigned char *our_secret_key,
                         unsigned char *their_secret_key,
                         const unsigned int is_initiator,
@@ -47,15 +47,15 @@ unsigned int autograph_private_key_size();
 
 unsigned int autograph_public_key_size();
 
-unsigned int autograph_secret_key_size();
-
-unsigned int autograph_signature_size();
-
 int autograph_safety_number(unsigned char *safety_number,
                             const unsigned char *our_identity_key,
                             const unsigned char *their_identity_key);
 
 unsigned int autograph_safety_number_size();
+
+unsigned int autograph_secret_key_size();
+
+unsigned int autograph_signature_size();
 
 int autograph_session(const unsigned char *transcript,
                       const unsigned char *their_identity_key,

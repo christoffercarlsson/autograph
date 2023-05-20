@@ -4,12 +4,12 @@ import Foundation
 internal func createSafetyNumber(ourIdentityKey: Bytes)
   -> SafetyNumberFunction
 {
-  let safetyNumberFunction: SafetyNumberFunction = { theirIdentityKey in
+  let safetyNumberFunction: SafetyNumberFunction = { [ourIdentityKey] theirIdentityKey in
     var safetyNumber = createSafetyNumberBytes()
     let result = autograph_safety_number(
-      getMutablePointer(&safetyNumber),
-      getPointer(ourIdentityKey),
-      getPointer(theirIdentityKey)
+      &safetyNumber,
+      ourIdentityKey,
+      theirIdentityKey
     )
     if result != 0 {
       throw AutographError.safetyNumberFailed

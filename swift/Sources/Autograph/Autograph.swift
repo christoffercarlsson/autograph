@@ -36,8 +36,8 @@ public struct Autograph {
       publicKey: createPublicKeyBytes()
     )
     let result = autograph_key_pair_ephemeral(
-      getMutablePointer(&keyPair.privateKey),
-      getMutablePointer(&keyPair.publicKey)
+      &keyPair.privateKey,
+      &keyPair.publicKey
     )
     if result != 0 {
       throw AutographError.keyGenerationFailed
@@ -51,8 +51,8 @@ public struct Autograph {
       publicKey: createPublicKeyBytes()
     )
     let result = autograph_key_pair_identity(
-      getMutablePointer(&keyPair.privateKey),
-      getMutablePointer(&keyPair.publicKey)
+      &keyPair.privateKey,
+      &keyPair.publicKey
     )
     if result != 0 {
       throw AutographError.keyGenerationFailed

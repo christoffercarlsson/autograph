@@ -12,11 +12,6 @@ public class KeyPair {
   }
 }
 
-public typealias CertifyFunction = (Bytes?) throws -> Bytes
-public typealias DecryptFunction = (Bytes) throws -> Bytes
-public typealias EncryptFunction = (Bytes) throws -> Bytes
-public typealias VerifyFunction = (Bytes, Bytes?) -> Bool
-
 public enum AutographError: Error {
   case certificationFailed
   case decryptionFailed
@@ -27,6 +22,11 @@ public enum AutographError: Error {
   case safetyNumberFailed
   case sessionFailed
 }
+
+public typealias CertifyFunction = (Bytes?) throws -> Bytes
+public typealias DecryptFunction = (Bytes) throws -> Bytes
+public typealias EncryptFunction = (Bytes) throws -> Bytes
+public typealias VerifyFunction = (Bytes, Bytes?) -> Bool
 
 public class Session {
   var certify: CertifyFunction
@@ -51,7 +51,17 @@ public typealias SafetyNumberFunction = (Bytes) throws -> Bytes
 
 public typealias SessionFunction = (Bytes) throws -> Session
 
-public typealias HandshakeFunction = (Bytes, Bytes) throws -> SessionFunction
+public class Handshake {
+  var message: Bytes
+  var establishSession: SessionFunction
+
+  init(message: Bytes, establishSession: @escaping SessionFunction) {
+    self.message = message
+    self.establishSession = establishSession
+  }
+}
+
+public typealias HandshakeFunction = (Bytes, Bytes) throws -> Handshake
 
 public class Party {
   var calculateSafetyNumber: SafetyNumberFunction

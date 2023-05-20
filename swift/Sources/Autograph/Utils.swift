@@ -57,12 +57,3 @@ internal func getMutablePointer(_ bytes: inout Bytes)
     pointer.baseAddress!
   }
 }
-
-internal func getPointer(_ bytes: Bytes?) -> UnsafePointer<UInt8>? {
-  if bytes == nil {
-    return nil
-  }
-  return bytes!.withUnsafeBufferPointer { pointer in
-    pointer.baseAddress
-  }
-}
