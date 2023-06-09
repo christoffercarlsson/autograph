@@ -1,4 +1,4 @@
-#include "private.hpp"
+#include "internal.h"
 
 namespace autograph {
 

@@ -1,5 +1,4 @@
-#include "autograph.h"
-#include "private.hpp"
+#include "internal.h"
 
 namespace autograph {
 
@@ -8,7 +7,7 @@ CertifyFunction create_certify(const Bytes &our_private_key,
                                const Bytes &their_secret_key) {
   auto certify_function = [&our_private_key, &their_public_key,
                            &their_secret_key](const Bytes &message) {
-    Bytes signature(SIGNATURE_SIZE);
+    Bytes signature(64);
     bool success =
         autograph_certify(signature.data(), our_private_key.data(),
                           their_public_key.data(), their_secret_key.data(),
@@ -23,7 +22,7 @@ CertifyFunction create_certify(const Bytes &our_private_key,
 
 DecryptFunction create_decrypt(const Bytes &their_secret_key) {
   auto decrypt_function = [&their_secret_key](const Bytes &message) {
-    Bytes plaintext(message.size() - MESSAGE_EXTRA_SIZE);
+    Bytes plaintext(message.size() - 20);
     bool success = autograph_decrypt(plaintext.data(), their_secret_key.data(),
                                      message.data(), message.size()) == 0;
     if (!success) {
@@ -38,7 +37,7 @@ EncryptFunction create_encrypt(const Bytes &our_secret_key) {
   unsigned int index = 0;
   auto encrypt_function = [&our_secret_key, &index](const Bytes &plaintext) {
     index++;
-    Bytes ciphertext(plaintext.size() + MESSAGE_EXTRA_SIZE);
+    Bytes ciphertext(plaintext.size() + 20);
     bool success =
         autograph_encrypt(ciphertext.data(), our_secret_key.data(), index,
                           plaintext.data(), plaintext.size()) == 0;
@@ -54,11 +53,9 @@ VerifyFunction create_verify(const Bytes &their_identity_key,
                              const Bytes &their_secret_key) {
   auto verify_function = [&their_identity_key, &their_secret_key](
                              const Bytes &certificates, const Bytes &message) {
-    return autograph_verify(
-               their_identity_key.data(), their_secret_key.data(),
-               certificates.data(),
-               certificates.size() / (PUBLIC_KEY_SIZE + SIGNATURE_SIZE),
-               message.data(), message.size()) == 0;
+    return autograph_verify(their_identity_key.data(), their_secret_key.data(),
+                            certificates.data(), certificates.size() / 96,
+                            message.data(), message.size()) == 0;
   };
   return std::move(verify_function);
 }

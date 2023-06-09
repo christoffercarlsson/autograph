@@ -1,9 +1,7 @@
 #include <stdexcept>
 #include <string>
 
-#include "autograph.h"
-#include "constants.hpp"
-#include "private.hpp"
+#include "internal.h"
 
 namespace autograph {
 
@@ -13,10 +11,10 @@ HandshakeFunction create_handshake(const bool is_initiator,
   auto perform_handshake =
       [is_initiator, &our_identity_key_pair, &our_ephemeral_key_pair](
           const Bytes &their_identity_key, const Bytes &their_ephemeral_key) {
-        Bytes transcript(TRANSCRIPT_SIZE);
-        Bytes our_secret_key(SECRET_KEY_SIZE);
-        Bytes their_secret_key(SECRET_KEY_SIZE);
-        Bytes message(HANDSHAKE_SIZE);
+        Bytes transcript(128);
+        Bytes our_secret_key(32);
+        Bytes their_secret_key(32);
+        Bytes message(80);
         bool success =
             autograph_handshake(
                 transcript.data(), message.data(), our_secret_key.data(),

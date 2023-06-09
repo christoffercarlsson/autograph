@@ -1,12 +1,11 @@
-#include "autograph.h"
-#include "private.hpp"
+#include "internal.h"
 
 namespace autograph {
 
 SafetyNumberFunction create_safety_number(const Bytes &our_identity_key) {
   auto safety_number_function =
       [&our_identity_key](const Bytes &their_identity_key) {
-        Bytes safety_number(SAFETY_NUMBER_SIZE);
+        Bytes safety_number(60);
         bool success = autograph_safety_number(safety_number.data(),
                                                our_identity_key.data(),
                                                their_identity_key.data()) == 0;

@@ -1,9 +1,7 @@
-#pragma once
+#ifndef AUTOGRAPH_H
+#define AUTOGRAPH_H
 
 #ifdef __cplusplus
-#include <functional>
-#include <vector>
-
 extern "C" {
 #endif
 
@@ -72,61 +70,9 @@ int autograph_verify(const unsigned char *their_public_key,
                      const unsigned long long certificate_count,
                      const unsigned char *message,
                      const unsigned long long message_size);
+
 #ifdef __cplusplus
-}  // extern "C"
+}
+#endif
 
-namespace autograph {
-
-using Bytes = std::vector<unsigned char>;
-
-struct KeyPair {
-  Bytes private_key;
-  Bytes public_key;
-};
-
-using CertifyFunction = std::function<Bytes(const Bytes &)>;
-
-using DecryptFunction = std::function<Bytes(const Bytes &)>;
-
-using EncryptFunction = std::function<Bytes(const Bytes &)>;
-
-using SafetyNumberFunction = std::function<Bytes(const Bytes &)>;
-
-using VerifyFunction = std::function<bool(const Bytes &, const Bytes &)>;
-
-struct Session {
-  CertifyFunction certify;
-  DecryptFunction decrypt;
-  EncryptFunction encrypt;
-  VerifyFunction verify;
-};
-
-using SessionFunction = std::function<Session(const Bytes &)>;
-
-struct Handshake {
-  Bytes message;
-  SessionFunction establish_session;
-};
-
-using HandshakeFunction =
-    std::function<Handshake(const Bytes &, const Bytes &)>;
-
-struct Party {
-  SafetyNumberFunction calculate_safety_number;
-  HandshakeFunction perform_handshake;
-};
-
-Party create_initiator(const KeyPair &identity_key_pair,
-                       KeyPair &ephemeral_key_pair);
-
-Party create_responder(const KeyPair &identity_key_pair,
-                       KeyPair &ephemeral_key_pair);
-
-KeyPair generate_ephemeral_key_pair();
-
-KeyPair generate_identity_key_pair();
-
-void init();
-
-}  // namespace autograph
 #endif

@@ -1,7 +1,6 @@
 #pragma once
 
-#include "constants.hpp"
-#include "types.hpp"
+#include "autograph.h"
 
 namespace autograph {
 

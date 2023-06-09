@@ -1,6 +1,6 @@
 #include <catch2/catch_test_macros.hpp>
 
-#include "autograph.hpp"
+#include "autograph.h"
 
 TEST_CASE("Key Pair", "[key_pair]") {
   autograph::init();
