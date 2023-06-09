@@ -13,13 +13,12 @@
     "includeDir": "cplusplus/include",
     "flags": [
       "-D CONFIGURED",
-      "-I cplusplus/libsodium/src/libsodium/include",
-      "-I cplusplus/libsodium/src/libsodium/include/sodium",
-      "-I cplusplus/include",
-      "-I cplusplus/include/autograph"
+      "-D DEV_MODE=0",
+      "-I c/libsodium/src/libsodium/include",
+      "-I c/libsodium/src/libsodium/include/sodium"
     ],
-    "srcDir": "cplusplus",
-    "srcFilter": "+<src> -<tests> +<libsodium/src/libsodium> -<libsodium/src/libsodium/include>"
+    "srcDir": ".",
+    "srcFilter": "-<*> +<c/src> +<cplusplus/src +<c/libsodium/src/libsodium> -<c/libsodium/src/libsodium/include>"
   },
   "frameworks": "*",
   "keywords": [
@@ -46,6 +45,6 @@
     "url": "https://github.com/christoffercarlsson/autograph.git"
   },
   "scripts": {
-    "postinstall": "cplusplus/scripts/sodium-version.sh"
+    "postinstall": "scripts/sodium-version.sh"
   }
 }
