@@ -2,13 +2,10 @@
 
 set -e
 
-export AUTOGRAPH_CORE=1
-export AUTOGRAPH_TESTS=0
-
-SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
-SOURCE_DIR="$(cd "${SCRIPT_DIR}/.." && pwd)"
+ROOT_DIR="$(cd "$(dirname "$0")/.." && pwd)"
+SOURCE_DIR="${ROOT_DIR}/c"
 SOURCE_INCLUDE_DIR="${SOURCE_DIR}/include"
-PREFIX="${SOURCE_DIR}/build/apple"
+PREFIX="${ROOT_DIR}/build/apple"
 TARGET_INCLUDE_DIR="${PREFIX}/include"
 XCFRAMEWORK_ARGS=""
 RIMRAF_ARGS=""
@@ -26,6 +23,15 @@ build_headers() {
   swift_module_map > "${1}/module.modulemap"
 }
 
+build_cmake() {
+  local build_path="${PREFIX}/${1}/${2}"
+  cmake -DCMAKE_BUILD_TYPE=Release \
+        -DCMAKE_TOOLCHAIN_FILE="${ROOT_DIR}/cmake/toolchains/apple/${1}.toolchain.cmake" \
+        -DCMAKE_OSX_ARCHITECTURES="${2}" \
+        -B "${build_path}" "${SOURCE_DIR}"
+  (cd "${build_path}" && make)
+}
+
 build_target() {
   local platform="${1}"
   local headers_path="${PREFIX}/${platform}/include"
@@ -34,7 +40,7 @@ build_target() {
   shift
   for arch in "$@"
   do
-    ${SCRIPT_DIR}/build.sh apple/${platform} ${arch} > /dev/null
+    build_cmake ${platform} ${arch} > /dev/null
     lipo_args="${lipo_args} ${PREFIX}/${platform}/${arch}/libautograph.a"
   done
   lipo -create ${lipo_args} -output ${library_path} > /dev/null
