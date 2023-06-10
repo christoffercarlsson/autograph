@@ -15,7 +15,7 @@ int encode_chunk(unsigned char *fingerprint, const unsigned char *digest,
       (a << 32 | b << 24 | c << 16 | d << 8 | e) % 100000;
   char digits[6];
   int result = snprintf(digits, 6, "%05u", number);
-  if (result >= 0 && result < 6) {
+  if (result <= 0 || result >= 6) {
     return -1;
   }
   fingerprint[i] = digits[0];
