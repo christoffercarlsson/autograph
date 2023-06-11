@@ -4,8 +4,6 @@
 #include "autograph.h"
 
 TEST_CASE("Safety number", "[safety_number]") {
-  autograph::init();
-
   autograph::KeyPair alice_identity_key_pair = {
       {43, 6,  246, 172, 137, 170, 33,  12, 118, 177, 111, 60, 19, 37, 65, 122,
        28, 34, 200, 251, 96,  35,  187, 52, 74,  224, 143, 39, 90, 51, 33, 140},
@@ -42,6 +40,8 @@ TEST_CASE("Safety number", "[safety_number]") {
       55, 56, 54, 48, 50, 55, 53, 56, 48, 54, 52, 56, 52, 53, 49,
       53, 55, 50, 49, 50, 54, 49, 50, 50, 49, 57, 52, 53, 57, 52,
       50, 55, 54, 49, 49, 54, 49, 57, 50, 52, 53, 52, 57, 50, 54};
+
+  autograph::init();
 
   auto alice = autograph::create_initiator(alice_identity_key_pair,
                                            alice_ephemeral_key_pair);

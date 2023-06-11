@@ -19,7 +19,7 @@ int calculate_subject(unsigned char *subject,
                       const unsigned long long message_size) {
   if (subject_size > 32) {
     int decrypt_result = autograph_decrypt(subject, their_secret_key, message,
-                                           message_size) == 0;
+                                           message_size);
     if (decrypt_result != 0) {
       return -1;
     }

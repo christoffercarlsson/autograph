@@ -1,4 +1,5 @@
-#pragma once
+#ifndef AUTOGRAPH_H
+#define AUTOGRAPH_H
 
 #ifdef __cplusplus
 #include <functional>
@@ -72,6 +73,7 @@ int autograph_verify(const unsigned char *their_public_key,
                      const unsigned long long certificate_count,
                      const unsigned char *message,
                      const unsigned long long message_size);
+
 #ifdef __cplusplus
 }  // extern "C"
 
@@ -129,4 +131,6 @@ KeyPair generate_identity_key_pair();
 void init();
 
 }  // namespace autograph
+#endif
+
 #endif

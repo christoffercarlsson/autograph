@@ -1,4 +1,5 @@
-#pragma once
+#ifndef AUTOGRAPH_INTERNAL_H
+#define AUTOGRAPH_INTERNAL_H
 
 #include "autograph.h"
 
@@ -20,3 +21,5 @@ SessionFunction create_session(const Bytes &our_private_key,
                                const Bytes &their_secret_key);
 
 }  // namespace autograph
+
+#endif
