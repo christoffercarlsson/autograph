@@ -235,7 +235,6 @@ final class SessionTests: XCTestCase {
   // Should allow Alice to send encrypted data to Bob
   func testAliceMessageToBob() throws {
     let message = try a.encrypt(data)
-
     let result = try b.decrypt(message)
     XCTAssertEqual(message, aliceMessage)
     XCTAssertEqual(result, data)
