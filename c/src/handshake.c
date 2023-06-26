@@ -4,6 +4,9 @@
 #include "crypto.h"
 #include "sodium.h"
 
+const unsigned char CONTEXT_INITIATOR = 0;
+const unsigned char CONTEXT_RESPONDER = 1;
+
 void write_transcript(unsigned char *transcript, const unsigned char *first_key,
                       const unsigned char *second_key,
                       const unsigned char *third_key,
@@ -38,7 +41,7 @@ int calculate_ciphertext(unsigned char *message,
   if (signature_result != 0) {
     return -1;
   }
-  return encrypt(message, our_secret_key, 0, signature, sizeof signature);
+  return encrypt(message, our_secret_key, 0, signature, 64);
 }
 
 int derive_keys(unsigned char *our_secret_key, unsigned char *their_secret_key,
@@ -46,8 +49,12 @@ int derive_keys(unsigned char *our_secret_key, unsigned char *their_secret_key,
                 const unsigned char *their_public_key) {
   unsigned char ikm[32];
   int dh_result = diffie_hellman(ikm, our_private_key, their_public_key);
-  int our_key_result = kdf(our_secret_key, ikm, is_initiator == 1 ? 0 : 1);
-  int their_key_result = kdf(their_secret_key, ikm, is_initiator == 1 ? 1 : 0);
+  int our_key_result =
+      kdf(our_secret_key, ikm,
+          is_initiator == 1 ? &CONTEXT_INITIATOR : &CONTEXT_RESPONDER);
+  int their_key_result =
+      kdf(their_secret_key, ikm,
+          is_initiator == 1 ? &CONTEXT_RESPONDER : &CONTEXT_INITIATOR);
   sodium_memzero(our_private_key, 32);
   sodium_memzero(ikm, 32);
   return dh_result == 0 && our_key_result == 0 && their_key_result == 0 ? 0
@@ -74,7 +81,7 @@ int autograph_handshake(unsigned char *transcript, unsigned char *message,
     return -1;
   }
   int ciphertext_result = calculate_ciphertext(
-      message, transcript, our_private_identity_key, our_private_ephemeral_key);
+      message, transcript, our_private_identity_key, our_secret_key);
   if (ciphertext_result != 0) {
     return -1;
   }
