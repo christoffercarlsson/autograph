@@ -31,9 +31,9 @@ HandshakeFunction create_handshake(const bool is_initiator,
         create_session(our_identity_key_pair.private_key, their_identity_key,
                        transcript, our_secret_key, their_secret_key);
     Handshake handshake = {message, establish_session};
-    return std::move(handshake);
+    return handshake;
   };
-  return std::move(perform_handshake);
+  return perform_handshake;
 }
 
 }  // namespace autograph

@@ -7,21 +7,19 @@ namespace autograph {
 
 Party create_initiator(const KeyPair identity_key_pair,
                        KeyPair ephemeral_key_pair) {
-  auto party = create_party(true, identity_key_pair, ephemeral_key_pair);
-  return std::move(party);
+  return create_party(true, identity_key_pair, ephemeral_key_pair);
 }
 
 Party create_responder(const KeyPair identity_key_pair,
                        KeyPair ephemeral_key_pair) {
-  auto party = create_party(false, identity_key_pair, ephemeral_key_pair);
-  return std::move(party);
+  return create_party(false, identity_key_pair, ephemeral_key_pair);
 }
 
 KeyPair create_key_pair() {
   Bytes private_key(32);
   Bytes public_key(32);
   KeyPair key_pair = {private_key, public_key};
-  return std::move(key_pair);
+  return key_pair;
 }
 
 KeyPair generate_ephemeral_key_pair() {
@@ -31,7 +29,7 @@ KeyPair generate_ephemeral_key_pair() {
   if (result != 0) {
     throw std::runtime_error("Ephemeral key pair generation failed");
   }
-  return std::move(key_pair);
+  return key_pair;
 }
 
 KeyPair generate_identity_key_pair() {
@@ -41,7 +39,7 @@ KeyPair generate_identity_key_pair() {
   if (result != 0) {
     throw std::runtime_error("Identity key pair generation failed");
   }
-  return std::move(key_pair);
+  return key_pair;
 }
 
 void init() {

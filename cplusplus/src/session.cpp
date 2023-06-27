@@ -14,9 +14,9 @@ CertifyFunction create_certify(const Bytes our_private_key,
     if (result != 0) {
       throw std::runtime_error("Certification failed");
     }
-    return std::move(signature);
+    return signature;
   };
-  return std::move(certify_function);
+  return certify_function;
 }
 
 DecryptFunction create_decrypt(const Bytes their_secret_key) {
@@ -27,9 +27,9 @@ DecryptFunction create_decrypt(const Bytes their_secret_key) {
     if (result != 0) {
       throw std::runtime_error("Decryption failed");
     }
-    return std::move(plaintext);
+    return plaintext;
   };
-  return std::move(decrypt_function);
+  return decrypt_function;
 }
 
 EncryptFunction create_encrypt(const Bytes our_secret_key) {
@@ -42,9 +42,9 @@ EncryptFunction create_encrypt(const Bytes our_secret_key) {
     if (result != 0) {
       throw std::runtime_error("Encryption failed");
     }
-    return std::move(ciphertext);
+    return ciphertext;
   };
-  return std::move(encrypt_function);
+  return encrypt_function;
 }
 
 VerifyFunction create_verify(const Bytes their_identity_key,
@@ -55,7 +55,7 @@ VerifyFunction create_verify(const Bytes their_identity_key,
                             certificates.data(), certificates.size() / 96,
                             message.data(), message.size());
   };
-  return std::move(verify_function);
+  return verify_function;
 }
 
 SessionFunction create_session(const Bytes our_private_key,
@@ -78,9 +78,9 @@ SessionFunction create_session(const Bytes our_private_key,
     auto encrypt = create_encrypt(our_secret_key);
     auto verify = create_verify(their_public_key, their_secret_key);
     Session session = {certify, decrypt, encrypt, verify};
-    return std::move(session);
+    return session;
   };
-  return std::move(session_function);
+  return session_function;
 }
 
 }  // namespace autograph

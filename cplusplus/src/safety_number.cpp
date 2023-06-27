@@ -12,9 +12,9 @@ SafetyNumberFunction create_safety_number(const Bytes our_identity_key) {
         if (result != 0) {
           throw std::runtime_error("Safety number calculation failed");
         }
-        return std::move(safety_number);
+        return safety_number;
       };
-  return std::move(safety_number_function);
+  return safety_number_function;
 }
 
 }  // namespace autograph

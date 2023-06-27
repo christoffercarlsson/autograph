@@ -12,7 +12,7 @@ Party create_party(const bool is_initiator, const KeyPair identity_key_pair,
       calculate_safety_number,
       perform_handshake,
   };
-  return std::move(party);
+  return party;
 }
 
 }  // namespace autograph
