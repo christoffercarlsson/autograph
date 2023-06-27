@@ -34,7 +34,8 @@ DecryptFunction create_decrypt(const Bytes their_secret_key) {
 
 EncryptFunction create_encrypt(const Bytes our_secret_key) {
   unsigned int index = 0;
-  auto encrypt_function = [our_secret_key, &index](const Bytes plaintext) {
+  auto encrypt_function = [our_secret_key,
+                           index](const Bytes plaintext) mutable {
     index++;
     Bytes ciphertext(plaintext.size() + 20);
     int result = autograph_encrypt(ciphertext.data(), our_secret_key.data(),
@@ -53,7 +54,7 @@ VerifyFunction create_verify(const Bytes their_identity_key,
                              const Bytes certificates, const Bytes message) {
     return autograph_verify(their_identity_key.data(), their_secret_key.data(),
                             certificates.data(), certificates.size() / 96,
-                            message.data(), message.size());
+                            message.data(), message.size()) == 0;
   };
   return verify_function;
 }
