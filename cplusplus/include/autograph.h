@@ -86,15 +86,15 @@ struct KeyPair {
   Bytes public_key;
 };
 
-using CertifyFunction = std::function<Bytes(const Bytes &)>;
+using CertifyFunction = std::function<Bytes(const Bytes)>;
 
-using DecryptFunction = std::function<Bytes(const Bytes &)>;
+using DecryptFunction = std::function<Bytes(const Bytes)>;
 
-using EncryptFunction = std::function<Bytes(const Bytes &)>;
+using EncryptFunction = std::function<Bytes(const Bytes)>;
 
-using SafetyNumberFunction = std::function<Bytes(const Bytes &)>;
+using SafetyNumberFunction = std::function<Bytes(const Bytes)>;
 
-using VerifyFunction = std::function<bool(const Bytes &, const Bytes &)>;
+using VerifyFunction = std::function<bool(const Bytes, const Bytes)>;
 
 struct Session {
   CertifyFunction certify;
@@ -103,26 +103,25 @@ struct Session {
   VerifyFunction verify;
 };
 
-using SessionFunction = std::function<Session(const Bytes &)>;
+using SessionFunction = std::function<Session(const Bytes)>;
 
 struct Handshake {
   Bytes message;
   SessionFunction establish_session;
 };
 
-using HandshakeFunction =
-    std::function<Handshake(const Bytes &, const Bytes &)>;
+using HandshakeFunction = std::function<Handshake(const Bytes, const Bytes)>;
 
 struct Party {
   SafetyNumberFunction calculate_safety_number;
   HandshakeFunction perform_handshake;
 };
 
-Party create_initiator(const KeyPair &identity_key_pair,
-                       KeyPair &ephemeral_key_pair);
+Party create_initiator(const KeyPair identity_key_pair,
+                       KeyPair ephemeral_key_pair);
 
-Party create_responder(const KeyPair &identity_key_pair,
-                       KeyPair &ephemeral_key_pair);
+Party create_responder(const KeyPair identity_key_pair,
+                       KeyPair ephemeral_key_pair);
 
 KeyPair generate_ephemeral_key_pair();
 
