@@ -210,8 +210,8 @@ final class SessionTests: XCTestCase {
   var a: Session!
   var b: Session!
 
-  override func setUpWithError() throws {
-    autograph = try Autograph()
+  override func setUp() {
+    autograph = Autograph()
     alice = autograph.createInitiator(
       identityKeyPair: aliceIdentityKeyPair,
       ephemeralKeyPair: aliceEphemeralKeyPair
@@ -220,60 +220,72 @@ final class SessionTests: XCTestCase {
       identityKeyPair: bobIdentityKeyPair,
       ephemeralKeyPair: bobEphemeralKeyPair
     )
-    let aliceHandshake = try alice.performHandshake(
+    let aliceHandshake = alice.performHandshake(
       bobIdentityKeyPair.publicKey,
       bobEphemeralKeyPair.publicKey
-    )
-    let bobHandshake = try bob.performHandshake(
+    ).handshake
+    let bobHandshake = bob.performHandshake(
       aliceIdentityKeyPair.publicKey,
       aliceEphemeralKeyPair.publicKey
-    )
-    a = try aliceHandshake.establishSession(bobHandshake.message)
-    b = try bobHandshake.establishSession(aliceHandshake.message)
+    ).handshake
+    a = aliceHandshake.establishSession(bobHandshake.message).session
+    b = bobHandshake.establishSession(aliceHandshake.message).session
   }
 
   // Should allow Alice to send encrypted data to Bob
-  func testAliceMessageToBob() throws {
-    let message = try a.encrypt(data)
-    let result = try b.decrypt(message)
-    XCTAssertEqual(message, aliceMessage)
-    XCTAssertEqual(result, data)
+  func testAliceMessageToBob() {
+    let encryptResult = a.encrypt(data)
+    let decryptResult = b.decrypt(encryptResult.message)
+    XCTAssertTrue(encryptResult.success)
+    XCTAssertTrue(decryptResult.success)
+    XCTAssertEqual(encryptResult.message, aliceMessage)
+    XCTAssertEqual(decryptResult.data, data)
   }
 
   // Should allow Bob to send encrypted data to Alice
-  func testBobMessageToAlice() throws {
-    let message = try b.encrypt(data)
-    let result = try a.decrypt(message)
-    XCTAssertEqual(message, bobMessage)
-    XCTAssertEqual(result, data)
+  func testBobMessageToAlice() {
+    let encryptResult = b.encrypt(data)
+    let decryptResult = a.decrypt(encryptResult.message)
+    XCTAssertTrue(encryptResult.success)
+    XCTAssertTrue(decryptResult.success)
+    XCTAssertEqual(encryptResult.message, bobMessage)
+    XCTAssertEqual(decryptResult.data, data)
   }
 
   // Should allow Bob to certify Alice's ownership of her identity key and data
-  func testBobCertifyAliceData() throws {
-    let message = try a.encrypt(data)
-    let plaintext = try b.decrypt(message)
-    let signature = try b.certify(plaintext)
-    XCTAssertEqual(signature, bobSignatureData)
+  func testBobCertifyAliceData() {
+    let encryptResult = a.encrypt(data)
+    let decryptResult = b.decrypt(encryptResult.message)
+    let certifyResult = b.certify(decryptResult.data)
+    XCTAssertTrue(encryptResult.success)
+    XCTAssertTrue(decryptResult.success)
+    XCTAssertTrue(certifyResult.success)
+    XCTAssertEqual(certifyResult.signature, bobSignatureData)
   }
 
   // Should allow Alice to certify Bob's ownership of his identity key and data
-  func testAliceCertifyBobData() throws {
-    let message = try b.encrypt(data)
-    let plaintext = try a.decrypt(message)
-    let signature = try a.certify(plaintext)
-    XCTAssertEqual(signature, aliceSignatureData)
+  func testAliceCertifyBobData() {
+    let encryptResult = b.encrypt(data)
+    let decryptResult = a.decrypt(encryptResult.message)
+    let certifyResult = a.certify(decryptResult.data)
+    XCTAssertTrue(encryptResult.success)
+    XCTAssertTrue(decryptResult.success)
+    XCTAssertTrue(certifyResult.success)
+    XCTAssertEqual(certifyResult.signature, aliceSignatureData)
   }
 
   // Should allow Bob to certify Alice's ownership of her identity key
-  func testBobCertifyAliceIdentity() throws {
-    let signature = try b.certify(nil)
-    XCTAssertEqual(signature, bobSignatureIdentity)
+  func testBobCertifyAliceIdentity() {
+    let certifyResult = b.certify(nil)
+    XCTAssertTrue(certifyResult.success)
+    XCTAssertEqual(certifyResult.signature, bobSignatureIdentity)
   }
 
   // Should allow Alice to certify Bob's ownership of his identity key
-  func testAliceCertifyBobIdentity() throws {
-    let signature = try a.certify(nil)
-    XCTAssertEqual(signature, aliceSignatureIdentity)
+  func testAliceCertifyBobIdentity() {
+    let certifyResult = a.certify(nil)
+    XCTAssertTrue(certifyResult.success)
+    XCTAssertEqual(certifyResult.signature, aliceSignatureIdentity)
   }
 
   // Should allow Bob to verify Alice's ownership of her identity key and data

@@ -192,8 +192,8 @@ final class SafetyNumberTests: XCTestCase {
   var alice: Party!
   var bob: Party!
 
-  override func setUpWithError() throws {
-    autograph = try Autograph()
+  override func setUp() {
+    autograph = Autograph()
     alice = autograph.createInitiator(
       identityKeyPair: aliceIdentityKeyPair,
       ephemeralKeyPair: aliceEphemeralKeyPair
@@ -204,10 +204,12 @@ final class SafetyNumberTests: XCTestCase {
     )
   }
 
-  func testCalculateSafetyNumber() throws {
-    let a = try alice.calculateSafetyNumber(bobIdentityKeyPair.publicKey)
-    let b = try bob.calculateSafetyNumber(aliceIdentityKeyPair.publicKey)
-    XCTAssertEqual(a, safetyNumber)
-    XCTAssertEqual(b, safetyNumber)
+  func testCalculateSafetyNumber() {
+    let a = alice.calculateSafetyNumber(bobIdentityKeyPair.publicKey)
+    let b = bob.calculateSafetyNumber(aliceIdentityKeyPair.publicKey)
+    XCTAssertTrue(a.success)
+    XCTAssertTrue(b.success)
+    XCTAssertEqual(a.safetyNumber, safetyNumber)
+    XCTAssertEqual(b.safetyNumber, safetyNumber)
   }
 }

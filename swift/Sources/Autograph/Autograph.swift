@@ -2,10 +2,8 @@ import Clibautograph
 import Foundation
 
 public struct Autograph {
-  public init() throws {
-    if autograph_init() != 0 {
-      throw AutographError.initializationFailed
-    }
+  public init() {
+    autograph_init()
   }
 
   public func createInitiator(
@@ -30,33 +28,27 @@ public struct Autograph {
     )
   }
 
-  public func generateEphemeralKeyPair() throws -> KeyPair {
+  public func generateEphemeralKeyPair() -> KeyPairResult {
     let keyPair = KeyPair(
       privateKey: createPrivateKeyBytes(),
       publicKey: createPublicKeyBytes()
     )
-    let result = autograph_key_pair_ephemeral(
+    let success = autograph_key_pair_ephemeral(
       &keyPair.privateKey,
       &keyPair.publicKey
-    )
-    if result != 0 {
-      throw AutographError.keyGenerationFailed
-    }
-    return keyPair
+    ) == 0
+    return KeyPairResult(success: success, keyPair: keyPair)
   }
 
-  public func generateIdentityKeyPair() throws -> KeyPair {
+  public func generateIdentityKeyPair() -> KeyPairResult {
     let keyPair = KeyPair(
       privateKey: createPrivateKeyBytes(),
       publicKey: createPublicKeyBytes()
     )
-    let result = autograph_key_pair_identity(
+    let success = autograph_key_pair_identity(
       &keyPair.privateKey,
       &keyPair.publicKey
-    )
-    if result != 0 {
-      throw AutographError.keyGenerationFailed
-    }
-    return keyPair
+    ) == 0
+    return KeyPairResult(success: success, keyPair: keyPair)
   }
 }

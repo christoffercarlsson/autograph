@@ -12,21 +12,62 @@ public class KeyPair {
   }
 }
 
-public enum AutographError: Error {
-  case certificationFailed
-  case decryptionFailed
-  case encryptionFailed
-  case handshakeFailed
-  case initializationFailed
-  case keyGenerationFailed
-  case safetyNumberFailed
-  case sessionFailed
+public class KeyPairResult {
+  var success: Bool
+  var keyPair: KeyPair
+
+  init(success: Bool, keyPair: KeyPair) {
+    self.success = success
+    self.keyPair = keyPair
+  }
 }
 
-public typealias CertifyFunction = (Bytes?) throws -> Bytes
-public typealias DecryptFunction = (Bytes) throws -> Bytes
-public typealias EncryptFunction = (Bytes) throws -> Bytes
+public class CertificationResult {
+  var success: Bool
+  var signature: Bytes
+
+  init(success: Bool, signature: Bytes) {
+    self.success = success
+    self.signature = signature
+  }
+}
+
+public class DecryptionResult {
+  var success: Bool
+  var data: Bytes
+
+  init(success: Bool, data: Bytes) {
+    self.success = success
+    self.data = data
+  }
+}
+
+public class EncryptionResult {
+  var success: Bool
+  var message: Bytes
+
+  init(success: Bool, message: Bytes) {
+    self.success = success
+    self.message = message
+  }
+}
+
+public typealias CertifyFunction = (Bytes?) -> CertificationResult
+public typealias DecryptFunction = (Bytes) -> DecryptionResult
+public typealias EncryptFunction = (Bytes) -> EncryptionResult
 public typealias VerifyFunction = (Bytes, Bytes?) -> Bool
+
+public class SafetyNumberResult {
+  var success: Bool
+  var safetyNumber: Bytes
+
+  init(success: Bool, safetyNumber: Bytes) {
+    self.success = success
+    self.safetyNumber = safetyNumber
+  }
+}
+
+public typealias SafetyNumberFunction = (Bytes) -> SafetyNumberResult
 
 public class Session {
   var certify: CertifyFunction
@@ -47,9 +88,17 @@ public class Session {
   }
 }
 
-public typealias SafetyNumberFunction = (Bytes) throws -> Bytes
+public class SessionResult {
+  var success: Bool
+  var session: Session
 
-public typealias SessionFunction = (Bytes) throws -> Session
+  init(success: Bool, session: Session) {
+    self.success = success
+    self.session = session
+  }
+}
+
+public typealias SessionFunction = (Bytes) -> SessionResult
 
 public class Handshake {
   var message: Bytes
@@ -61,7 +110,17 @@ public class Handshake {
   }
 }
 
-public typealias HandshakeFunction = (Bytes, Bytes) throws -> Handshake
+public class HandshakeResult {
+  var success: Bool
+  var handshake: Handshake
+
+  init(success: Bool, handshake: Handshake) {
+    self.success = success
+    self.handshake = handshake
+  }
+}
+
+public typealias HandshakeFunction = (Bytes, Bytes) -> HandshakeResult
 
 public class Party {
   var calculateSafetyNumber: SafetyNumberFunction

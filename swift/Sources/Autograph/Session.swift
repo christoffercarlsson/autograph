@@ -8,34 +8,28 @@ private func createCertify(
   let certifyFunction: CertifyFunction =
     { [ourPrivateKey, theirPublicKey] data in
       var signature = createSignatureBytes()
-      let result = autograph_certify(
+      let success = autograph_certify(
         &signature,
         ourPrivateKey,
         theirPublicKey,
         data,
         UInt64((data != nil) ? data!.count : 0)
-      )
-      if result != 0 {
-        throw AutographError.certificationFailed
-      }
-      return signature
+      ) == 0
+      return CertificationResult(success: success, signature: signature)
     }
   return certifyFunction
 }
 
 private func createDecrypt(theirSecretKey: Bytes) -> DecryptFunction {
   let decryptFunction: DecryptFunction = { [theirSecretKey] message in
-    var plaintext = createPlaintextBytes(size: message.count)
-    let result = autograph_decrypt(
-      &plaintext,
+    var data = createPlaintextBytes(size: message.count)
+    let success = autograph_decrypt(
+      &data,
       theirSecretKey,
       message,
       UInt64(message.count)
-    )
-    if result != 0 {
-      throw AutographError.decryptionFailed
-    }
-    return plaintext
+    ) == 0
+    return DecryptionResult(success: success, data: data)
   }
   return decryptFunction
 }
@@ -54,22 +48,18 @@ private class EncryptIndexCounter {
 
 private func createEncrypt(ourSecretKey: Bytes) -> EncryptFunction {
   let indexCounter = EncryptIndexCounter()
-  let encryptFunction: EncryptFunction =
-    { [ourSecretKey, indexCounter] plaintext in
-      indexCounter.increment()
-      var message = createMessageBytes(size: plaintext.count)
-      let result = autograph_encrypt(
-        &message,
-        ourSecretKey,
-        indexCounter.index,
-        plaintext,
-        UInt64(plaintext.count)
-      )
-      if result != 0 {
-        throw AutographError.encryptionFailed
-      }
-      return message
-    }
+  let encryptFunction: EncryptFunction = { [ourSecretKey, indexCounter] data in
+    indexCounter.increment()
+    var message = createMessageBytes(size: data.count)
+    let success = autograph_encrypt(
+      &message,
+      ourSecretKey,
+      indexCounter.index,
+      data,
+      UInt64(data.count)
+    ) == 0
+    return EncryptionResult(success: success, message: message)
+  }
   return encryptFunction
 }
 
@@ -106,16 +96,13 @@ internal func createSession(
     ourSecretKey,
     theirSecretKey
   ] theirCiphertext in
-    let result = autograph_session(
+    let success = autograph_session(
       transcript,
       theirPublicKey,
       theirSecretKey,
       theirCiphertext
-    )
-    if result != 0 {
-      throw AutographError.sessionFailed
-    }
-    return Session(
+    ) == 0
+    let session = Session(
       certify: createCertify(
         ourPrivateKey: ourPrivateKey,
         theirPublicKey: theirPublicKey
@@ -126,6 +113,7 @@ internal func createSession(
         theirPublicKey: theirPublicKey
       )
     )
+    return SessionResult(success: success, session: session)
   }
   return sessionFunction
 }

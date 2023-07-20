@@ -7,15 +7,12 @@ internal func createSafetyNumber(ourIdentityKey: Bytes)
   let safetyNumberFunction: SafetyNumberFunction =
     { [ourIdentityKey] theirIdentityKey in
       var safetyNumber = createSafetyNumberBytes()
-      let result = autograph_safety_number(
+      let success = autograph_safety_number(
         &safetyNumber,
         ourIdentityKey,
         theirIdentityKey
-      )
-      if result != 0 {
-        throw AutographError.safetyNumberFailed
-      }
-      return safetyNumber
+      ) == 0
+      return SafetyNumberResult(success: success, safetyNumber: safetyNumber)
     }
   return safetyNumberFunction
 }

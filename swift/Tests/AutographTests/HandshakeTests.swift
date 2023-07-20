@@ -146,8 +146,8 @@ final class HandshakeTests: XCTestCase {
   var alice: Party!
   var bob: Party!
 
-  override func setUpWithError() throws {
-    autograph = try Autograph()
+  override func setUp() {
+    autograph = Autograph()
     alice = autograph.createInitiator(
       identityKeyPair: aliceIdentityKeyPair,
       ephemeralKeyPair: aliceEphemeralKeyPair
@@ -158,16 +158,18 @@ final class HandshakeTests: XCTestCase {
     )
   }
 
-  func testPerformHandshake() throws {
-    let a = try alice.performHandshake(
+  func testPerformHandshake() {
+    let a = alice.performHandshake(
       bobIdentityKeyPair.publicKey,
       bobEphemeralKeyPair.publicKey
     )
-    let b = try bob.performHandshake(
+    let b = bob.performHandshake(
       aliceIdentityKeyPair.publicKey,
       aliceEphemeralKeyPair.publicKey
     )
-    XCTAssertEqual(a.message, aliceMessage)
-    XCTAssertEqual(b.message, bobMessage)
+    XCTAssertTrue(a.success)
+    XCTAssertTrue(b.success)
+    XCTAssertEqual(a.handshake.message, aliceMessage)
+    XCTAssertEqual(b.handshake.message, bobMessage)
   }
 }

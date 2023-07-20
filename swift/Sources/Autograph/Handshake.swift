@@ -15,7 +15,7 @@ internal func createHandshake(
     var transcript = createTranscriptBytes()
     var ourSecretKey = createSecretKeyBytes()
     var theirSecretKey = createSecretKeyBytes()
-    let result = autograph_handshake(
+    let success = autograph_handshake(
       &transcript,
       &ourCiphertext,
       &ourSecretKey,
@@ -27,10 +27,7 @@ internal func createHandshake(
       ephemeralKeyPair.publicKey,
       theirIdentityKey,
       theirEphemeralKey
-    )
-    if result != 0 {
-      throw AutographError.handshakeFailed
-    }
+    ) == 0
     let establishSession: SessionFunction = createSession(
       ourPrivateKey: identityKeyPair.privateKey,
       theirPublicKey: theirIdentityKey,
@@ -38,10 +35,11 @@ internal func createHandshake(
       ourSecretKey: ourSecretKey,
       theirSecretKey: theirSecretKey
     )
-    return Handshake(
+    let handshake = Handshake(
       message: ourCiphertext,
       establishSession: establishSession
     )
+    return HandshakeResult(success: success, handshake: handshake)
   }
   return performHandshake
 }
