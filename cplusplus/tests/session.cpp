@@ -143,14 +143,18 @@ TEST_CASE("Session", "[session]") {
   SECTION(
       "should allow Bob to certify Alice's ownership of her identity key and "
       "data") {
-    auto signature = b.certify(data);
+    auto message = a.encrypt(data);
+    auto plaintext = b.decrypt(message);
+    auto signature = b.certify(plaintext);
     REQUIRE_THAT(signature, Catch::Matchers::Equals(bob_signature_data));
   }
 
   SECTION(
       "should allow Alice to certify Bob's ownership of his identity key and "
       "data") {
-    auto signature = a.certify(data);
+    auto message = b.encrypt(data);
+    auto plaintext = a.decrypt(message);
+    auto signature = a.certify(plaintext);
     REQUIRE_THAT(signature, Catch::Matchers::Equals(alice_signature_data));
   }
 

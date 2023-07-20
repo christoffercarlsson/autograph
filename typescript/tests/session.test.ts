@@ -181,12 +181,16 @@ describe('Session', () => {
   })
 
   it("should allow Bob to certify Alice's ownership of her identity key and data", async () => {
-    const signature = await b.certify(data)
+    const message = await a.encrypt(data)
+    const plaintext = await b.decrypt(message)
+    const signature = await b.certify(plaintext)
     expect(signature).toEqual(signatures.bob.data)
   })
 
   it("should allow Alice to certify Bob's ownership of his identity key and data", async () => {
-    const signature = await a.certify(data)
+    const message = await b.encrypt(data)
+    const plaintext = await a.decrypt(message)
+    const signature = await a.certify(plaintext)
     expect(signature).toEqual(signatures.alice.data)
   })
 
