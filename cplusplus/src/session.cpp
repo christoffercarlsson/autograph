@@ -6,13 +6,11 @@ CertifyFunction create_certify(const Bytes our_private_key,
                                const Bytes their_public_key) {
   auto certify_function = [our_private_key, their_public_key](const Bytes data) {
     Bytes signature(64);
-    int result = autograph_certify(
+    bool success = autograph_certify(
         signature.data(), our_private_key.data(), their_public_key.data(),
-        data.data(), data.size());
-    if (result != 0) {
-      throw std::runtime_error("Certification failed");
-    }
-    return signature;
+        data.data(), data.size()) == 0;
+    CertificationResult result = {success, signature};
+    return result;
   };
   return certify_function;
 }
@@ -20,12 +18,10 @@ CertifyFunction create_certify(const Bytes our_private_key,
 DecryptFunction create_decrypt(const Bytes their_secret_key) {
   auto decrypt_function = [their_secret_key](const Bytes message) {
     Bytes plaintext(message.size() - 20);
-    int result = autograph_decrypt(plaintext.data(), their_secret_key.data(),
-                                   message.data(), message.size());
-    if (result != 0) {
-      throw std::runtime_error("Decryption failed");
-    }
-    return plaintext;
+    bool success = autograph_decrypt(plaintext.data(), their_secret_key.data(),
+                                   message.data(), message.size()) == 0;
+    DecryptionResult result = {success, plaintext};
+    return result;
   };
   return decrypt_function;
 }
@@ -47,12 +43,10 @@ EncryptFunction create_encrypt(const Bytes our_secret_key) {
                            index_counter](const Bytes plaintext) mutable {
     index_counter.increment();
     Bytes ciphertext(plaintext.size() + 20);
-    int result = autograph_encrypt(ciphertext.data(), our_secret_key.data(),
-                                   index_counter.index, plaintext.data(), plaintext.size());
-    if (result != 0) {
-      throw std::runtime_error("Encryption failed");
-    }
-    return ciphertext;
+    bool success = autograph_encrypt(ciphertext.data(), our_secret_key.data(),
+                                   index_counter.index, plaintext.data(), plaintext.size()) == 0;
+    EncryptionResult result = {success, ciphertext};
+    return result;
   };
   return encrypt_function;
 }
@@ -75,19 +69,17 @@ SessionFunction create_session(const Bytes our_private_key,
   auto session_function = [our_private_key, their_public_key, transcript,
                            our_secret_key,
                            their_secret_key](const Bytes their_message) {
-    int result =
+    bool success =
         autograph_session(transcript.data(), their_public_key.data(),
-                          their_secret_key.data(), their_message.data());
-    if (result != 0) {
-      throw std::runtime_error("Handshake verification failed");
-    }
+                          their_secret_key.data(), their_message.data()) == 0;
     auto certify =
         create_certify(our_private_key, their_public_key);
     auto decrypt = create_decrypt(their_secret_key);
     auto encrypt = create_encrypt(our_secret_key);
     auto verify = create_verify(their_public_key);
     Session session = {certify, decrypt, encrypt, verify};
-    return session;
+    SessionResult result = {success, session};
+    return result;
   };
   return session_function;
 }

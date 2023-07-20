@@ -84,13 +84,38 @@ struct KeyPair {
   Bytes public_key;
 };
 
-using CertifyFunction = std::function<Bytes(const Bytes)>;
+struct KeyPairResult {
+  bool success;
+  KeyPair key_pair;
+};
 
-using DecryptFunction = std::function<Bytes(const Bytes)>;
+struct CertificationResult {
+  bool success;
+  Bytes signature;
+};
 
-using EncryptFunction = std::function<Bytes(const Bytes)>;
+struct DecryptionResult {
+  bool success;
+  Bytes data;
+};
 
-using SafetyNumberFunction = std::function<Bytes(const Bytes)>;
+struct EncryptionResult {
+  bool success;
+  Bytes message;
+};
+
+struct SafetyNumberResult {
+  bool success;
+  Bytes safety_number;
+};
+
+using CertifyFunction = std::function<CertificationResult(const Bytes)>;
+
+using DecryptFunction = std::function<DecryptionResult(const Bytes)>;
+
+using EncryptFunction = std::function<EncryptionResult(const Bytes)>;
+
+using SafetyNumberFunction = std::function<SafetyNumberResult(const Bytes)>;
 
 using VerifyFunction = std::function<bool(const Bytes, const Bytes)>;
 
@@ -101,14 +126,24 @@ struct Session {
   VerifyFunction verify;
 };
 
-using SessionFunction = std::function<Session(const Bytes)>;
+struct SessionResult {
+  bool success;
+  Session session;
+};
+
+using SessionFunction = std::function<SessionResult(const Bytes)>;
 
 struct Handshake {
   Bytes message;
   SessionFunction establish_session;
 };
 
-using HandshakeFunction = std::function<Handshake(const Bytes, const Bytes)>;
+struct HandshakeResult {
+  bool success;
+  Handshake handshake;
+};
+
+using HandshakeFunction = std::function<HandshakeResult(const Bytes, const Bytes)>;
 
 struct Party {
   SafetyNumberFunction calculate_safety_number;
@@ -121,11 +156,11 @@ Party create_initiator(const KeyPair identity_key_pair,
 Party create_responder(const KeyPair identity_key_pair,
                        KeyPair ephemeral_key_pair);
 
-KeyPair generate_ephemeral_key_pair();
+KeyPairResult generate_ephemeral_key_pair();
 
-KeyPair generate_identity_key_pair();
+KeyPairResult generate_identity_key_pair();
 
-void init();
+bool init();
 
 }  // namespace autograph
 #endif

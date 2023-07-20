@@ -1,6 +1,3 @@
-#include <stdexcept>
-#include <string>
-
 #include "internal.h"
 
 namespace autograph {
@@ -22,31 +19,24 @@ KeyPair create_key_pair() {
   return key_pair;
 }
 
-KeyPair generate_ephemeral_key_pair() {
+KeyPairResult generate_ephemeral_key_pair() {
   auto key_pair = create_key_pair();
-  int result = autograph_key_pair_ephemeral(key_pair.private_key.data(),
-                                            key_pair.public_key.data());
-  if (result != 0) {
-    throw std::runtime_error("Ephemeral key pair generation failed");
-  }
-  return key_pair;
+  bool success = autograph_key_pair_ephemeral(key_pair.private_key.data(),
+                                            key_pair.public_key.data()) == 0;
+  KeyPairResult result = {success, key_pair};
+  return result;
 }
 
-KeyPair generate_identity_key_pair() {
+KeyPairResult generate_identity_key_pair() {
   auto key_pair = create_key_pair();
-  int result = autograph_key_pair_identity(key_pair.private_key.data(),
-                                           key_pair.public_key.data());
-  if (result != 0) {
-    throw std::runtime_error("Identity key pair generation failed");
-  }
-  return key_pair;
+  bool success = autograph_key_pair_identity(key_pair.private_key.data(),
+                                           key_pair.public_key.data()) == 0;
+  KeyPairResult result = {success, key_pair};
+  return result;
 }
 
-void init() {
-  int result = autograph_init();
-  if (result != 0) {
-    throw std::runtime_error("Initialization failed");
-  }
+bool init() {
+  return autograph_init() == 0;
 }
 
 }  // namespace autograph

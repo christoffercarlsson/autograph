@@ -119,53 +119,65 @@ TEST_CASE("Session", "[session]") {
                                          bob_ephemeral_key_pair);
 
   auto alice_handshake = alice.perform_handshake(
-      bob_identity_key_pair.public_key, bob_ephemeral_key_pair.public_key);
+      bob_identity_key_pair.public_key, bob_ephemeral_key_pair.public_key).handshake;
   auto bob_handshake = bob.perform_handshake(
-      alice_identity_key_pair.public_key, alice_ephemeral_key_pair.public_key);
+      alice_identity_key_pair.public_key, alice_ephemeral_key_pair.public_key).handshake;
 
-  auto a = alice_handshake.establish_session(bob_handshake.message);
-  auto b = bob_handshake.establish_session(alice_handshake.message);
+  auto a = alice_handshake.establish_session(bob_handshake.message).session;
+  auto b = bob_handshake.establish_session(alice_handshake.message).session;
 
   SECTION("should allow Alice to send encrypted data to Bob") {
-    auto message = a.encrypt(data);
-    auto result = b.decrypt(message);
-    REQUIRE_THAT(message, Catch::Matchers::Equals(alice_message));
-    REQUIRE_THAT(result, Catch::Matchers::Equals(data));
+    auto encrypt_result = a.encrypt(data);
+    auto decrypt_result = b.decrypt(encrypt_result.message);
+    REQUIRE(encrypt_result.success == true);
+    REQUIRE(decrypt_result.success == true);
+    REQUIRE_THAT(encrypt_result.message, Catch::Matchers::Equals(alice_message));
+    REQUIRE_THAT(decrypt_result.data, Catch::Matchers::Equals(data));
   }
 
   SECTION("should allow Bob to send encrypted data to Alice") {
-    auto message = b.encrypt(data);
-    auto result = a.decrypt(message);
-    REQUIRE_THAT(message, Catch::Matchers::Equals(bob_message));
-    REQUIRE_THAT(result, Catch::Matchers::Equals(data));
+    auto encrypt_result = b.encrypt(data);
+    auto decrypt_result = a.decrypt(encrypt_result.message);
+    REQUIRE(encrypt_result.success == true);
+    REQUIRE(decrypt_result.success == true);
+    REQUIRE_THAT(encrypt_result.message, Catch::Matchers::Equals(bob_message));
+    REQUIRE_THAT(decrypt_result.data, Catch::Matchers::Equals(data));
   }
 
   SECTION(
       "should allow Bob to certify Alice's ownership of her identity key and "
       "data") {
-    auto message = a.encrypt(data);
-    auto plaintext = b.decrypt(message);
-    auto signature = b.certify(plaintext);
-    REQUIRE_THAT(signature, Catch::Matchers::Equals(bob_signature_data));
+    auto encrypt_result = a.encrypt(data);
+    auto decrypt_result = b.decrypt(encrypt_result.message);
+    auto certify_result = b.certify(decrypt_result.data);
+    REQUIRE(encrypt_result.success == true);
+    REQUIRE(decrypt_result.success == true);
+    REQUIRE(certify_result.success == true);
+    REQUIRE_THAT(certify_result.signature, Catch::Matchers::Equals(bob_signature_data));
   }
 
   SECTION(
       "should allow Alice to certify Bob's ownership of his identity key and "
       "data") {
-    auto message = b.encrypt(data);
-    auto plaintext = a.decrypt(message);
-    auto signature = a.certify(plaintext);
-    REQUIRE_THAT(signature, Catch::Matchers::Equals(alice_signature_data));
+    auto encrypt_result = b.encrypt(data);
+    auto decrypt_result = a.decrypt(encrypt_result.message);
+    auto certify_result = a.certify(decrypt_result.data);
+    REQUIRE(encrypt_result.success == true);
+    REQUIRE(decrypt_result.success == true);
+    REQUIRE(certify_result.success == true);
+    REQUIRE_THAT(certify_result.signature, Catch::Matchers::Equals(alice_signature_data));
   }
 
   SECTION("should allow Bob to certify Alice's ownership of her identity key") {
-    auto signature = b.certify({});
-    REQUIRE_THAT(signature, Catch::Matchers::Equals(bob_signature_identity));
+    auto certify_result = b.certify({});
+    REQUIRE(certify_result.success == true);
+    REQUIRE_THAT(certify_result.signature, Catch::Matchers::Equals(bob_signature_identity));
   }
 
   SECTION("should allow Alice to certify Bob's ownership of his identity key") {
-    auto signature = a.certify({});
-    REQUIRE_THAT(signature, Catch::Matchers::Equals(alice_signature_identity));
+    auto certify_result = a.certify({});
+    REQUIRE(certify_result.success == true);
+    REQUIRE_THAT(certify_result.signature, Catch::Matchers::Equals(alice_signature_identity));
   }
 
   SECTION(

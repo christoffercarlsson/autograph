@@ -51,6 +51,8 @@ TEST_CASE("Safety number", "[safety_number]") {
   auto a = alice.calculate_safety_number(bob_identity_key_pair.public_key);
   auto b = bob.calculate_safety_number(alice_identity_key_pair.public_key);
 
-  REQUIRE_THAT(a, Catch::Matchers::Equals(safety_number));
-  REQUIRE_THAT(b, Catch::Matchers::Equals(safety_number));
+  REQUIRE(a.success == true);
+  REQUIRE(b.success == true);
+  REQUIRE_THAT(a.safety_number, Catch::Matchers::Equals(safety_number));
+  REQUIRE_THAT(b.safety_number, Catch::Matchers::Equals(safety_number));
 }

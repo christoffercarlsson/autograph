@@ -58,11 +58,14 @@ TEST_CASE("Handshake", "[handshake]") {
   auto bob = autograph::create_responder(bob_identity_key_pair,
                                          bob_ephemeral_key_pair);
 
-  auto a = alice.perform_handshake(bob_identity_key_pair.public_key,
+  auto alice_result = alice.perform_handshake(bob_identity_key_pair.public_key,
                                    bob_ephemeral_key_pair.public_key);
-  auto b = bob.perform_handshake(alice_identity_key_pair.public_key,
+  auto bob_result = bob.perform_handshake(alice_identity_key_pair.public_key,
                                  alice_ephemeral_key_pair.public_key);
 
-  REQUIRE_THAT(a.message, Catch::Matchers::Equals(alice_message));
-  REQUIRE_THAT(b.message, Catch::Matchers::Equals(bob_message));
+  
+  REQUIRE(alice_result.success == true);
+  REQUIRE(bob_result.success == true);
+  REQUIRE_THAT(alice_result.handshake.message, Catch::Matchers::Equals(alice_message));
+  REQUIRE_THAT(bob_result.handshake.message, Catch::Matchers::Equals(bob_message));
 }

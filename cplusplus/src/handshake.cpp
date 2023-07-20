@@ -1,6 +1,3 @@
-#include <stdexcept>
-#include <string>
-
 #include "internal.h"
 
 namespace autograph {
@@ -16,22 +13,20 @@ HandshakeFunction create_handshake(const bool is_initiator,
     Bytes our_secret_key(32);
     Bytes their_secret_key(32);
     Bytes message(80);
-    int result = autograph_handshake(
+    bool success = autograph_handshake(
         transcript.data(), message.data(), our_secret_key.data(),
         their_secret_key.data(), is_initiator ? 1 : 0,
         our_identity_key_pair.private_key.data(),
         our_identity_key_pair.public_key.data(),
         const_cast<unsigned char*>(our_ephemeral_key_pair.private_key.data()),
         our_ephemeral_key_pair.public_key.data(), their_identity_key.data(),
-        their_ephemeral_key.data());
-    if (result != 0) {
-      throw std::runtime_error("Handshake failed");
-    }
+        their_ephemeral_key.data()) == 0;
     SessionFunction establish_session =
         create_session(our_identity_key_pair.private_key, their_identity_key,
                        transcript, our_secret_key, their_secret_key);
     Handshake handshake = {message, establish_session};
-    return handshake;
+    HandshakeResult result = {success, handshake};
+    return result;
   };
   return perform_handshake;
 }
