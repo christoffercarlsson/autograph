@@ -11,9 +11,8 @@ extern "C" {
 int autograph_certify(unsigned char *signature,
                       const unsigned char *our_private_key,
                       const unsigned char *their_public_key,
-                      const unsigned char *their_secret_key,
-                      const unsigned char *message,
-                      const unsigned long long message_size);
+                      const unsigned char *data,
+                      const unsigned long long data_size);
 
 int autograph_decrypt(unsigned char *plaintext, const unsigned char *key,
                       const unsigned char *message,
@@ -67,12 +66,11 @@ int autograph_session(const unsigned char *transcript,
 
 unsigned int autograph_transcript_size();
 
-int autograph_verify(const unsigned char *their_public_key,
-                     const unsigned char *their_secret_key,
+int autograph_verify(const unsigned char *their_public_key,              
                      const unsigned char *certificates,
                      const unsigned long long certificate_count,
-                     const unsigned char *message,
-                     const unsigned long long message_size);
+                     const unsigned char *data,
+                     const unsigned long long data_size);
 
 #ifdef __cplusplus
 }  // extern "C"

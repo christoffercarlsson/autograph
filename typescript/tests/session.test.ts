@@ -181,14 +181,12 @@ describe('Session', () => {
   })
 
   it("should allow Bob to certify Alice's ownership of her identity key and data", async () => {
-    const message = await a.encrypt(data)
-    const signature = await b.certify(message)
+    const signature = await b.certify(data)
     expect(signature).toEqual(signatures.bob.data)
   })
 
   it("should allow Alice to certify Bob's ownership of his identity key and data", async () => {
-    const message = await b.encrypt(data)
-    const signature = await a.certify(message)
+    const signature = await a.certify(data)
     expect(signature).toEqual(signatures.alice.data)
   })
 
@@ -203,14 +201,12 @@ describe('Session', () => {
   })
 
   it("should allow Bob to verify Alice's ownership of her identity key and data based on Charlie's public key and signature", async () => {
-    const message = await a.encrypt(data)
-    const verified = await b.verify(certificates.alice.data, message)
+    const verified = await b.verify(certificates.alice.data, data)
     expect(verified).toBe(true)
   })
 
   it("should allow Alice to verify Bob's ownership of his identity key and data based on Charlie's public key and signature", async () => {
-    const message = await b.encrypt(data)
-    const verified = await a.verify(certificates.bob.data, message)
+    const verified = await a.verify(certificates.bob.data, data)
     expect(verified).toBe(true)
   })
 

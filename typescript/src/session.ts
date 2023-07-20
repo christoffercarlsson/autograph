@@ -32,13 +32,10 @@ const verifySession = async (
 const createCertify =
   (
     ourPrivateKey: BufferSource,
-    theirPublicKey: BufferSource,
-    decrypt: DecryptFunction
+    theirPublicKey: BufferSource
   ): CertifyFunction =>
-  async (message?: BufferSource) => {
-    const data = message ? await decrypt(message) : createFrom([])
-    return sign(ourPrivateKey, concat([data, theirPublicKey]))
-  }
+  async (data?: BufferSource) =>
+    sign(ourPrivateKey, concat([data, theirPublicKey]))
 
 const createDecrypt =
   (theirSecretKey: BufferSource): DecryptFunction =>
@@ -58,10 +55,9 @@ const createEncrypt = (ourSecretKey: BufferSource): EncryptFunction => {
 }
 
 const createVerify =
-  (theirIdentityKey: BufferSource, decrypt: DecryptFunction): VerifyFunction =>
-  async (certificates: BufferSource, message?: BufferSource) => {
+  (theirIdentityKey: BufferSource): VerifyFunction =>
+  async (certificates: BufferSource, data?: BufferSource) => {
     try {
-      const data = message ? await decrypt(message) : createFrom()
       const subject = concat([data, theirIdentityKey])
       const results = await Promise.all(
         createFrom(certificates)
@@ -96,9 +92,9 @@ const createSession =
       throw new Error('Handshake verification failed')
     }
     const decrypt = createDecrypt(theirSecretKey)
-    const certify = createCertify(ourPrivateKey, theirIdentityKey, decrypt)
+    const certify = createCertify(ourPrivateKey, theirIdentityKey)
     const encrypt = createEncrypt(ourSecretKey)
-    const verify = createVerify(theirIdentityKey, decrypt)
+    const verify = createVerify(theirIdentityKey)
     return {
       certify,
       decrypt,

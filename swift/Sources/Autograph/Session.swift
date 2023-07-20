@@ -3,19 +3,17 @@ import Foundation
 
 private func createCertify(
   ourPrivateKey: Bytes,
-  theirPublicKey: Bytes,
-  theirSecretKey: Bytes
+  theirPublicKey: Bytes
 ) -> CertifyFunction {
   let certifyFunction: CertifyFunction =
-    { [ourPrivateKey, theirPublicKey, theirSecretKey] message in
+    { [ourPrivateKey, theirPublicKey] data in
       var signature = createSignatureBytes()
       let result = autograph_certify(
         &signature,
         ourPrivateKey,
         theirPublicKey,
-        theirSecretKey,
-        message,
-        UInt64((message != nil) ? message!.count : 0)
+        data,
+        UInt64((data != nil) ? data!.count : 0)
       )
       if result != 0 {
         throw AutographError.certificationFailed
@@ -76,24 +74,21 @@ private func createEncrypt(ourSecretKey: Bytes) -> EncryptFunction {
 }
 
 private func createVerify(
-  theirPublicKey: Bytes,
-  theirSecretKey: Bytes
+  theirPublicKey: Bytes
 ) -> VerifyFunction {
-  let verifyFunction: VerifyFunction =
-    { [theirPublicKey, theirSecretKey] certificates, message in
-      let certificateCount = certificates
-        .count /
-        (PUBLIC_KEY_SIZE + SIGNATURE_SIZE)
-      let result = autograph_verify(
-        theirPublicKey,
-        theirSecretKey,
-        certificates,
-        UInt64(certificateCount),
-        message,
-        UInt64((message != nil) ? message!.count : 0)
-      )
-      return result == 0
-    }
+  let verifyFunction: VerifyFunction = { [theirPublicKey] certificates, data in
+    let certificateCount = certificates
+      .count /
+      (PUBLIC_KEY_SIZE + SIGNATURE_SIZE)
+    let result = autograph_verify(
+      theirPublicKey,
+      certificates,
+      UInt64(certificateCount),
+      data,
+      UInt64((data != nil) ? data!.count : 0)
+    )
+    return result == 0
+  }
   return verifyFunction
 }
 
@@ -123,14 +118,12 @@ internal func createSession(
     return Session(
       certify: createCertify(
         ourPrivateKey: ourPrivateKey,
-        theirPublicKey: theirPublicKey,
-        theirSecretKey: theirSecretKey
+        theirPublicKey: theirPublicKey
       ),
       decrypt: createDecrypt(theirSecretKey: theirSecretKey),
       encrypt: createEncrypt(ourSecretKey: ourSecretKey),
       verify: createVerify(
-        theirPublicKey: theirPublicKey,
-        theirSecretKey: theirSecretKey
+        theirPublicKey: theirPublicKey
       )
     )
   }

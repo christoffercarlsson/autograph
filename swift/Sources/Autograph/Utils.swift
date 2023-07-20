@@ -49,11 +49,3 @@ internal func createSignatureBytes() -> Bytes {
 internal func createTranscriptBytes() -> Bytes {
   createBytes(TRANSCRIPT_SIZE)
 }
-
-internal func getMutablePointer(_ bytes: inout Bytes)
-  -> UnsafeMutablePointer<UInt8>
-{
-  bytes.withUnsafeMutableBufferPointer { pointer in
-    pointer.baseAddress!
-  }
-}

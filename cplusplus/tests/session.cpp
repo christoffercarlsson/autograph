@@ -143,16 +143,14 @@ TEST_CASE("Session", "[session]") {
   SECTION(
       "should allow Bob to certify Alice's ownership of her identity key and "
       "data") {
-    auto message = a.encrypt(data);
-    auto signature = b.certify(message);
+    auto signature = b.certify(data);
     REQUIRE_THAT(signature, Catch::Matchers::Equals(bob_signature_data));
   }
 
   SECTION(
       "should allow Alice to certify Bob's ownership of his identity key and "
       "data") {
-    auto message = b.encrypt(data);
-    auto signature = a.certify(message);
+    auto signature = a.certify(data);
     REQUIRE_THAT(signature, Catch::Matchers::Equals(alice_signature_data));
   }
 
@@ -169,16 +167,14 @@ TEST_CASE("Session", "[session]") {
   SECTION(
       "should allow Bob to verify Alice's ownership of her identity key and "
       "data based on Charlie's public key and signature") {
-    auto message = a.encrypt(data);
-    bool verified = b.verify(alice_certificate_data, message);
+    bool verified = b.verify(alice_certificate_data, data);
     REQUIRE(verified == true);
   }
 
   SECTION(
       "should allow Alice to verify Bob's ownership of his identity key and "
       "data based on Charlie's public key and signature") {
-    auto message = b.encrypt(data);
-    bool verified = a.verify(bob_certificate_data, message);
+    bool verified = a.verify(bob_certificate_data, data);
     REQUIRE(verified == true);
   }
 

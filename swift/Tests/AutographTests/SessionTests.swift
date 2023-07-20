@@ -250,15 +250,13 @@ final class SessionTests: XCTestCase {
 
   // Should allow Bob to certify Alice's ownership of her identity key and data
   func testBobCertifyAliceData() throws {
-    let message = try a.encrypt(data)
-    let signature = try b.certify(message)
+    let signature = try b.certify(data)
     XCTAssertEqual(signature, bobSignatureData)
   }
 
   // Should allow Alice to certify Bob's ownership of his identity key and data
   func testAliceCertifyBobData() throws {
-    let message = try b.encrypt(data)
-    let signature = try a.certify(message)
+    let signature = try a.certify(data)
     XCTAssertEqual(signature, aliceSignatureData)
   }
 
@@ -277,16 +275,14 @@ final class SessionTests: XCTestCase {
   // Should allow Bob to verify Alice's ownership of her identity key and data
   // based on Charlie's public key and signature
   func testBobVerifyAliceData() throws {
-    let message = try a.encrypt(data)
-    let verified = b.verify(aliceCertificateData, message)
+    let verified = b.verify(aliceCertificateData, data)
     XCTAssertTrue(verified)
   }
 
   // Should allow Alice to verify Bob's ownership of his identity key and ddata
   // based on Charlie's public key and signature
   func testAliceVerifyBobData() throws {
-    let message = try b.encrypt(data)
-    let verified = a.verify(bobCertificateData, message)
+    let verified = a.verify(bobCertificateData, data)
     XCTAssertTrue(verified)
   }
 

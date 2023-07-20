@@ -9,15 +9,8 @@ TEST_CASE("Ownership", "[core_ownership]") {
       91, 119, 85, 151, 32,  20, 121, 20, 19,  106, 90,  56,  141, 90,  16, 210,
       14, 244, 60, 251, 140, 48, 190, 65, 194, 35,  166, 246, 1,   209, 4,  33};
 
-  std::vector<unsigned char> alice_secret_key = {
-      204, 150, 53,  221, 135, 13,  190, 124, 249, 0,   114,
-      60,  155, 58,  196, 204, 106, 115, 64,  123, 101, 116,
-      92,  214, 170, 19,  239, 225, 138, 163, 113, 129};
-
-  std::vector<unsigned char> alice_message = {
-      0,   0,   0,   1,   203, 203, 240, 117, 151, 142, 77,
-      113, 252, 151, 171, 12,  154, 177, 105, 6,   248, 79,
-      37,  105, 238, 243, 135, 194, 50,  34,  253};
+    std::vector<unsigned char> data = {72, 101, 108, 108, 111, 32,
+                                          87, 111, 114, 108, 100};
 
   std::vector<unsigned char> alice_certificate = {
       123, 223, 90,  28,  163, 65,  187, 199, 14,  78,  92,  116, 38,  48,
@@ -48,7 +41,7 @@ TEST_CASE("Ownership", "[core_ownership]") {
     std::vector<unsigned char> signature(64);
     int result = autograph_certify(
         signature.data(), bob_private_key.data(), alice_public_key.data(),
-        alice_secret_key.data(), alice_message.data(), alice_message.size());
+        data.data(), data.size());
 
     REQUIRE(result == 0);
     REQUIRE_THAT(signature, Catch::Matchers::Equals(bob_signature));
@@ -58,9 +51,9 @@ TEST_CASE("Ownership", "[core_ownership]") {
       "should allow Bob to verify Alice's ownership of her identity key and "
       "data based on Charlie's public key and signature") {
     int result =
-        autograph_verify(alice_public_key.data(), alice_secret_key.data(),
-                         alice_certificate.data(), 1, alice_message.data(),
-                         alice_message.size());
+        autograph_verify(alice_public_key.data(),
+                         alice_certificate.data(), 1, data.data(),
+                         data.size());
 
     REQUIRE(result == 0);
   }
