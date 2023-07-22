@@ -7,24 +7,20 @@ public struct Autograph {
   }
 
   public func createInitiator(
-    identityKeyPair: KeyPair,
-    ephemeralKeyPair: KeyPair
+    identityKeyPair: KeyPair
   ) -> Party {
     createParty(
       isInitiator: true,
-      identityKeyPair: identityKeyPair,
-      ephemeralKeyPair: ephemeralKeyPair
+      identityKeyPair: identityKeyPair
     )
   }
 
   public func createResponder(
-    identityKeyPair: KeyPair,
-    ephemeralKeyPair: KeyPair
+    identityKeyPair: KeyPair
   ) -> Party {
     createParty(
       isInitiator: false,
-      identityKeyPair: identityKeyPair,
-      ephemeralKeyPair: ephemeralKeyPair
+      identityKeyPair: identityKeyPair
     )
   }
 

@@ -75,18 +75,20 @@ describe('Handshake', () => {
   let bob: Party
 
   beforeEach(() => {
-    alice = createInitiator(keyPairs.alice.identity, keyPairs.alice.ephemeral)
-    bob = createResponder(keyPairs.bob.identity, keyPairs.bob.ephemeral)
+    alice = createInitiator(keyPairs.alice.identity)
+    bob = createResponder(keyPairs.bob.identity)
   })
 
   it('should allow Alice and Bob to perform a handshake', async () => {
-    const b = await bob.performHandshake(
-      keyPairs.alice.identity.publicKey,
-      keyPairs.alice.ephemeral.publicKey
-    )
     const a = await alice.performHandshake(
+      keyPairs.alice.ephemeral,
       keyPairs.bob.identity.publicKey,
       keyPairs.bob.ephemeral.publicKey
+    )
+    const b = await bob.performHandshake(
+      keyPairs.bob.ephemeral,
+      keyPairs.alice.identity.publicKey,
+      keyPairs.alice.ephemeral.publicKey
     )
     expect(a.success).toBe(true)
     expect(b.success).toBe(true)

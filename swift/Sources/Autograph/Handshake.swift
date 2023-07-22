@@ -3,14 +3,12 @@ import Foundation
 
 internal func createHandshake(
   isInitiator: Bool,
-  identityKeyPair: KeyPair,
-  ephemeralKeyPair: KeyPair
+  identityKeyPair: KeyPair
 ) -> HandshakeFunction {
   let performHandshake: HandshakeFunction = { [
     isInitiator,
-    identityKeyPair,
-    ephemeralKeyPair
-  ] theirIdentityKey, theirEphemeralKey in
+    identityKeyPair
+  ] ephemeralKeyPair, theirIdentityKey, theirEphemeralKey in
     var ourCiphertext = createHandshakeBytes()
     var transcript = createTranscriptBytes()
     var ourSecretKey = createSecretKeyBytes()

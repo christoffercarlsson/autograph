@@ -143,18 +143,16 @@ struct HandshakeResult {
   Handshake handshake;
 };
 
-using HandshakeFunction = std::function<HandshakeResult(const Bytes, const Bytes)>;
+using HandshakeFunction = std::function<HandshakeResult(KeyPair &, const Bytes, const Bytes)>;
 
 struct Party {
   SafetyNumberFunction calculate_safety_number;
   HandshakeFunction perform_handshake;
 };
 
-Party create_initiator(const KeyPair identity_key_pair,
-                       KeyPair ephemeral_key_pair);
+Party create_initiator(const KeyPair identity_key_pair);
 
-Party create_responder(const KeyPair identity_key_pair,
-                       KeyPair ephemeral_key_pair);
+Party create_responder(const KeyPair identity_key_pair);
 
 KeyPairResult generate_ephemeral_key_pair();
 

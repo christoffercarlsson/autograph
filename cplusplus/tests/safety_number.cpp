@@ -43,10 +43,8 @@ TEST_CASE("Safety number", "[safety_number]") {
 
   autograph::init();
 
-  auto alice = autograph::create_initiator(alice_identity_key_pair,
-                                           alice_ephemeral_key_pair);
-  auto bob = autograph::create_responder(bob_identity_key_pair,
-                                         bob_ephemeral_key_pair);
+  auto alice = autograph::create_initiator(alice_identity_key_pair);
+  auto bob = autograph::create_responder(bob_identity_key_pair);
 
   auto a = alice.calculate_safety_number(bob_identity_key_pair.public_key);
   auto b = bob.calculate_safety_number(alice_identity_key_pair.public_key);

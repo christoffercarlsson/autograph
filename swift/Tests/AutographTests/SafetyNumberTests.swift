@@ -195,12 +195,10 @@ final class SafetyNumberTests: XCTestCase {
   override func setUp() {
     autograph = Autograph()
     alice = autograph.createInitiator(
-      identityKeyPair: aliceIdentityKeyPair,
-      ephemeralKeyPair: aliceEphemeralKeyPair
+      identityKeyPair: aliceIdentityKeyPair
     )
     bob = autograph.createResponder(
-      identityKeyPair: bobIdentityKeyPair,
-      ephemeralKeyPair: bobEphemeralKeyPair
+      identityKeyPair: bobIdentityKeyPair
     )
   }
 

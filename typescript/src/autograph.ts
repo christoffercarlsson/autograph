@@ -35,11 +35,11 @@ const generateEphemeralKeyPair = async (): Promise<KeyPairResult> => {
   }
 }
 
-const createInitiator = (identityKeyPair: KeyPair, ephemeralKeyPair: KeyPair) =>
-  createParty(true, identityKeyPair, ephemeralKeyPair)
+const createInitiator = (identityKeyPair: KeyPair) =>
+  createParty(true, identityKeyPair)
 
-const createResponder = (identityKeyPair: KeyPair, ephemeralKeyPair: KeyPair) =>
-  createParty(false, identityKeyPair, ephemeralKeyPair)
+const createResponder = (identityKeyPair: KeyPair) =>
+  createParty(false, identityKeyPair)
 
 export {
   createInitiator,

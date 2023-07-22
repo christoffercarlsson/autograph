@@ -113,14 +113,12 @@ TEST_CASE("Session", "[session]") {
 
   autograph::init();
 
-  auto alice = autograph::create_initiator(alice_identity_key_pair,
-                                           alice_ephemeral_key_pair);
-  auto bob = autograph::create_responder(bob_identity_key_pair,
-                                         bob_ephemeral_key_pair);
+  auto alice = autograph::create_initiator(alice_identity_key_pair);
+  auto bob = autograph::create_responder(bob_identity_key_pair);
 
-  auto alice_handshake = alice.perform_handshake(
+  auto alice_handshake = alice.perform_handshake(alice_ephemeral_key_pair,
       bob_identity_key_pair.public_key, bob_ephemeral_key_pair.public_key).handshake;
-  auto bob_handshake = bob.perform_handshake(
+  auto bob_handshake = bob.perform_handshake(bob_ephemeral_key_pair,
       alice_identity_key_pair.public_key, alice_ephemeral_key_pair.public_key).handshake;
 
   auto a = alice_handshake.establish_session(bob_handshake.message).session;

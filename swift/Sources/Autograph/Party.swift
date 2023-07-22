@@ -2,15 +2,13 @@ import Foundation
 
 internal func createParty(
   isInitiator: Bool,
-  identityKeyPair: KeyPair,
-  ephemeralKeyPair: KeyPair
+  identityKeyPair: KeyPair
 ) -> Party {
   let calculateSafetyNumber =
     createSafetyNumber(ourIdentityKey: identityKeyPair.publicKey)
   let performHandshake = createHandshake(
     isInitiator: isInitiator,
-    identityKeyPair: identityKeyPair,
-    ephemeralKeyPair: ephemeralKeyPair
+    identityKeyPair: identityKeyPair
   )
   return Party(
     calculateSafetyNumber: calculateSafetyNumber,

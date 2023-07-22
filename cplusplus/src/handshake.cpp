@@ -3,12 +3,12 @@
 namespace autograph {
 
 HandshakeFunction create_handshake(const bool is_initiator,
-                                   const KeyPair our_identity_key_pair,
-                                   KeyPair our_ephemeral_key_pair) {
-  auto perform_handshake = [is_initiator, our_identity_key_pair,
-                            our_ephemeral_key_pair](
+                                   const KeyPair our_identity_key_pair) {
+  auto perform_handshake = [is_initiator, our_identity_key_pair](
+                              KeyPair &our_ephemeral_key_pair,
                                const Bytes their_identity_key,
-                               const Bytes their_ephemeral_key) {
+                               const Bytes their_ephemeral_key
+                               ) {
     Bytes transcript(128);
     Bytes our_secret_key(32);
     Bytes their_secret_key(32);
@@ -18,7 +18,7 @@ HandshakeFunction create_handshake(const bool is_initiator,
         their_secret_key.data(), is_initiator ? 1 : 0,
         our_identity_key_pair.private_key.data(),
         our_identity_key_pair.public_key.data(),
-        const_cast<unsigned char*>(our_ephemeral_key_pair.private_key.data()),
+        our_ephemeral_key_pair.private_key.data(),
         our_ephemeral_key_pair.public_key.data(), their_identity_key.data(),
         their_ephemeral_key.data()) == 0;
     SessionFunction establish_session =

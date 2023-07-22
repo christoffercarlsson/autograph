@@ -1,9 +1,5 @@
 import { createFrom } from 'stedy/bytes'
-import {
-  createInitiator,
-  createResponder,
-  generateEphemeralKeyPair
-} from '../src/autograph'
+import { createInitiator, createResponder } from '../src/autograph'
 
 describe('Safety number', () => {
   const keyPairs = {
@@ -38,14 +34,8 @@ describe('Safety number', () => {
   ])
 
   it('should allow Alice and Bob to calculate safety numbers', async () => {
-    const alice = createInitiator(
-      keyPairs.alice,
-      (await generateEphemeralKeyPair()).keyPair
-    )
-    const bob = createResponder(
-      keyPairs.bob,
-      (await generateEphemeralKeyPair()).keyPair
-    )
+    const alice = createInitiator(keyPairs.alice)
+    const bob = createResponder(keyPairs.bob)
     const a = await alice.calculateSafetyNumber(keyPairs.bob.publicKey)
     const b = await bob.calculateSafetyNumber(keyPairs.alice.publicKey)
     expect(a.safetyNumber).toEqual(safetyNumber)

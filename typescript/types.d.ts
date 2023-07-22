@@ -51,6 +51,16 @@ export type SessionResult = {
 
 export type SessionFunction = (message: BufferSource) => Promise<SessionResult>
 
+export type KeyPair = {
+  publicKey: BufferSource
+  privateKey: BufferSource
+}
+
+export type KeyPairResult = {
+  success: boolean
+  keyPair: KeyPair
+}
+
 export type Handshake = {
   message: BufferSource
   establishSession: SessionFunction
@@ -62,19 +72,10 @@ export type HandshakeResult = {
 }
 
 export type HandshakeFunction = (
+  ourEphemeralKeyPair: KeyPair,
   theirIdentityKey: BufferSource,
   theirEphemeralKey: BufferSource
 ) => Promise<HandshakeResult>
-
-export type KeyPair = {
-  publicKey: BufferSource
-  privateKey: BufferSource
-}
-
-export type KeyPairResult = {
-  success: boolean
-  keyPair: KeyPair
-}
 
 export type Party = {
   calculateSafetyNumber: SafetyNumberFunction

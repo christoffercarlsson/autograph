@@ -2,14 +2,12 @@
 
 namespace autograph {
 
-Party create_initiator(const KeyPair identity_key_pair,
-                       KeyPair ephemeral_key_pair) {
-  return create_party(true, identity_key_pair, ephemeral_key_pair);
+Party create_initiator(const KeyPair identity_key_pair) {
+  return create_party(true, identity_key_pair);
 }
 
-Party create_responder(const KeyPair identity_key_pair,
-                       KeyPair ephemeral_key_pair) {
-  return create_party(false, identity_key_pair, ephemeral_key_pair);
+Party create_responder(const KeyPair identity_key_pair) {
+  return create_party(false, identity_key_pair);
 }
 
 KeyPair create_key_pair() {

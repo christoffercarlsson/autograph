@@ -144,20 +144,19 @@ describe('Session', () => {
   let b: Session
 
   beforeEach(async () => {
-    const alice = createInitiator(
-      keyPairs.alice.identity,
-      keyPairs.alice.ephemeral
-    )
-    const bob = createResponder(keyPairs.bob.identity, keyPairs.bob.ephemeral)
+    const alice = createInitiator(keyPairs.alice.identity)
+    const bob = createResponder(keyPairs.bob.identity)
     const handshakes = {
       alice: (
         await alice.performHandshake(
+          keyPairs.alice.ephemeral,
           keyPairs.bob.identity.publicKey,
           keyPairs.bob.ephemeral.publicKey
         )
       ).handshake,
       bob: (
         await bob.performHandshake(
+          keyPairs.bob.ephemeral,
           keyPairs.alice.identity.publicKey,
           keyPairs.alice.ephemeral.publicKey
         )

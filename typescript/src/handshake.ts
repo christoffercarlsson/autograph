@@ -76,12 +76,12 @@ const createHandshakeResult = (
 }
 
 const createHandshake =
-  (
-    isInitiator: boolean,
-    ourIdentityKeyPair: KeyPair,
-    ourEphemeralKeyPair: KeyPair
-  ): HandshakeFunction =>
-  async (theirIdentityKey: BufferSource, theirEphemeralKey: BufferSource) => {
+  (isInitiator: boolean, ourIdentityKeyPair: KeyPair): HandshakeFunction =>
+  async (
+    ourEphemeralKeyPair: KeyPair,
+    theirIdentityKey: BufferSource,
+    theirEphemeralKey: BufferSource
+  ) => {
     const transcript = calculateTranscript(
       isInitiator,
       ourIdentityKeyPair.publicKey,

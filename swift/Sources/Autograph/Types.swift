@@ -120,7 +120,8 @@ public class HandshakeResult {
   }
 }
 
-public typealias HandshakeFunction = (Bytes, Bytes) -> HandshakeResult
+public typealias HandshakeFunction = (inout KeyPair, Bytes, Bytes)
+  -> HandshakeResult
 
 public class Party {
   var calculateSafetyNumber: SafetyNumberFunction
