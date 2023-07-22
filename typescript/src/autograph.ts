@@ -2,49 +2,46 @@ import {
   generateKeyPair as generateX25519KeyPair,
   generateSignKeyPair as generateEd25519KeyPair
 } from 'stedy'
-import { KeyPair } from '../types'
-import {
-  HANDSHAKE_SIZE,
-  PRIVATE_KEY_SIZE,
-  PUBLIC_KEY_SIZE,
-  SAFETY_NUMBER_SIZE,
-  SIGNATURE_SIZE
-} from './constants'
+import { KeyPair, KeyPairResult } from '../types'
 import createParty from './party'
 import { exportKeyPair } from './utils'
+import { alloc } from 'stedy/bytes'
 
-const generateIdentityKeyPair = async () =>
-  exportKeyPair(await generateEd25519KeyPair())
+const createKeyPairResult = async (
+  success: boolean,
+  keyPair?: KeyPair
+): Promise<KeyPairResult> => {
+  if (success) {
+    return { success, keyPair: await exportKeyPair(keyPair) }
+  }
+  return { success, keyPair: { publicKey: alloc(32), privateKey: alloc(32) } }
+}
 
-const generateEphemeralKeyPair = async () =>
-  exportKeyPair(await generateX25519KeyPair())
+const generateIdentityKeyPair = async (): Promise<KeyPairResult> => {
+  try {
+    const keyPair = await generateEd25519KeyPair()
+    return createKeyPairResult(true, keyPair)
+  } catch (error) {
+    return createKeyPairResult(false)
+  }
+}
 
-const createInitiator = async (
-  identityKeyPair: KeyPair,
-  ephemeralKeyPair?: KeyPair
-) =>
-  createParty(
-    true,
-    identityKeyPair,
-    ephemeralKeyPair || (await generateEphemeralKeyPair())
-  )
+const generateEphemeralKeyPair = async (): Promise<KeyPairResult> => {
+  try {
+    const keyPair = await generateX25519KeyPair()
+    return createKeyPairResult(true, keyPair)
+  } catch (error) {
+    return createKeyPairResult(false)
+  }
+}
 
-const createResponder = async (
-  identityKeyPair: KeyPair,
-  ephemeralKeyPair?: KeyPair
-) =>
-  createParty(
-    false,
-    identityKeyPair,
-    ephemeralKeyPair || (await generateEphemeralKeyPair())
-  )
+const createInitiator = (identityKeyPair: KeyPair, ephemeralKeyPair: KeyPair) =>
+  createParty(true, identityKeyPair, ephemeralKeyPair)
+
+const createResponder = (identityKeyPair: KeyPair, ephemeralKeyPair: KeyPair) =>
+  createParty(false, identityKeyPair, ephemeralKeyPair)
 
 export {
-  HANDSHAKE_SIZE,
-  PRIVATE_KEY_SIZE,
-  PUBLIC_KEY_SIZE,
-  SAFETY_NUMBER_SIZE,
-  SIGNATURE_SIZE,
   createInitiator,
   createResponder,
   generateIdentityKeyPair,

@@ -1,18 +1,40 @@
-import { Chunk as Bytes } from 'stedy/bytes'
+export type SafetyNumberResult = {
+  success: boolean
+  safetyNumber: BufferSource
+}
 
 export type SafetyNumberFunction = (
   theirIdentityKey: BufferSource
-) => Promise<Bytes>
+) => Promise<SafetyNumberResult>
 
-export type CertifyFunction = (data?: BufferSource) => Promise<Bytes>
+export type CertificationResult = {
+  success: boolean
+  signature: BufferSource
+}
 
-export type DecryptFunction = (message: BufferSource) => Promise<Bytes>
+export type DecryptionResult = {
+  success: boolean
+  data: BufferSource
+}
 
-export type EncryptFunction = (message: BufferSource) => Promise<Bytes>
+export type EncryptionResult = {
+  success: boolean
+  message: BufferSource
+}
+
+export type CertifyFunction = (
+  data?: BufferSource
+) => Promise<CertificationResult>
+
+export type DecryptFunction = (
+  message: BufferSource
+) => Promise<DecryptionResult>
+
+export type EncryptFunction = (data: BufferSource) => Promise<EncryptionResult>
 
 export type VerifyFunction = (
   certificates: BufferSource,
-  message?: BufferSource
+  data?: BufferSource
 ) => Promise<boolean>
 
 export type Session = {
@@ -22,21 +44,36 @@ export type Session = {
   verify: VerifyFunction
 }
 
-export type SessionFunction = (message: BufferSource) => Promise<Session>
+export type SessionResult = {
+  success: boolean
+  session: Session
+}
+
+export type SessionFunction = (message: BufferSource) => Promise<SessionResult>
 
 export type Handshake = {
-  message: Bytes
+  message: BufferSource
   establishSession: SessionFunction
+}
+
+export type HandshakeResult = {
+  success: boolean
+  handshake: Handshake
 }
 
 export type HandshakeFunction = (
   theirIdentityKey: BufferSource,
   theirEphemeralKey: BufferSource
-) => Promise<Handshake>
+) => Promise<HandshakeResult>
 
 export type KeyPair = {
   publicKey: BufferSource
   privateKey: BufferSource
+}
+
+export type KeyPairResult = {
+  success: boolean
+  keyPair: KeyPair
 }
 
 export type Party = {

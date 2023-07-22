@@ -1,20 +1,17 @@
 import { fromInteger } from 'stedy/bytes'
 import { createCipher } from 'stedy'
-import {
-  CHACHA20_POLY1305_CIPHER,
-  CHACHA20_POLY1305_NONCE_SIZE
-} from '../constants'
 
-const { decrypt: decryptMessage, encrypt: encryptMessage } = createCipher(
-  CHACHA20_POLY1305_CIPHER
-)
+const { decrypt: decryptMessage, encrypt: encryptMessage } =
+  createCipher('ChaCha20-Poly1305')
+
+const indexToNonce = (index: number) => fromInteger(index).padLeft(12)
 
 export const decrypt = (
   key: BufferSource,
   index: number,
   ciphertext: BufferSource
 ) => {
-  const nonce = fromInteger(index).padLeft(CHACHA20_POLY1305_NONCE_SIZE)
+  const nonce = indexToNonce(index)
   return decryptMessage(key, nonce, ciphertext)
 }
 
@@ -23,6 +20,6 @@ export const encrypt = (
   index: number,
   message: BufferSource
 ) => {
-  const nonce = fromInteger(index).padLeft(CHACHA20_POLY1305_NONCE_SIZE)
+  const nonce = indexToNonce(index)
   return encryptMessage(key, nonce, message)
 }
