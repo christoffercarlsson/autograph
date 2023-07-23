@@ -7,8 +7,8 @@ SafetyNumberFunction create_safety_number(const Bytes our_identity_key) {
       [our_identity_key](const Bytes their_identity_key) {
         Bytes safety_number(60);
         bool success = autograph_safety_number(safety_number.data(),
-                                             our_identity_key.data(),
-                                             their_identity_key.data()) == 0;
+                                               our_identity_key.data(),
+                                               their_identity_key.data()) == 0;
         SafetyNumberResult result = {success, safety_number};
         return result;
       };

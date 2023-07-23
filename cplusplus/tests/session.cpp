@@ -116,10 +116,17 @@ TEST_CASE("Session", "[session]") {
   auto alice = autograph::create_initiator(alice_identity_key_pair);
   auto bob = autograph::create_responder(bob_identity_key_pair);
 
-  auto alice_handshake = alice.perform_handshake(alice_ephemeral_key_pair,
-      bob_identity_key_pair.public_key, bob_ephemeral_key_pair.public_key).handshake;
-  auto bob_handshake = bob.perform_handshake(bob_ephemeral_key_pair,
-      alice_identity_key_pair.public_key, alice_ephemeral_key_pair.public_key).handshake;
+  auto alice_handshake =
+      alice
+          .perform_handshake(alice_ephemeral_key_pair,
+                             bob_identity_key_pair.public_key,
+                             bob_ephemeral_key_pair.public_key)
+          .handshake;
+  auto bob_handshake =
+      bob.perform_handshake(bob_ephemeral_key_pair,
+                            alice_identity_key_pair.public_key,
+                            alice_ephemeral_key_pair.public_key)
+          .handshake;
 
   auto a = alice_handshake.establish_session(bob_handshake.message).session;
   auto b = bob_handshake.establish_session(alice_handshake.message).session;
@@ -129,7 +136,8 @@ TEST_CASE("Session", "[session]") {
     auto decrypt_result = b.decrypt(encrypt_result.message);
     REQUIRE(encrypt_result.success == true);
     REQUIRE(decrypt_result.success == true);
-    REQUIRE_THAT(encrypt_result.message, Catch::Matchers::Equals(alice_message));
+    REQUIRE_THAT(encrypt_result.message,
+                 Catch::Matchers::Equals(alice_message));
     REQUIRE_THAT(decrypt_result.data, Catch::Matchers::Equals(data));
   }
 
@@ -151,7 +159,8 @@ TEST_CASE("Session", "[session]") {
     REQUIRE(encrypt_result.success == true);
     REQUIRE(decrypt_result.success == true);
     REQUIRE(certify_result.success == true);
-    REQUIRE_THAT(certify_result.signature, Catch::Matchers::Equals(bob_signature_data));
+    REQUIRE_THAT(certify_result.signature,
+                 Catch::Matchers::Equals(bob_signature_data));
   }
 
   SECTION(
@@ -163,19 +172,22 @@ TEST_CASE("Session", "[session]") {
     REQUIRE(encrypt_result.success == true);
     REQUIRE(decrypt_result.success == true);
     REQUIRE(certify_result.success == true);
-    REQUIRE_THAT(certify_result.signature, Catch::Matchers::Equals(alice_signature_data));
+    REQUIRE_THAT(certify_result.signature,
+                 Catch::Matchers::Equals(alice_signature_data));
   }
 
   SECTION("should allow Bob to certify Alice's ownership of her identity key") {
     auto certify_result = b.certify({});
     REQUIRE(certify_result.success == true);
-    REQUIRE_THAT(certify_result.signature, Catch::Matchers::Equals(bob_signature_identity));
+    REQUIRE_THAT(certify_result.signature,
+                 Catch::Matchers::Equals(bob_signature_identity));
   }
 
   SECTION("should allow Alice to certify Bob's ownership of his identity key") {
     auto certify_result = a.certify({});
     REQUIRE(certify_result.success == true);
-    REQUIRE_THAT(certify_result.signature, Catch::Matchers::Equals(alice_signature_identity));
+    REQUIRE_THAT(certify_result.signature,
+                 Catch::Matchers::Equals(alice_signature_identity));
   }
 
   SECTION(
