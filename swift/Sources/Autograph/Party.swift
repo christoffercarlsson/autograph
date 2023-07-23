@@ -2,13 +2,15 @@ import Foundation
 
 internal func createParty(
   isInitiator: Bool,
-  identityKeyPair: KeyPair
+  sign: @escaping SignFunction,
+  identityPublicKey: Bytes
 ) -> Party {
   let calculateSafetyNumber =
-    createSafetyNumber(ourIdentityKey: identityKeyPair.publicKey)
+    createSafetyNumber(ourIdentityKey: identityPublicKey)
   let performHandshake = createHandshake(
     isInitiator: isInitiator,
-    identityKeyPair: identityKeyPair
+    sign: sign,
+    identityPublicKey: identityPublicKey
   )
   return Party(
     calculateSafetyNumber: calculateSafetyNumber,

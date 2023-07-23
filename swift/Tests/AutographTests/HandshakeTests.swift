@@ -135,10 +135,14 @@ final class HandshakeTests: XCTestCase {
   override func setUp() {
     autograph = Autograph()
     alice = autograph.createInitiator(
-      identityKeyPair: aliceIdentityKeyPair
+      sign: autograph
+        .createSign(identityPrivateKey: aliceIdentityKeyPair.privateKey),
+      identityPublicKey: aliceIdentityKeyPair.publicKey
     )
     bob = autograph.createResponder(
-      identityKeyPair: bobIdentityKeyPair
+      sign: autograph
+        .createSign(identityPrivateKey: bobIdentityKeyPair.privateKey),
+      identityPublicKey: bobIdentityKeyPair.publicKey
     )
     aliceEphemeralKeyPair = KeyPair(
       privateKey: [171, 243, 152, 144, 76, 145, 84, 13, 243, 173, 102,

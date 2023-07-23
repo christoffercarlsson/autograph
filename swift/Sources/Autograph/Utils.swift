@@ -10,8 +10,8 @@ internal let SECRET_KEY_SIZE = Int(autograph_secret_key_size())
 internal let SIGNATURE_SIZE = Int(autograph_signature_size())
 internal let TRANSCRIPT_SIZE = Int(autograph_transcript_size())
 
-private func createBytes(_ size: Int) -> Bytes {
-  Bytes(repeating: 0, count: size > 0 ? size : 0)
+internal func createBytes(_ size: Int) -> Bytes {
+  Bytes(repeating: 0, count: size)
 }
 
 internal func createHandshakeBytes() -> Bytes {
@@ -46,6 +46,22 @@ internal func createSignatureBytes() -> Bytes {
   createBytes(SIGNATURE_SIZE)
 }
 
+internal func createSubjectBytes(size: UInt64) -> Bytes {
+  let subjectSize = autograph_subject_size(size)
+  return createBytes(Int(subjectSize))
+}
+
 internal func createTranscriptBytes() -> Bytes {
   createBytes(TRANSCRIPT_SIZE)
+}
+
+internal func createSafeSign(sign: @escaping SignFunction) -> SignFunction {
+  let safeSign: SignFunction = { [sign] subject in
+    let result = sign(subject)
+    if result.signature.count != 64 {
+      return SignResult(success: false, signature: createSignatureBytes())
+    }
+    return result
+  }
+  return safeSign
 }

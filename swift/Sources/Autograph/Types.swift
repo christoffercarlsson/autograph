@@ -123,6 +123,18 @@ public class HandshakeResult {
 public typealias HandshakeFunction = (inout KeyPair, Bytes, Bytes)
   -> HandshakeResult
 
+public class SignResult {
+  var success: Bool
+  var signature: Bytes
+
+  init(success: Bool, signature: Bytes) {
+    self.success = success
+    self.signature = signature
+  }
+}
+
+public typealias SignFunction = (Bytes) -> SignResult
+
 public class Party {
   var calculateSafetyNumber: SafetyNumberFunction
   var performHandshake: HandshakeFunction

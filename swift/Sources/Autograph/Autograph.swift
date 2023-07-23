@@ -7,21 +7,57 @@ public struct Autograph {
   }
 
   public func createInitiator(
-    identityKeyPair: KeyPair
+    sign: @escaping SignFunction,
+    identityPublicKey: Bytes
   ) -> Party {
     createParty(
       isInitiator: true,
-      identityKeyPair: identityKeyPair
+      sign: sign,
+      identityPublicKey: identityPublicKey
+    )
+  }
+
+  public func createInitiator(
+    identityKeyPair: KeyPair
+  ) -> Party {
+    createInitiator(
+      sign: createSign(identityPrivateKey: identityKeyPair.privateKey),
+      identityPublicKey: identityKeyPair.publicKey
+    )
+  }
+
+  public func createResponder(
+    sign: @escaping SignFunction,
+    identityPublicKey: Bytes
+  ) -> Party {
+    createParty(
+      isInitiator: false,
+      sign: sign,
+      identityPublicKey: identityPublicKey
     )
   }
 
   public func createResponder(
     identityKeyPair: KeyPair
   ) -> Party {
-    createParty(
-      isInitiator: false,
-      identityKeyPair: identityKeyPair
+    createResponder(
+      sign: createSign(identityPrivateKey: identityKeyPair.privateKey),
+      identityPublicKey: identityKeyPair.publicKey
     )
+  }
+
+  public func createSign(identityPrivateKey: Bytes) -> SignFunction {
+    let sign: SignFunction = { [identityPrivateKey] subject in
+      var signature = createSignatureBytes()
+      let success = autograph_sign(
+        &signature,
+        identityPrivateKey,
+        subject,
+        UInt64(subject.count)
+      ) == 0
+      return SignResult(success: success, signature: signature)
+    }
+    return sign
   }
 
   public func generateEphemeralKeyPair() -> KeyPairResult {

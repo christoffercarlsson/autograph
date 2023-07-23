@@ -2,21 +2,24 @@ import Clibautograph
 import Foundation
 
 private func createCertify(
-  ourPrivateKey: Bytes,
+  sign: @escaping SignFunction,
   theirPublicKey: Bytes
 ) -> CertifyFunction {
-  let certifyFunction: CertifyFunction =
-    { [ourPrivateKey, theirPublicKey] data in
-      var signature = createSignatureBytes()
-      let success = autograph_certify(
-        &signature,
-        ourPrivateKey,
-        theirPublicKey,
-        data,
-        UInt64((data != nil) ? data!.count : 0)
-      ) == 0
-      return CertificationResult(success: success, signature: signature)
-    }
+  let certifyFunction: CertifyFunction = { [sign, theirPublicKey] data in
+    let dataSize = UInt64((data != nil) ? data!.count : 0)
+    var subject = createSubjectBytes(size: dataSize)
+    autograph_subject(
+      &subject,
+      theirPublicKey,
+      data,
+      dataSize
+    )
+    let result = sign(subject)
+    return CertificationResult(
+      success: result.success,
+      signature: result.signature
+    )
+  }
   return certifyFunction
 }
 
@@ -83,14 +86,14 @@ private func createVerify(
 }
 
 internal func createSession(
-  ourPrivateKey: Bytes,
+  sign: @escaping SignFunction,
   theirPublicKey: Bytes,
   transcript: Bytes,
   ourSecretKey: Bytes,
   theirSecretKey: Bytes
 ) -> SessionFunction {
   let sessionFunction: SessionFunction = { [
-    ourPrivateKey,
+    sign,
     theirPublicKey,
     transcript,
     ourSecretKey,
@@ -104,7 +107,7 @@ internal func createSession(
     ) == 0
     let session = Session(
       certify: createCertify(
-        ourPrivateKey: ourPrivateKey,
+        sign: sign,
         theirPublicKey: theirPublicKey
       ),
       decrypt: createDecrypt(theirSecretKey: theirSecretKey),

@@ -30,6 +30,13 @@ int autograph_handshake(unsigned char *transcript, unsigned char *message,
                         const unsigned char *their_public_identity_key,
                         const unsigned char *their_public_ephemeral_key);
 
+int autograph_handshake_signature(
+    unsigned char *message, unsigned char *our_secret_key,
+    unsigned char *their_secret_key, const unsigned int is_initiator,
+    const unsigned char *our_signature,
+    unsigned char *our_private_ephemeral_key,
+    const unsigned char *their_public_ephemeral_key);
+
 unsigned int autograph_handshake_size();
 
 int autograph_init();
@@ -54,12 +61,30 @@ unsigned int autograph_safety_number_size();
 
 unsigned int autograph_secret_key_size();
 
+int autograph_sign(unsigned char *signature, const unsigned char *private_key,
+                   const unsigned char *subject,
+                   const unsigned long long subject_size);
+
 unsigned int autograph_signature_size();
 
 int autograph_session(const unsigned char *transcript,
                       const unsigned char *their_identity_key,
                       const unsigned char *their_secret_key,
                       const unsigned char *ciphertext);
+
+void autograph_subject(unsigned char *subject,
+                       const unsigned char *their_public_key,
+                       const unsigned char *data,
+                       const unsigned long long data_size);
+
+unsigned long long autograph_subject_size(const unsigned long long data_size);
+
+int autograph_transcript(unsigned char *transcript,
+                         const unsigned int is_initiator,
+                         const unsigned char *our_identity_key,
+                         const unsigned char *our_ephemeral_key,
+                         const unsigned char *their_identity_key,
+                         const unsigned char *their_ephemeral_key);
 
 unsigned int autograph_transcript_size();
 

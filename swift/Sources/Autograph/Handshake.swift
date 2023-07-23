@@ -3,31 +3,39 @@ import Foundation
 
 internal func createHandshake(
   isInitiator: Bool,
-  identityKeyPair: KeyPair
+  sign: @escaping SignFunction,
+  identityPublicKey: Bytes
 ) -> HandshakeFunction {
   let performHandshake: HandshakeFunction = { [
     isInitiator,
-    identityKeyPair
+    sign,
+    identityPublicKey
   ] ephemeralKeyPair, theirIdentityKey, theirEphemeralKey in
+    let safeSign = createSafeSign(sign: sign)
     var ourCiphertext = createHandshakeBytes()
     var transcript = createTranscriptBytes()
     var ourSecretKey = createSecretKeyBytes()
     var theirSecretKey = createSecretKeyBytes()
-    let success = autograph_handshake(
+    let transcriptSuccess = autograph_transcript(
       &transcript,
-      &ourCiphertext,
-      &ourSecretKey,
-      &theirSecretKey,
       isInitiator ? 1 : 0,
-      identityKeyPair.privateKey,
-      identityKeyPair.publicKey,
-      &ephemeralKeyPair.privateKey,
+      identityPublicKey,
       ephemeralKeyPair.publicKey,
       theirIdentityKey,
       theirEphemeralKey
     ) == 0
+    let signResult = safeSign(transcript)
+    let handshakeSuccess = autograph_handshake_signature(
+      &ourCiphertext,
+      &ourSecretKey,
+      &theirSecretKey,
+      isInitiator ? 1 : 0,
+      signResult.signature,
+      &ephemeralKeyPair.privateKey,
+      theirEphemeralKey
+    ) == 0
     let establishSession: SessionFunction = createSession(
-      ourPrivateKey: identityKeyPair.privateKey,
+      sign: safeSign,
       theirPublicKey: theirIdentityKey,
       transcript: transcript,
       ourSecretKey: ourSecretKey,
@@ -37,6 +45,7 @@ internal func createHandshake(
       message: ourCiphertext,
       establishSession: establishSession
     )
+    let success = transcriptSuccess && signResult.success && handshakeSuccess
     return HandshakeResult(success: success, handshake: handshake)
   }
   return performHandshake
