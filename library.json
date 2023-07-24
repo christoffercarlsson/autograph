@@ -10,15 +10,20 @@
     }
   ],
   "build": {
-    "includeDir": "cplusplus/include",
+    "includeDir": ".",
     "flags": [
       "-D CONFIGURED",
       "-D DEV_MODE=0",
-      "-I c/libsodium/src/libsodium/include",
-      "-I c/libsodium/src/libsodium/include/sodium"
+      "-std=c11",
+      "-std=c++17",
+      "-Icplusplus/include",
+      "-Icplusplus/include/autograph",
+      "-Ic/include/autograph",
+      "-Ic/libsodium/src/libsodium/include",
+      "-Ic/libsodium/src/libsodium/include/sodium"
     ],
     "srcDir": ".",
-    "srcFilter": "-<*> +<c/src> +<cplusplus/src +<c/libsodium/src/libsodium> -<c/libsodium/src/libsodium/include>"
+    "srcFilter": "-<*> +<c/src> +<cplusplus/src> +<c/libsodium/src/libsodium> -<c/libsodium/src/libsodium/include>"
   },
   "frameworks": "*",
   "keywords": [
