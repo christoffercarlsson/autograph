@@ -1,6 +1,10 @@
 #ifndef AUTOGRAPH_CRYPTO_H
 #define AUTOGRAPH_CRYPTO_H
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 int decrypt(unsigned char *plaintext, const unsigned char *key,
             const unsigned int index, const unsigned char *ciphertext,
             const unsigned long long ciphertext_size);
@@ -25,5 +29,9 @@ int sign(unsigned char *signature, const unsigned char *private_key,
 int verify(const unsigned char *public_key, const unsigned char *message,
            const unsigned long long message_size,
            const unsigned char *signature);
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif
