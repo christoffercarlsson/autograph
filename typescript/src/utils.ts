@@ -1,5 +1,18 @@
 import { exportKey, importKey } from 'stedy'
-import { KeyPair } from '../types'
+import { KeyPair, SignResult } from '../types'
+import { alloc } from 'stedy/bytes'
+
+export const createErrorSignResult = (): SignResult => ({
+  success: false,
+  signature: alloc(64)
+})
+
+export const ensureSignResult = (result: SignResult): SignResult => {
+  if (result.signature.byteLength !== 64) {
+    return createErrorSignResult()
+  }
+  return result
+}
 
 export const exportKeyPair = async ({
   publicKey,

@@ -81,3 +81,12 @@ export type Party = {
   calculateSafetyNumber: SafetyNumberFunction
   performHandshake: HandshakeFunction
 }
+
+export type SignResult = {
+  success: boolean
+  signature: BufferSource
+}
+
+export type SignFunction = (
+  subject: BufferSource
+) => Promise<SignResult> | SignResult

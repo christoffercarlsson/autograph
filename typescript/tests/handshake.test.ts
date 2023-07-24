@@ -1,5 +1,5 @@
 import { createFrom } from 'stedy/bytes'
-import { createInitiator, createResponder } from '../src/autograph'
+import { createInitiator, createResponder, createSign } from '../src/autograph'
 import { Party } from '../types'
 
 describe('Handshake', () => {
@@ -75,8 +75,14 @@ describe('Handshake', () => {
   let bob: Party
 
   beforeEach(() => {
-    alice = createInitiator(keyPairs.alice.identity)
-    bob = createResponder(keyPairs.bob.identity)
+    alice = createInitiator(
+      createSign(keyPairs.alice.identity.privateKey),
+      keyPairs.alice.identity.publicKey
+    )
+    bob = createResponder(
+      createSign(keyPairs.bob.identity.privateKey),
+      keyPairs.bob.identity.publicKey
+    )
   })
 
   it('should allow Alice and Bob to perform a handshake', async () => {

@@ -1,10 +1,15 @@
 import { alloc, concat } from 'stedy/bytes'
-import { HandshakeFunction, HandshakeResult, KeyPair } from '../types'
+import {
+  HandshakeFunction,
+  HandshakeResult,
+  KeyPair,
+  SignFunction
+} from '../types'
 import createSession from './session'
-import { sign } from './crypto/sign'
 import diffieHellman from './crypto/diffie-hellman'
 import kdf from './crypto/kdf'
 import { encrypt } from './crypto/cipher'
+import { createErrorSignResult, ensureSignResult } from './utils'
 
 type SecretKeys = {
   ourSecretKey: BufferSource
@@ -38,7 +43,7 @@ const deriveSecretKeys = async (
 
 const createHandshakeResult = (
   success: boolean,
-  ourIdentityPrivateKey: BufferSource,
+  sign: SignFunction,
   theirIdentityPublicKey: BufferSource,
   transcript: BufferSource,
   message?: BufferSource,
@@ -51,7 +56,7 @@ const createHandshakeResult = (
       handshake: {
         message: alloc(80),
         establishSession: createSession(
-          ourIdentityPrivateKey,
+          sign,
           theirIdentityPublicKey,
           transcript,
           alloc(32),
@@ -65,7 +70,7 @@ const createHandshakeResult = (
     handshake: {
       message,
       establishSession: createSession(
-        ourIdentityPrivateKey,
+        sign,
         theirIdentityPublicKey,
         transcript,
         ourSecretKey,
@@ -75,22 +80,38 @@ const createHandshakeResult = (
   }
 }
 
+const createSafeSign =
+  (sign: SignFunction): SignFunction =>
+  async (subject: BufferSource) => {
+    try {
+      const result = await sign(subject)
+      return ensureSignResult(result)
+    } catch (error) {
+      return createErrorSignResult()
+    }
+  }
+
 const createHandshake =
-  (isInitiator: boolean, ourIdentityKeyPair: KeyPair): HandshakeFunction =>
+  (
+    isInitiator: boolean,
+    sign: SignFunction,
+    identityPublicKey: BufferSource
+  ): HandshakeFunction =>
   async (
     ourEphemeralKeyPair: KeyPair,
     theirIdentityKey: BufferSource,
     theirEphemeralKey: BufferSource
   ) => {
+    const safeSign = createSafeSign(sign)
     const transcript = calculateTranscript(
       isInitiator,
-      ourIdentityKeyPair.publicKey,
+      identityPublicKey,
       ourEphemeralKeyPair.publicKey,
       theirIdentityKey,
       theirEphemeralKey
     )
     try {
-      const signature = await sign(ourIdentityKeyPair.privateKey, transcript)
+      const { success, signature } = await safeSign(transcript)
       const { ourSecretKey, theirSecretKey } = await deriveSecretKeys(
         isInitiator,
         ourEphemeralKeyPair.privateKey,
@@ -98,8 +119,8 @@ const createHandshake =
       )
       const message = await encrypt(ourSecretKey, 0, signature)
       return createHandshakeResult(
-        true,
-        ourIdentityKeyPair.privateKey,
+        success,
+        safeSign,
         theirIdentityKey,
         transcript,
         message,
@@ -109,7 +130,7 @@ const createHandshake =
     } catch (error) {
       return createHandshakeResult(
         false,
-        ourIdentityKeyPair.privateKey,
+        safeSign,
         theirIdentityKey,
         transcript
       )

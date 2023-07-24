@@ -1,10 +1,14 @@
-import { KeyPair, Party } from '../types'
+import { Party, SignFunction } from '../types'
 import createHandshake from './handshake'
 import createSafetyNumber from './safety-number'
 
-const createParty = (isInitiator: boolean, identityKeyPair: KeyPair): Party => {
-  const calculateSafetyNumber = createSafetyNumber(identityKeyPair.publicKey)
-  const performHandshake = createHandshake(isInitiator, identityKeyPair)
+const createParty = (
+  isInitiator: boolean,
+  sign: SignFunction,
+  identityPublicKey: BufferSource
+): Party => {
+  const calculateSafetyNumber = createSafetyNumber(identityPublicKey)
+  const performHandshake = createHandshake(isInitiator, sign, identityPublicKey)
   return {
     calculateSafetyNumber,
     performHandshake

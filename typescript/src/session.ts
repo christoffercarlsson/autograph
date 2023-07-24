@@ -1,13 +1,16 @@
 import { alloc, concat, createFrom, fromInteger } from 'stedy/bytes'
 import {
+  CertificationResult,
   CertifyFunction,
   DecryptFunction,
   EncryptFunction,
   SessionFunction,
+  SignFunction,
   VerifyFunction
 } from '../types'
 import { decrypt, encrypt } from './crypto/cipher'
-import { sign, verify as verifySignature } from './crypto/sign'
+import { verify as verifySignature } from './crypto/sign'
+import { createErrorSignResult, ensureSignResult } from './utils'
 
 const verifySession = async (
   transcript: BufferSource,
@@ -29,19 +32,13 @@ const verifySession = async (
 }
 
 const createCertify =
-  (
-    ourPrivateKey: BufferSource,
-    theirPublicKey: BufferSource
-  ): CertifyFunction =>
+  (sign: SignFunction, theirPublicKey: BufferSource): CertifyFunction =>
   async (data?: BufferSource) => {
     try {
-      const signature = await sign(
-        ourPrivateKey,
-        concat([data, theirPublicKey])
-      )
-      return { success: true, signature }
+      const result = await sign(concat([data, theirPublicKey]))
+      return ensureSignResult(result) as CertificationResult
     } catch (error) {
-      return { success: false, signature: alloc(64) }
+      return createErrorSignResult() as CertificationResult
     }
   }
 
@@ -100,7 +97,7 @@ const createVerify =
 
 const createSession =
   (
-    ourPrivateKey: BufferSource,
+    sign: SignFunction,
     theirIdentityKey: BufferSource,
     transcript: BufferSource,
     ourSecretKey: BufferSource,
@@ -113,8 +110,8 @@ const createSession =
       theirSecretKey,
       message
     )
+    const certify = createCertify(sign, theirIdentityKey)
     const decrypt = createDecrypt(theirSecretKey)
-    const certify = createCertify(ourPrivateKey, theirIdentityKey)
     const encrypt = createEncrypt(ourSecretKey)
     const verify = createVerify(theirIdentityKey)
     const session = {

@@ -2,10 +2,11 @@ import {
   generateKeyPair as generateX25519KeyPair,
   generateSignKeyPair as generateEd25519KeyPair
 } from 'stedy'
-import { KeyPair, KeyPairResult } from '../types'
-import createParty from './party'
-import { exportKeyPair } from './utils'
 import { alloc } from 'stedy/bytes'
+import { KeyPair, KeyPairResult, SignFunction } from '../types'
+import createParty from './party'
+import { createErrorSignResult, ensureSignResult, exportKeyPair } from './utils'
+import { sign } from './crypto/sign'
 
 const createKeyPairResult = async (
   success: boolean,
@@ -35,15 +36,43 @@ const generateEphemeralKeyPair = async (): Promise<KeyPairResult> => {
   }
 }
 
-const createInitiator = (identityKeyPair: KeyPair) =>
-  createParty(true, identityKeyPair)
+const createSign =
+  (identityPrivateKey: BufferSource): SignFunction =>
+  async (subject: BufferSource) => {
+    try {
+      const signature = await sign(identityPrivateKey, subject)
+      return ensureSignResult({ success: true, signature })
+    } catch (error) {
+      return createErrorSignResult()
+    }
+  }
 
-const createResponder = (identityKeyPair: KeyPair) =>
-  createParty(false, identityKeyPair)
+const ensureParty = (
+  isInitiator: boolean,
+  a: KeyPair | SignFunction,
+  b?: BufferSource
+) => {
+  const keyPair = a as KeyPair
+  if (ArrayBuffer.isView(keyPair.privateKey)) {
+    return createParty(
+      isInitiator,
+      createSign(keyPair.privateKey),
+      keyPair.publicKey
+    )
+  }
+  return createParty(isInitiator, a as SignFunction, b)
+}
+
+const createInitiator = (a: KeyPair | SignFunction, b?: BufferSource) =>
+  ensureParty(true, a, b)
+
+const createResponder = (a: KeyPair | SignFunction, b?: BufferSource) =>
+  ensureParty(false, a, b)
 
 export {
   createInitiator,
   createResponder,
+  createSign,
   generateIdentityKeyPair,
   generateEphemeralKeyPair
 }
