@@ -1,4 +1,6 @@
-#include "internal.h"
+#include "safety_number.h"
+
+#include "private.h"
 
 namespace autograph {
 

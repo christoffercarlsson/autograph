@@ -1,6 +1,7 @@
+#include "key_pair.h"
+
 #include <string.h>
 
-#include "internal.h"
 #include "sodium.h"
 
 int autograph_key_pair_ephemeral(unsigned char *private_key,

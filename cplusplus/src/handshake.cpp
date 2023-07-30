@@ -1,4 +1,6 @@
-#include "internal.h"
+#include "handshake.h"
+
+#include "private.h"
 
 namespace autograph {
 
@@ -27,8 +29,9 @@ HandshakeFunction create_handshake(const bool is_initiator,
             is_initiator ? 1 : 0, sign_result.signature.data(),
             our_ephemeral_key_pair.private_key.data(),
             their_ephemeral_key.data()) == 0;
-    SessionFunction establish_session = create_session(
-        safe_sign, their_identity_key, transcript, our_secret_key, their_secret_key);
+    SessionFunction establish_session =
+        create_session(safe_sign, their_identity_key, transcript,
+                       our_secret_key, their_secret_key);
     Handshake handshake = {message, establish_session};
     bool success =
         sign_result.success && transcript_success && handshake_success;

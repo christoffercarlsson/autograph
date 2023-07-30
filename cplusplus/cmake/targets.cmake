@@ -8,6 +8,7 @@ target_include_directories(
           ${CMAKE_CURRENT_SOURCE_DIR}/libsodium/src/libsodium/include
           ${CMAKE_CURRENT_SOURCE_DIR}/libsodium/src/libsodium/include/sodium)
 
-target_compile_definitions(${AUTOGRAPH_LIBRARY_TARGET} PRIVATE CONFIGURED DEV_MODE=0)
+target_compile_definitions(${AUTOGRAPH_LIBRARY_TARGET} PRIVATE CONFIGURED
+                                                               DEV_MODE=0)
 
 set(AUTOGRAPH_INSTALL_TARGETS ${AUTOGRAPH_LIBRARY_TARGET})

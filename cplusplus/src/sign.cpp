@@ -1,4 +1,6 @@
-#include "internal.h"
+#include "sign.h"
+
+#include "private.h"
 
 namespace autograph {
 

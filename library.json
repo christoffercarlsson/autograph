@@ -10,12 +10,13 @@
     }
   ],
   "build": {
-    "includeDir": "cplusplus/include",
+    "includeDir": ".",
     "flags": [
-      "-D CONFIGURED",
-      "-D DEV_MODE=0",
       "-std=c11",
       "-std=c++17",
+      "-D CONFIGURED",
+      "-D DEV_MODE=0",
+      "-I cplusplus/include",
       "-I cplusplus/include/autograph",
       "-I cplusplus/libsodium/src/libsodium/include",
       "-I cplusplus/libsodium/src/libsodium/include/sodium"

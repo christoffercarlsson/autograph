@@ -9,6 +9,20 @@ TARGET_INCLUDE_DIR="${PREFIX}/include"
 XCFRAMEWORK_ARGS=""
 RIMRAF_ARGS=""
 
+if [ -d "$1" ]
+then
+  OUTPUT_DIR="$(cd "$1" && pwd)"
+else
+  OUTPUT_DIR="${PREFIX}"
+fi
+
+OUTPUT_PATH="${OUTPUT_DIR}/Clibautograph.xcframework"
+
+if [ -d "${OUTPUT_PATH}" ]
+then
+  rm -rf "${OUTPUT_PATH}"
+fi
+
 swift_module_map() {
   echo 'module Clibautograph {'
   echo '  header "autograph.h"'
@@ -17,8 +31,7 @@ swift_module_map() {
 }
 
 build_headers() {
-  mkdir "${1}"
-  cp "${SOURCE_INCLUDE_DIR}/autograph.h" "${1}"
+  cp -R "${SOURCE_INCLUDE_DIR}" "${1}"
   swift_module_map > "${1}/module.modulemap"
 }
 
@@ -49,33 +62,33 @@ build_target() {
 }
 
 build_framework() {
-  xcodebuild -create-xcframework ${XCFRAMEWORK_ARGS} -output "${PREFIX}/Clibautograph.xcframework" > /dev/null
+  xcodebuild -create-xcframework ${XCFRAMEWORK_ARGS} -output "${OUTPUT_PATH}" > /dev/null
 }
 
 rm -rf "${PREFIX}"
 
-echo "(1/7) Building for iOS..."
+echo "[  0%] Building for iOS..."
 build_target ios arm64
 
-echo "(2/7) Building for iOS Simulator..."
+echo "[ 14%] Building for iOS Simulator..."
 build_target ios-simulator arm64 x86_64
 
-echo "(3/7) Building for watchOS..."
+echo "[ 29%] Building for watchOS..."
 build_target watchos arm64
 
-echo "(4/7) Building for watchOS Simulator..."
+echo "[ 43%] Building for watchOS Simulator..."
 build_target watchos-simulator arm64 x86_64
 
-echo "(5/7) Building for macOS..."
+echo "[ 57%] Building for macOS..."
 build_target macos arm64
 
-echo "(6/7) Building for tvOS..."
+echo "[ 71%] Building for tvOS..."
 build_target tvos arm64
 
-echo "(7/7) Building for tvOS Simulator..."
+echo "[ 86%] Building for tvOS Simulator..."
 build_target tvos-simulator arm64 x86_64
 
-echo "Building XCFramework..."
+echo "[100%] Building XCFramework..."
 build_framework
 
 echo "Cleaning up..."

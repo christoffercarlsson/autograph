@@ -1,6 +1,8 @@
+#include "handshake.h"
+
 #include <string.h>
 
-#include "internal.h"
+#include "private.h"
 #include "sodium.h"
 
 const unsigned char CONTEXT_INITIATOR = 0;

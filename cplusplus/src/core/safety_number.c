@@ -1,7 +1,9 @@
+#include "safety_number.h"
+
 #include <stdio.h>
 #include <string.h>
 
-#include "internal.h"
+#include "private.h"
 
 int encode_chunk(unsigned char *fingerprint, const unsigned char *digest,
                  const unsigned int i) {

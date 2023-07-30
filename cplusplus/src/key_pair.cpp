@@ -1,26 +1,6 @@
-#include "internal.h"
+#include "key_pair.h"
 
 namespace autograph {
-
-Party create_initiator(const SignFunction sign,
-                       const Bytes identity_public_key) {
-  return create_party(true, sign, identity_public_key);
-}
-
-Party create_initiator(const KeyPair identity_key_pair) {
-  return create_initiator(create_sign(identity_key_pair.private_key),
-                          identity_key_pair.public_key);
-}
-
-Party create_responder(const SignFunction sign,
-                       const Bytes identity_public_key) {
-  return create_party(false, sign, identity_public_key);
-}
-
-Party create_responder(const KeyPair identity_key_pair) {
-  return create_responder(create_sign(identity_key_pair.private_key),
-                          identity_key_pair.public_key);
-}
 
 KeyPair create_key_pair() {
   Bytes private_key(32);
@@ -44,7 +24,5 @@ KeyPairResult generate_identity_key_pair() {
   KeyPairResult result = {success, key_pair};
   return result;
 }
-
-bool init() { return autograph_init() == 0; }
 
 }  // namespace autograph

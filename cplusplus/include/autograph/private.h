@@ -1,7 +1,5 @@
-#ifndef AUTOGRAPH_INTERNAL_H
-#define AUTOGRAPH_INTERNAL_H
-
-#include "autograph.h"
+#ifndef AUTOGRAPH_PRIVATE_H
+#define AUTOGRAPH_PRIVATE_H
 
 #ifdef __cplusplus
 extern "C" {
@@ -33,7 +31,9 @@ int verify(const unsigned char *public_key, const unsigned char *message,
            const unsigned char *signature);
 
 #ifdef __cplusplus
-} // extern "C"
+}  // extern "C"
+
+#include "types.h"
 
 namespace autograph {
 
