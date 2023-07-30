@@ -2,10 +2,9 @@
 
 set -e
 
-ROOT_DIR="$(cd "$(dirname "$0")/.." && pwd)"
-SOURCE_DIR="${ROOT_DIR}/c"
+SOURCE_DIR="$(cd "$(dirname "$0")/.." && pwd)"
 SOURCE_INCLUDE_DIR="${SOURCE_DIR}/include"
-PREFIX="${ROOT_DIR}/build/apple"
+PREFIX="${SOURCE_DIR}/build/apple"
 TARGET_INCLUDE_DIR="${PREFIX}/include"
 XCFRAMEWORK_ARGS=""
 RIMRAF_ARGS=""
@@ -26,7 +25,7 @@ build_headers() {
 build_cmake() {
   local build_path="${PREFIX}/${1}/${2}"
   cmake -DCMAKE_BUILD_TYPE=Release \
-        -DCMAKE_TOOLCHAIN_FILE="${ROOT_DIR}/cmake/toolchains/apple/${1}.toolchain.cmake" \
+        -DCMAKE_TOOLCHAIN_FILE="${SOURCE_DIR}/cmake/toolchains/apple/${1}.toolchain.cmake" \
         -DCMAKE_OSX_ARCHITECTURES="${2}" \
         -B "${build_path}" "${SOURCE_DIR}"
   (cd "${build_path}" && make)

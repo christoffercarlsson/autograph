@@ -1,8 +1,7 @@
 #include <stdio.h>
 #include <string.h>
 
-#include "autograph.h"
-#include "crypto.h"
+#include "internal.h"
 
 int encode_chunk(unsigned char *fingerprint, const unsigned char *digest,
                  const unsigned int i) {

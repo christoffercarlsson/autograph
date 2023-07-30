@@ -1,4 +1,4 @@
-#include "crypto.h"
+#include "internal.h"
 #include "sodium.h"
 
 void index_to_nonce(unsigned char *nonce, const unsigned int index) {

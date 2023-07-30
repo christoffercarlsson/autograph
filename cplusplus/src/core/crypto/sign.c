@@ -1,4 +1,4 @@
-#include "crypto.h"
+#include "internal.h"
 #include "sodium.h"
 
 int sign(unsigned char *signature, const unsigned char *private_key,

@@ -1,4 +1,4 @@
-#include "crypto.h"
+#include "internal.h"
 #include "sodium.h"
 
 int diffie_hellman(unsigned char *shared_secret,

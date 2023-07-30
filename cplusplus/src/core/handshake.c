@@ -1,7 +1,6 @@
 #include <string.h>
 
-#include "autograph.h"
-#include "crypto.h"
+#include "internal.h"
 #include "sodium.h"
 
 const unsigned char CONTEXT_INITIATOR = 0;

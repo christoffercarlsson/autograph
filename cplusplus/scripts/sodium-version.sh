@@ -1,6 +1,6 @@
 #!/bin/sh
 
-SOURCE_DIR="$(cd "$(dirname "$0")/../c" && pwd)"
+SOURCE_DIR="$(cd "$(dirname "$0")/.." && pwd)"
 SODIUM_INCLUDE_DIR="$SOURCE_DIR/libsodium/src/libsodium/include/sodium"
 SODIUM_VERSION="1.0.18"
 SODIUM_LIBRARY_VERSION_MAJOR=10

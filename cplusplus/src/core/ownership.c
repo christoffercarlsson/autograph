@@ -1,7 +1,6 @@
 #include <string.h>
 
-#include "autograph.h"
-#include "crypto.h"
+#include "internal.h"
 
 void autograph_subject(unsigned char *subject,
                        const unsigned char *their_public_key,

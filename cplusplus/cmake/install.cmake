@@ -1,4 +1,4 @@
-if(AUTGRAPH_INSTALL)
+if(AUTOGRAPH_INSTALL)
   install(
     TARGETS ${AUTOGRAPH_INSTALL_TARGETS}
     EXPORT autograph-targets

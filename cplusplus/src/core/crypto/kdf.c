@@ -1,6 +1,6 @@
 #include <string.h>
 
-#include "crypto.h"
+#include "internal.h"
 #include "sodium.h"
 
 int kdf_extract(unsigned char *prk, const unsigned char *salt,

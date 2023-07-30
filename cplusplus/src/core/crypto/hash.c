@@ -1,6 +1,6 @@
 #include <string.h>
 
-#include "crypto.h"
+#include "internal.h"
 #include "sodium.h"
 
 int hash(unsigned char *digest, const unsigned char *message,

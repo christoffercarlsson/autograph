@@ -1,5 +1,4 @@
-#include "autograph.h"
-#include "crypto.h"
+#include "internal.h"
 
 int autograph_session(const unsigned char *transcript,
                       const unsigned char *their_identity_key,

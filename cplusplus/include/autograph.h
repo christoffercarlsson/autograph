@@ -2,9 +2,6 @@
 #define AUTOGRAPH_H
 
 #ifdef __cplusplus
-#include <functional>
-#include <vector>
-
 extern "C" {
 #endif
 
@@ -99,6 +96,9 @@ int autograph_verify(const unsigned char *their_public_key,
 
 #ifdef __cplusplus
 }  // extern "C"
+
+#include <functional>
+#include <vector>
 
 namespace autograph {
 

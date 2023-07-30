@@ -1,4 +1,4 @@
-#include "autograph.h"
+#include "internal.h"
 
 unsigned int autograph_handshake_size() { return 80; }
 

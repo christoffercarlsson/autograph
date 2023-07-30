@@ -1,5 +1,4 @@
-#include "autograph.h"
-#include "crypto.h"
+#include "internal.h"
 
 int autograph_decrypt(unsigned char *plaintext, const unsigned char *key,
                       const unsigned char *message,

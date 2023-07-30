@@ -5,9 +5,8 @@ target_include_directories(
   PUBLIC $<INSTALL_INTERFACE:include>
          $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
   PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/include/autograph
-          ${CMAKE_CURRENT_LIST_DIR}/../c/include/autograph
-          ${CMAKE_CURRENT_LIST_DIR}/../c/libsodium/src/libsodium/include
-          ${CMAKE_CURRENT_LIST_DIR}/../c/libsodium/src/libsodium/include/sodium)
+          ${CMAKE_CURRENT_SOURCE_DIR}/libsodium/src/libsodium/include
+          ${CMAKE_CURRENT_SOURCE_DIR}/libsodium/src/libsodium/include/sodium)
 
 target_compile_definitions(${AUTOGRAPH_LIBRARY_TARGET} PRIVATE CONFIGURED DEV_MODE=0)
 
