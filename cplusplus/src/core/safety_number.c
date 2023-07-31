@@ -5,8 +5,9 @@
 
 #include "private.h"
 
-int encode_chunk(unsigned char *fingerprint, const unsigned char *digest,
-                 const unsigned int i) {
+int autograph_safety_number_encode(unsigned char *fingerprint,
+                                   const unsigned char *digest,
+                                   const unsigned int i) {
   const unsigned long long a = digest[i];
   const unsigned long long b = digest[i + 1];
   const unsigned long long c = digest[i + 2];
@@ -27,15 +28,15 @@ int encode_chunk(unsigned char *fingerprint, const unsigned char *digest,
   return 0;
 }
 
-int calculate_fingerprint(unsigned char *fingerprint,
-                          const unsigned char *identity_key) {
+int autograph_safety_number_fingerprint(unsigned char *fingerprint,
+                                        const unsigned char *identity_key) {
   unsigned char digest[64];
-  int hash_result = hash(digest, identity_key, 32, 5200);
+  int hash_result = autograph_crypto_hash(digest, identity_key, 32, 5200);
   if (hash_result != 0) {
     return -1;
   }
   for (int i = 0; i < 30; i += 5) {
-    int encode_result = encode_chunk(fingerprint, digest, i);
+    int encode_result = autograph_safety_number_encode(fingerprint, digest, i);
     if (encode_result != 0) {
       return -1;
     }
@@ -48,9 +49,10 @@ int autograph_safety_number(unsigned char *safety_number,
                             const unsigned char *their_identity_key) {
   unsigned char our_fingerprint[30];
   unsigned char their_fingerprint[30];
-  int our_result = calculate_fingerprint(our_fingerprint, our_identity_key);
-  int their_result =
-      calculate_fingerprint(their_fingerprint, their_identity_key);
+  int our_result =
+      autograph_safety_number_fingerprint(our_fingerprint, our_identity_key);
+  int their_result = autograph_safety_number_fingerprint(their_fingerprint,
+                                                         their_identity_key);
   if (our_result != 0 || their_result != 0) {
     return -1;
   }

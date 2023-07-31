@@ -80,7 +80,7 @@ echo "[ 43%] Building for watchOS Simulator..."
 build_target watchos-simulator arm64 x86_64
 
 echo "[ 57%] Building for macOS..."
-build_target macos arm64
+build_target macos arm64 x86_64
 
 echo "[ 71%] Building for tvOS..."
 build_target tvos arm64

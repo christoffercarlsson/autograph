@@ -26,7 +26,10 @@ int autograph_certify(unsigned char *signature,
   const unsigned long long subject_size = autograph_subject_size(data_size);
   unsigned char subject[subject_size];
   autograph_subject(subject, their_public_key, data, data_size);
-  return sign(signature, our_private_key, subject, subject_size) == 0 ? 0 : -1;
+  return autograph_crypto_sign(signature, our_private_key, subject,
+                               subject_size) == 0
+             ? 0
+             : -1;
 }
 
 int autograph_verify(const unsigned char *their_public_key,
@@ -42,8 +45,8 @@ int autograph_verify(const unsigned char *their_public_key,
   autograph_subject(subject, their_public_key, data, data_size);
   for (unsigned long long i = 0; i < certificate_count; i++) {
     const unsigned char *certificate = certificates + i * 96;
-    int verify_result =
-        verify(certificate, subject, subject_size, certificate + 32);
+    int verify_result = autograph_crypto_verify(certificate, subject,
+                                                subject_size, certificate + 32);
     if (verify_result != 0) {
       return -1;
     }
@@ -56,13 +59,15 @@ int autograph_decrypt(unsigned char *plaintext, const unsigned char *key,
                       const unsigned long long message_size) {
   const unsigned int index =
       (message[0] << 24) | (message[1] << 16) | (message[2] << 8) | message[3];
-  return decrypt(plaintext, key, index, message + 4, message_size - 4);
+  return autograph_crypto_decrypt(plaintext, key, index, message + 4,
+                                  message_size - 4);
 }
 
 int autograph_encrypt(unsigned char *message, const unsigned char *key,
                       const unsigned int index, const unsigned char *plaintext,
                       const unsigned long long plaintext_size) {
-  int result = encrypt(message + 4, key, index, plaintext, plaintext_size);
+  int result = autograph_crypto_encrypt(message + 4, key, index, plaintext,
+                                        plaintext_size);
   if (result != 0) {
     return -1;
   }
@@ -78,9 +83,13 @@ int autograph_session(const unsigned char *transcript,
                       const unsigned char *their_secret_key,
                       const unsigned char *ciphertext) {
   unsigned char signature[64];
-  int decrypt_result = decrypt(signature, their_secret_key, 0, ciphertext, 80);
+  int decrypt_result =
+      autograph_crypto_decrypt(signature, their_secret_key, 0, ciphertext, 80);
   if (decrypt_result != 0) {
     return -1;
   }
-  return verify(their_identity_key, transcript, 128, signature) == 0 ? 0 : -1;
+  return autograph_crypto_verify(their_identity_key, transcript, 128,
+                                 signature) == 0
+             ? 0
+             : -1;
 }
