@@ -40,6 +40,8 @@ build_cmake() {
   cmake -DCMAKE_BUILD_TYPE=Release \
         -DCMAKE_TOOLCHAIN_FILE="${SOURCE_DIR}/cmake/toolchains/apple/${1}.toolchain.cmake" \
         -DCMAKE_OSX_ARCHITECTURES="${2}" \
+        -DAUTOGRAPH_INSTALL=0 \
+        -DAUTOGRAPH_TESTS=0 \
         -B "${build_path}" "${SOURCE_DIR}"
   (cd "${build_path}" && make)
 }
