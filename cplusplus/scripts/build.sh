@@ -20,6 +20,7 @@ while [ $# -gt 0 ]; do
       shift
       ;;
     -t | --tests | --with-tests)
+      AUTOGRAPH_INSTALL=1
       AUTOGRAPH_TESTS=1
       shift
       ;;
