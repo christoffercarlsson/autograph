@@ -5,7 +5,7 @@
 
 #include "types.h"
 
-namespace autograph {
+namespace Autograph {
 
 Party create_initiator(const SignFunction sign,
                        const Bytes identity_public_key);
@@ -17,7 +17,7 @@ Party create_responder(const SignFunction sign,
 
 Party create_responder(const KeyPair identity_key_pair);
 
-}  // namespace autograph
+}  // namespace Autograph
 #endif
 
 #endif

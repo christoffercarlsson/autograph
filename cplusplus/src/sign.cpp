@@ -2,7 +2,7 @@
 
 #include "private.h"
 
-namespace autograph {
+namespace Autograph {
 
 SignResult create_error_result() {
   Bytes signature(64, 0);
@@ -36,4 +36,4 @@ SignFunction create_sign(const Bytes identity_private_key) {
   return sign;
 }
 
-}  // namespace autograph
+}  // namespace Autograph

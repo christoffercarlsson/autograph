@@ -1,7 +1,7 @@
 #include "init.h"
 
-namespace autograph {
+namespace Autograph {
 
 bool init() { return autograph_init() == 0; }
 
-}  // namespace autograph
+}  // namespace Autograph

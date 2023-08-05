@@ -2,7 +2,7 @@
 
 #include "private.h"
 
-namespace autograph {
+namespace Autograph {
 
 SafetyNumberFunction create_safety_number(const Bytes our_identity_key) {
   auto safety_number_function =
@@ -17,4 +17,4 @@ SafetyNumberFunction create_safety_number(const Bytes our_identity_key) {
   return safety_number_function;
 }
 
-}  // namespace autograph
+}  // namespace Autograph

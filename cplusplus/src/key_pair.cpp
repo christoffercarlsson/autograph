@@ -1,6 +1,6 @@
 #include "key_pair.h"
 
-namespace autograph {
+namespace Autograph {
 
 KeyPair create_key_pair() {
   Bytes private_key(32);
@@ -25,4 +25,4 @@ KeyPairResult generate_identity_key_pair() {
   return result;
 }
 
-}  // namespace autograph
+}  // namespace Autograph

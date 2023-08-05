@@ -2,7 +2,7 @@
 
 #include "private.h"
 
-namespace autograph {
+namespace Autograph {
 
 HandshakeFunction create_handshake(const bool is_initiator,
                                    const SignFunction sign,
@@ -41,4 +41,4 @@ HandshakeFunction create_handshake(const bool is_initiator,
   return perform_handshake;
 }
 
-}  // namespace autograph
+}  // namespace Autograph

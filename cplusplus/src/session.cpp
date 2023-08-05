@@ -2,7 +2,7 @@
 
 #include "private.h"
 
-namespace autograph {
+namespace Autograph {
 
 CertifyFunction create_certify(const SignFunction sign,
                                const Bytes their_public_key) {
@@ -83,4 +83,4 @@ SessionFunction create_session(const SignFunction sign,
   return session_function;
 }
 
-}  // namespace autograph
+}  // namespace Autograph

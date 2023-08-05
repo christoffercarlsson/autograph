@@ -3,7 +3,7 @@
 #include "private.h"
 #include "sign.h"
 
-namespace autograph {
+namespace Autograph {
 
 Party create_party(const bool is_initiator, const SignFunction sign,
                    const Bytes identity_public_key) {
@@ -37,4 +37,4 @@ Party create_responder(const KeyPair identity_key_pair) {
                           identity_key_pair.public_key);
 }
 
-}  // namespace autograph
+}  // namespace Autograph
