@@ -41,7 +41,7 @@ int autograph_crypto_verify(const unsigned char *public_key,
 
 #include "types.h"
 
-namespace autograph {
+namespace Autograph {
 
 SignFunction create_safe_sign(const SignFunction sign);
 
@@ -60,7 +60,7 @@ SessionFunction create_session(const SignFunction sign,
                                const Bytes our_secret_key,
                                const Bytes their_secret_key);
 
-}  // namespace autograph
+}  // namespace Autograph
 #endif
 
 #endif

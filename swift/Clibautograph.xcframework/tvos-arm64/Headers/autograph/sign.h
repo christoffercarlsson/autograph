@@ -14,11 +14,11 @@ int autograph_sign(unsigned char *signature, const unsigned char *private_key,
 
 #include "types.h"
 
-namespace autograph {
+namespace Autograph {
 
 SignFunction create_sign(const Bytes identity_private_key);
 
-}  // namespace autograph
+}  // namespace Autograph
 #endif
 
 #endif

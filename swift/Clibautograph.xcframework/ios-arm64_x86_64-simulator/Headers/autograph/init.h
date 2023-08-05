@@ -10,11 +10,11 @@ int autograph_init();
 #ifdef __cplusplus
 }  // extern "C"
 
-namespace autograph {
+namespace Autograph {
 
 bool init();
 
-}  // namespace autograph
+}  // namespace Autograph
 #endif
 
 #endif

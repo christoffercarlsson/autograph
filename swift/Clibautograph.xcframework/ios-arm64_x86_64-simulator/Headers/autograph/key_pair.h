@@ -16,13 +16,13 @@ int autograph_key_pair_identity(unsigned char *private_key,
 
 #include "types.h"
 
-namespace autograph {
+namespace Autograph {
 
 KeyPairResult generate_ephemeral_key_pair();
 
 KeyPairResult generate_identity_key_pair();
 
-}  // namespace autograph
+}  // namespace Autograph
 #endif
 
 #endif

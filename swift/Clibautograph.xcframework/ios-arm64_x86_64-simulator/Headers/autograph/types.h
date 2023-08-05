@@ -5,7 +5,7 @@
 #include <functional>
 #include <vector>
 
-namespace autograph {
+namespace Autograph {
 
 using Bytes = std::vector<unsigned char>;
 
@@ -88,7 +88,7 @@ struct SignResult {
 
 using SignFunction = std::function<SignResult(const Bytes)>;
 
-}  // namespace autograph
+}  // namespace Autograph
 #endif
 
 #endif
