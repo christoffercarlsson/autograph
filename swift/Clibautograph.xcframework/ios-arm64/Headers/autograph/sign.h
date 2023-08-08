@@ -16,7 +16,7 @@ int autograph_sign(unsigned char *signature, const unsigned char *private_key,
 
 namespace Autograph {
 
-SignFunction create_sign(const Bytes identity_private_key);
+SignFunction createSign(const Bytes identityPrivateKey);
 
 }  // namespace Autograph
 #endif

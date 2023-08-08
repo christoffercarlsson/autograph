@@ -7,15 +7,13 @@
 
 namespace Autograph {
 
-Party create_initiator(const SignFunction sign,
-                       const Bytes identity_public_key);
+Party createInitiator(const SignFunction sign, const Bytes identityPublicKey);
 
-Party create_initiator(const KeyPair identity_key_pair);
+Party createInitiator(const KeyPair identityKeyPair);
 
-Party create_responder(const SignFunction sign,
-                       const Bytes identity_public_key);
+Party createResponder(const SignFunction sign, const Bytes identityPublicKey);
 
-Party create_responder(const KeyPair identity_key_pair);
+Party createResponder(const KeyPair identityKeyPair);
 
 }  // namespace Autograph
 #endif
