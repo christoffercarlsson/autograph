@@ -5,36 +5,33 @@
 
 namespace Autograph {
 
-Party create_party(const bool is_initiator, const SignFunction sign,
-                   const Bytes identity_public_key) {
-  auto calculate_safety_number = create_safety_number(identity_public_key);
-  auto perform_handshake =
-      create_handshake(is_initiator, sign, identity_public_key);
+Party createParty(const bool isInitiator, const SignFunction sign,
+                  const Bytes identityPublicKey) {
+  auto calculateSafetyNumber = createSafetyNumber(identityPublicKey);
+  auto performHandshake = createHandshake(isInitiator, sign, identityPublicKey);
   Party party = {
-      calculate_safety_number,
-      perform_handshake,
+      calculateSafetyNumber,
+      performHandshake,
   };
   return party;
 }
 
-Party create_initiator(const SignFunction sign,
-                       const Bytes identity_public_key) {
-  return create_party(true, sign, identity_public_key);
+Party createInitiator(const SignFunction sign, const Bytes identityPublicKey) {
+  return createParty(true, sign, identityPublicKey);
 }
 
-Party create_initiator(const KeyPair identity_key_pair) {
-  return create_initiator(create_sign(identity_key_pair.private_key),
-                          identity_key_pair.public_key);
+Party createInitiator(const KeyPair identityKeyPair) {
+  return createInitiator(createSign(identityKeyPair.privateKey),
+                         identityKeyPair.publicKey);
 }
 
-Party create_responder(const SignFunction sign,
-                       const Bytes identity_public_key) {
-  return create_party(false, sign, identity_public_key);
+Party createResponder(const SignFunction sign, const Bytes identityPublicKey) {
+  return createParty(false, sign, identityPublicKey);
 }
 
-Party create_responder(const KeyPair identity_key_pair) {
-  return create_responder(create_sign(identity_key_pair.private_key),
-                          identity_key_pair.public_key);
+Party createResponder(const KeyPair identityKeyPair) {
+  return createResponder(createSign(identityKeyPair.privateKey),
+                         identityKeyPair.publicKey);
 }
 
 }  // namespace Autograph

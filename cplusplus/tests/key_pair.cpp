@@ -6,16 +6,16 @@ TEST_CASE("Key Pair", "[key_pair]") {
   Autograph::init();
 
   SECTION("should generate ephemeral key pairs") {
-    auto result = Autograph::generate_ephemeral_key_pair();
+    auto result = Autograph::generateEphemeralKeyPair();
     REQUIRE(result.success == true);
-    REQUIRE(result.key_pair.private_key.size() == 32);
-    REQUIRE(result.key_pair.public_key.size() == 32);
+    REQUIRE(result.keyPair.privateKey.size() == 32);
+    REQUIRE(result.keyPair.publicKey.size() == 32);
   }
 
   SECTION("should generate identity key pairs") {
-    auto result = Autograph::generate_identity_key_pair();
+    auto result = Autograph::generateIdentityKeyPair();
     REQUIRE(result.success == true);
-    REQUIRE(result.key_pair.private_key.size() == 32);
-    REQUIRE(result.key_pair.public_key.size() == 32);
+    REQUIRE(result.keyPair.privateKey.size() == 32);
+    REQUIRE(result.keyPair.publicKey.size() == 32);
   }
 }

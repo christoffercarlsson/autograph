@@ -18,9 +18,9 @@ int autograph_key_pair_identity(unsigned char *private_key,
 
 namespace Autograph {
 
-KeyPairResult generate_ephemeral_key_pair();
+KeyPairResult generateEphemeralKeyPair();
 
-KeyPairResult generate_identity_key_pair();
+KeyPairResult generateIdentityKeyPair();
 
 }  // namespace Autograph
 #endif

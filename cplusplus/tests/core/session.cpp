@@ -15,12 +15,12 @@ TEST_CASE("Session", "[core_session]") {
       150, 239, 0,   26,  41,  131, 245, 177, 87,  106, 105, 167, 58,  158, 184,
       244, 65,  205, 42,  40,  80,  134, 52};
 
-  std::vector<unsigned char> identity_key = {
+  std::vector<unsigned char> identityKey = {
       232, 130, 200, 162, 218, 101, 75,  210, 196, 152, 235,
       97,  118, 3,   241, 131, 200, 140, 54,  155, 28,  46,
       158, 76,  96,  4,   150, 61,  34,  13,  133, 138};
 
-  std::vector<unsigned char> secret_key = {
+  std::vector<unsigned char> secretKey = {
       68,  193, 143, 187, 158, 133, 97, 136, 59,  188, 165,
       11,  242, 164, 152, 180, 9,   15, 203, 5,   115, 123,
       253, 225, 126, 133, 246, 222, 87, 236, 110, 140};
@@ -35,8 +35,8 @@ TEST_CASE("Session", "[core_session]") {
 
   autograph_init();
 
-  int result = autograph_session(transcript.data(), identity_key.data(),
-                                 secret_key.data(), ciphertext.data());
+  int result = autograph_session(transcript.data(), identityKey.data(),
+                                 secretKey.data(), ciphertext.data());
 
   REQUIRE(result == 0);
 }

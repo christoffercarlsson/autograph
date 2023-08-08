@@ -4,31 +4,31 @@
 
 namespace Autograph {
 
-SignResult create_error_result() {
+SignResult createErrorResult() {
   Bytes signature(64, 0);
   SignResult result = {false, signature};
   return result;
 }
 
-SignFunction create_safe_sign(const SignFunction sign) {
-  SignFunction safe_sign = [sign](const Bytes subject) {
+SignFunction createSafeSign(const SignFunction sign) {
+  SignFunction safeSign = [sign](const Bytes subject) {
     try {
-      auto sign_result = sign(subject);
-      if (sign_result.signature.size() != 64) {
-        return create_error_result();
+      auto signResult = sign(subject);
+      if (signResult.signature.size() != 64) {
+        return createErrorResult();
       }
-      return sign_result;
+      return signResult;
     } catch (...) {
-      return create_error_result();
+      return createErrorResult();
     }
   };
-  return safe_sign;
+  return safeSign;
 }
 
-SignFunction create_sign(const Bytes identity_private_key) {
-  SignFunction sign = [identity_private_key](Bytes subject) {
+SignFunction createSign(const Bytes identityPrivateKey) {
+  SignFunction sign = [identityPrivateKey](Bytes subject) {
     Bytes signature(64);
-    bool success = autograph_sign(signature.data(), identity_private_key.data(),
+    bool success = autograph_sign(signature.data(), identityPrivateKey.data(),
                                   subject.data(), subject.size()) == 0;
     SignResult result = {success, signature};
     return result;

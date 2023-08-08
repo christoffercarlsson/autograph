@@ -4,37 +4,34 @@
 
 namespace Autograph {
 
-HandshakeFunction create_handshake(const bool is_initiator,
-                                   const SignFunction sign,
-                                   const Bytes our_identity_public_key) {
-  auto perform_handshake = [is_initiator, sign, our_identity_public_key](
-                               KeyPair &our_ephemeral_key_pair,
-                               const Bytes their_identity_key,
-                               const Bytes their_ephemeral_key) {
-    auto safe_sign = create_safe_sign(sign);
+HandshakeFunction createHandshake(const bool isInitiator,
+                                  const SignFunction sign,
+                                  const Bytes ourIdentityPublicKey) {
+  auto perform_handshake = [isInitiator, sign, ourIdentityPublicKey](
+                               KeyPair &ourEphemeralKeyPair,
+                               const Bytes theirIdentityKey,
+                               const Bytes theirEphemeralKey) {
+    auto safeSign = createSafeSign(sign);
     Bytes transcript(128);
-    Bytes our_secret_key(32);
-    Bytes their_secret_key(32);
+    Bytes ourSecretKey(32);
+    Bytes theirSecretKey(32);
     Bytes message(80);
-    bool transcript_success =
-        autograph_transcript(transcript.data(), is_initiator ? 1 : 0,
-                             our_identity_public_key.data(),
-                             our_ephemeral_key_pair.public_key.data(),
-                             their_identity_key.data(),
-                             their_ephemeral_key.data()) == 0;
-    auto sign_result = safe_sign(transcript);
-    bool handshake_success =
+    bool transcriptSuccess =
+        autograph_transcript(
+            transcript.data(), isInitiator ? 1 : 0, ourIdentityPublicKey.data(),
+            ourEphemeralKeyPair.publicKey.data(), theirIdentityKey.data(),
+            theirEphemeralKey.data()) == 0;
+    auto signResult = safeSign(transcript);
+    bool handshakeSuccess =
         autograph_handshake_signature(
-            message.data(), our_secret_key.data(), their_secret_key.data(),
-            is_initiator ? 1 : 0, sign_result.signature.data(),
-            our_ephemeral_key_pair.private_key.data(),
-            their_ephemeral_key.data()) == 0;
-    SessionFunction establish_session =
-        create_session(safe_sign, their_identity_key, transcript,
-                       our_secret_key, their_secret_key);
+            message.data(), ourSecretKey.data(), theirSecretKey.data(),
+            isInitiator ? 1 : 0, signResult.signature.data(),
+            ourEphemeralKeyPair.privateKey.data(),
+            theirEphemeralKey.data()) == 0;
+    SessionFunction establish_session = createSession(
+        safeSign, theirIdentityKey, transcript, ourSecretKey, theirSecretKey);
     Handshake handshake = {message, establish_session};
-    bool success =
-        sign_result.success && transcript_success && handshake_success;
+    bool success = signResult.success && transcriptSuccess && handshakeSuccess;
     HandshakeResult result = {success, handshake};
     return result;
   };

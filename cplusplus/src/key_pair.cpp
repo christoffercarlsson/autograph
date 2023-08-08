@@ -2,26 +2,26 @@
 
 namespace Autograph {
 
-KeyPair create_key_pair() {
-  Bytes private_key(32);
-  Bytes public_key(32);
-  KeyPair key_pair = {private_key, public_key};
-  return key_pair;
+KeyPair createKeyPair() {
+  Bytes privateKey(32);
+  Bytes publicKey(32);
+  KeyPair keyPair = {privateKey, publicKey};
+  return keyPair;
 }
 
-KeyPairResult generate_ephemeral_key_pair() {
-  auto key_pair = create_key_pair();
-  bool success = autograph_key_pair_ephemeral(key_pair.private_key.data(),
-                                              key_pair.public_key.data()) == 0;
-  KeyPairResult result = {success, key_pair};
+KeyPairResult generateEphemeralKeyPair() {
+  auto keyPair = createKeyPair();
+  bool success = autograph_key_pair_ephemeral(keyPair.privateKey.data(),
+                                              keyPair.publicKey.data()) == 0;
+  KeyPairResult result = {success, keyPair};
   return result;
 }
 
-KeyPairResult generate_identity_key_pair() {
-  auto key_pair = create_key_pair();
-  bool success = autograph_key_pair_identity(key_pair.private_key.data(),
-                                             key_pair.public_key.data()) == 0;
-  KeyPairResult result = {success, key_pair};
+KeyPairResult generateIdentityKeyPair() {
+  auto keyPair = createKeyPair();
+  bool success = autograph_key_pair_identity(keyPair.privateKey.data(),
+                                             keyPair.publicKey.data()) == 0;
+  KeyPairResult result = {success, keyPair};
   return result;
 }
 

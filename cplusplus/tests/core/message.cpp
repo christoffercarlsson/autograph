@@ -5,7 +5,7 @@
 #include "autograph.h"
 
 TEST_CASE("Message", "[core_message]") {
-  std::vector<unsigned char> secret_key = {
+  std::vector<unsigned char> secretKey = {
       204, 150, 53,  221, 135, 13,  190, 124, 249, 0,   114,
       60,  155, 58,  196, 204, 106, 115, 64,  123, 101, 116,
       92,  214, 170, 19,  239, 225, 138, 163, 113, 129};
@@ -23,13 +23,13 @@ TEST_CASE("Message", "[core_message]") {
 
   autograph_init();
 
-  int encrypt_result = autograph_encrypt(encrypted.data(), secret_key.data(), 1,
-                                         plaintext.data(), plaintext.size());
-  int decrypt_result = autograph_decrypt(decrypted.data(), secret_key.data(),
-                                         encrypted.data(), encrypted.size());
+  int encryptResult = autograph_encrypt(encrypted.data(), secretKey.data(), 1,
+                                        plaintext.data(), plaintext.size());
+  int decryptResult = autograph_decrypt(decrypted.data(), secretKey.data(),
+                                        encrypted.data(), encrypted.size());
 
-  REQUIRE(encrypt_result == 0);
-  REQUIRE(decrypt_result == 0);
+  REQUIRE(encryptResult == 0);
+  REQUIRE(decryptResult == 0);
   REQUIRE_THAT(encrypted, Catch::Matchers::Equals(message));
   REQUIRE_THAT(decrypted, Catch::Matchers::Equals(plaintext));
 }

@@ -10,13 +10,13 @@ namespace Autograph {
 using Bytes = std::vector<unsigned char>;
 
 struct KeyPair {
-  Bytes private_key;
-  Bytes public_key;
+  Bytes privateKey;
+  Bytes publicKey;
 };
 
 struct KeyPairResult {
   bool success;
-  KeyPair key_pair;
+  KeyPair keyPair;
 };
 
 struct CertificationResult {
@@ -36,7 +36,7 @@ struct EncryptionResult {
 
 struct SafetyNumberResult {
   bool success;
-  Bytes safety_number;
+  Bytes safetyNumber;
 };
 
 using CertifyFunction = std::function<CertificationResult(const Bytes)>;
@@ -65,7 +65,7 @@ using SessionFunction = std::function<SessionResult(const Bytes)>;
 
 struct Handshake {
   Bytes message;
-  SessionFunction establish_session;
+  SessionFunction establishSession;
 };
 
 struct HandshakeResult {
@@ -77,8 +77,8 @@ using HandshakeFunction =
     std::function<HandshakeResult(KeyPair &, const Bytes, const Bytes)>;
 
 struct Party {
-  SafetyNumberFunction calculate_safety_number;
-  HandshakeFunction perform_handshake;
+  SafetyNumberFunction calculateSafetyNumber;
+  HandshakeFunction performHandshake;
 };
 
 struct SignResult {
