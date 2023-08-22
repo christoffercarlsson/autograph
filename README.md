@@ -15,7 +15,7 @@ Christoffer Carlsson (editor)
   - [2.5. State variables](#25-state-variables)
 - [3. The Autograph protocol](#3-the-autograph-protocol)
   - [3.1. Initialization](#31-initialization)
-  - [3.2. Key Exchange](#32-key-exchange)
+  - [3.2. Key exchange](#32-key-exchange)
   - [3.3. Out-of-band verification](#33-out-of-band-verification)
   - [3.4. Encrypted messaging](#34-encrypted-messaging)
   - [3.5. Certifying ownership](#35-certifying-ownership)
@@ -171,7 +171,7 @@ def AutographInit(state):
   state.T = None
 ```
 
-### 3.2 Key Exchange
+### 3.2 Key exchange
 
 This section describes how two parties agree on two shared secret keys that will
 be used to secure their communication during this protocol run. Alice and Bob
@@ -200,7 +200,8 @@ def KeyExchangeBob(state, bob_identity_key_pair, bob_ephemeral_key_pair, alice_i
   return ENCRYPT(state.SKs, SIGN(bob_identity_key_pair.private_key, state.T))
 ```
 
-Bob sends his EK<sub>B</sub> public key and H<sub>B</sub> to Alice.
+Bob deletes his EK<sub>B</sub> private key. He then sends his EK<sub>B</sub>
+public key and H<sub>B</sub> to Alice.
 
 Upon receiving the EK<sub>B</sub> public key and H<sub>B</sub> from Bob, Alice
 derives the secret keys SK<sub>A</sub> and SK<sub>B</sub> and produces the
@@ -219,17 +220,17 @@ def KeyExchangeAlice(state, alice_identity_key_pair, alice_ephemeral_key_pair, b
   return ENCRYPT(state.SKs, SIGN(alice_identity_key_pair.private_key, state.T))
 ```
 
-Alice sends H<sub>A</sub> to Bob and then calls _VerifySession()_ with
-H<sub>B</sub>:
+Alice deletes her EK<sub>A</sub> private key. She then sends H<sub>A</sub> to
+Bob and calls _VerifyKeyExchange()_ with H<sub>B</sub>:
 
 ```python
-def VerifySession(state, h):
+def VerifyKeyExchange(state, h):
   return VERIFY(state.IK, DECRYPT(state.SKr, h), state.T)
 ```
 
 If the verification fails, Alice aborts the protocol.
 
-Upon receiving the ciphertext from Alice, Bob calls _VerifySession()_ with
+Upon receiving the ciphertext from Alice, Bob calls _VerifyKeyExchange()_ with
 H<sub>A</sub>. If the verification fails, Bob aborts the protocol.
 
 If both verifications succeeds, Alice and Bob have now established two 32-byte
