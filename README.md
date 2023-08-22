@@ -15,7 +15,7 @@ Christoffer Carlsson (editor)
   - [2.5. State variables](#25-state-variables)
 - [3. The Autograph protocol](#3-the-autograph-protocol)
   - [3.1. Initialization](#31-initialization)
-  - [3.2. Handshake](#32-handshake)
+  - [3.2. Key Exchange](#32-key-exchange)
   - [3.3. Out-of-band verification](#33-out-of-band-verification)
   - [3.4. Encrypted messaging](#34-encrypted-messaging)
   - [3.5. Certifying ownership](#35-certifying-ownership)
@@ -91,11 +91,11 @@ to certify and verify the ownership of the other party's cryptographic identity
 and the message contents.
 
 The only distinguishing factor between the two parties during a protocol run is
-that the party who initiates the handshake (i.e. sends their ephemeral public
-key first) as described in [Section 3.1](#31-handshake) is the known as the
+that the party who initiates the key exchange (i.e. sends their ephemeral public
+key first) as described in [Section 3.1](#31-key-exchange) is the known as the
 **initiator** and the other party is known as the **responder**. Being the
 initiator or responder affects the order of calculations that a party performs
-during the handshake.
+during the key exchange.
 
 To simplify description this document will use the role **Alice** to refer to
 the initiator, and the role **Bob** to refer to the responder.
@@ -171,7 +171,7 @@ def AutographInit(state):
   state.T = None
 ```
 
-### 3.2 Handshake
+### 3.2 Key Exchange
 
 This section describes how two parties agree on two shared secret keys that will
 be used to secure their communication during this protocol run. Alice and Bob
@@ -185,10 +185,10 @@ Alice sends her EK<sub>A</sub> public key to Bob.
 
 Upon receiving the EK<sub>A</sub> public key from Alice, Bob derives the secret
 keys SK<sub>A</sub> and SK<sub>B</sub> and produces the ciphertext H<sub>B</sub>
-by calling _HandshakeBob()_:
+by calling _KeyExchangeBob()_:
 
 ```python
-def HandshakeBob(state, bob_identity_key_pair, bob_ephemeral_key_pair, alice_identity_public_key, alice_ephemeral_public_key):
+def KeyExchangeBob(state, bob_identity_key_pair, bob_ephemeral_key_pair, alice_identity_public_key, alice_ephemeral_public_key):
   state.IK = alice_identity_public_key
   state.EK = alice_ephemeral_public_key
   rk = KDF(DH(bob_ephemeral_key_pair.private_key, state.EK), 0)
@@ -204,10 +204,10 @@ Bob sends his EK<sub>B</sub> public key and H<sub>B</sub> to Alice.
 
 Upon receiving the EK<sub>B</sub> public key and H<sub>B</sub> from Bob, Alice
 derives the secret keys SK<sub>A</sub> and SK<sub>B</sub> and produces the
-ciphertext H<sub>A</sub> by calling _HandshakeAlice()_:
+ciphertext H<sub>A</sub> by calling _KeyExchangeAlice()_:
 
 ```python
-def HandshakeAlice(state, alice_identity_key_pair, alice_ephemeral_key_pair, bob_identity_public_key, bob_ephemeral_public_key):
+def KeyExchangeAlice(state, alice_identity_key_pair, alice_ephemeral_key_pair, bob_identity_public_key, bob_ephemeral_public_key):
   state.IK = bob_identity_public_key
   state.EK = bob_ephemeral_public_key
   rk = KDF(DH(alice_ephemeral_key_pair.private_key, state.EK), 0)
@@ -238,8 +238,8 @@ their communication during this protocol run.
 
 The ability to derive the correct SK<sub>A</sub> and SK<sub>B</sub> secret keys
 combined with the successful verification of H<sub>A</sub> and H<sub>B</sub>
-authenticates the handshake and certifies that both Alice and Bob are in control
-of their IK and EK private keys.
+authenticates the key exchange and certifies that both Alice and Bob are in
+control of their IK and EK private keys.
 
 ### 3.3 Out-of-band verification
 
@@ -247,7 +247,8 @@ This section describes how two parties can manually verify each other's identity
 keys to prevent man-in-the-middle attacks by calculating a safety number. Alice
 and Bob verify each other's identity keys by performing the following steps:
 
-Alice and Bob performs a handshake as described in [Section 3.2](#32-handshake).
+Alice and Bob performs a key exchange as described in
+[Section 3.2](#32-key-exchange).
 
 Alice computes the safety number SN<sub>A</sub> by calling _SafetyNumber()_ with
 her IK<sub>A</sub> public key:
@@ -288,9 +289,9 @@ actually came from the sender and that they haven't been tampered with in
 transit. Alice and Bob exchange encrypted messages with each other by performing
 the following steps:
 
-Alice and Bob performs a handshake as described in [Section 3.2](#32-handshake).
-Optionally, they also perform an out-of-band verification as described in
-[Section 3.3](#33-out-of-band-verification).
+Alice and Bob performs a key exchange as described in
+[Section 3.2](#32-key-exchange). Optionally, they also perform an out-of-band
+verification as described in [Section 3.3](#33-out-of-band-verification).
 
 For each message that Alice sends to Bob the following steps are performed:
 
@@ -328,9 +329,9 @@ using the SK<sub>B</sub> secret key.
 This section describes how one party can certifies the ownership of another
 party's IK identity private key and optionally some data D.
 
-Alice and Bob performs a handshake as described in [Section 3.2](#32-handshake).
-Optionally, they also perform an out-of-band verification as described in
-[Section 3.3](#33-out-of-band-verification).
+Alice and Bob performs a key exchange as described in
+[Section 3.2](#32-key-exchange). Optionally, they also perform an out-of-band
+verification as described in [Section 3.3](#33-out-of-band-verification).
 
 #### 3.5.1 Certifying data
 
@@ -391,9 +392,9 @@ subject to the security considerations in
 This section describes how a party verifies another party's ownership of their
 private identity key IK and optionally some data D.
 
-Alice and Bob performs a handshake as described in [Section 3.2](#32-handshake).
-Optionally, they also perform an out-of-band verification as described in
-[Section 3.3](#33-out-of-band-verification).
+Alice and Bob performs a key exchange as described in
+[Section 3.2](#32-key-exchange). Optionally, they also perform an out-of-band
+verification as described in [Section 3.3](#33-out-of-band-verification).
 
 #### 3.6.1 Verifying data
 
