@@ -159,10 +159,10 @@ a **state** object.
 
 ### 3.1 Initialization
 
-To initialize a protocol run, each party calls **AutographInit()**:
+To initialize a protocol run, each party calls **Init()**:
 
 ```python
-def AutographInit(state):
+def Init(state):
   state.IK = None
   state.EK = None
   state.SKs = None
@@ -191,13 +191,15 @@ by calling _KeyExchangeBob()_:
 def KeyExchangeBob(state, bob_identity_key_pair, bob_ephemeral_key_pair, alice_identity_public_key, alice_ephemeral_public_key):
   state.IK = alice_identity_public_key
   state.EK = alice_ephemeral_public_key
-  rk = KDF(DH(bob_ephemeral_key_pair.private_key, state.EK), 0)
+  dh = DH(bob_ephemeral_key_pair.private_key, state.EK)
+  rk = KDF(dh, 0)
   state.SKs = KDF(rk, 1)
   state.SKr = KDF(rk, 0)
   state.T = CONCAT(state.IK, bob_identity_key_pair.public_key)
   state.T = CONCAT(state.T, state.EK)
   state.T = CONCAT(state.T, bob_ephemeral_key_pair.public_key)
-  return ENCRYPT(state.SKs, 0, SIGN(bob_identity_key_pair.private_key, state.T))
+  sig = SIGN(bob_identity_key_pair.private_key, state.T)
+  return ENCRYPT(state.SKs, 0, sig)
 ```
 
 Bob deletes his EK<sub>B</sub> private key. He then sends his EK<sub>B</sub>
@@ -211,13 +213,15 @@ ciphertext H<sub>A</sub> by calling _KeyExchangeAlice()_:
 def KeyExchangeAlice(state, alice_identity_key_pair, alice_ephemeral_key_pair, bob_identity_public_key, bob_ephemeral_public_key):
   state.IK = bob_identity_public_key
   state.EK = bob_ephemeral_public_key
-  rk = KDF(DH(alice_ephemeral_key_pair.private_key, state.EK), 0)
+  dh = DH(alice_ephemeral_key_pair.private_key, state.EK)
+  rk = KDF(dh, 0)
   state.SKs = KDF(rk, 0)
   state.SKr = KDF(rk, 1)
   state.T = CONCAT(alice_identity_key_pair.public_key, state.IK)
   state.T = CONCAT(state.T, alice_ephemeral_key_pair.public_key)
   state.T = CONCAT(state.T, state.EK)
-  return ENCRYPT(state.SKs, 0, SIGN(alice_identity_key_pair.private_key, state.T))
+  sig = SIGN(alice_identity_key_pair.private_key, state.T)
+  return ENCRYPT(state.SKs, 0, sig)
 ```
 
 Alice deletes her EK<sub>A</sub> private key. She then sends H<sub>A</sub> to
@@ -270,7 +274,7 @@ def EncodeChunk(chunk):
   a, b, c, d, e = chunk
   number = (a * 2 ** 32 + b * 2 ** 24 + c * 2 ** 16 + d * 2 ** 8 + e) % 100000
   result = str(number)
-  return '0' * (5 - len(result)) + result
+  return bytes('0' * (5 - len(result)) + result)
 ```
 
 Bob computes the safety number SN<sub>B</sub> by calling _SafetyNumber()_ with
@@ -418,7 +422,7 @@ def VerifyMessage(state, m, certs):
   d = DecryptMessage(state, m)
   subject = CONCAT(d, state.IK)
   for cert in certs:
-    if not VERIFY(cert.public_key, cert.signature, subject)
+    if not VERIFY(cert.public_key, cert.signature, subject):
       return d, False
   return d, True
 ```
@@ -452,7 +456,7 @@ of obtained IK public keys and signatures C<sub>A</sub>:
 ```python
 def VerifyIdentity(state, certs):
   for cert in certs:
-    if not VERIFY(cert.public_key, cert.signature, state.IK)
+    if not VERIFY(cert.public_key, cert.signature, state.IK):
       return False
   return True
 ```
