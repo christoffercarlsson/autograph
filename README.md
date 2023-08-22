@@ -92,7 +92,7 @@ and the message contents.
 
 The only distinguishing factor between the two parties during a protocol run is
 that the party who initiates the key exchange (i.e. sends their ephemeral public
-key first) as described in [Section 3.1](#31-key-exchange) is the known as the
+key first) as described in [Section 3.2](#32-key-exchange) is the known as the
 **initiator** and the other party is known as the **responder**. Being the
 initiator or responder affects the order of calculations that a party performs
 during the key exchange.
@@ -197,7 +197,7 @@ def KeyExchangeBob(state, bob_identity_key_pair, bob_ephemeral_key_pair, alice_i
   state.T = CONCAT(state.IK, bob_identity_key_pair.public_key)
   state.T = CONCAT(state.T, state.EK)
   state.T = CONCAT(state.T, bob_ephemeral_key_pair.public_key)
-  return ENCRYPT(state.SKs, SIGN(bob_identity_key_pair.private_key, state.T))
+  return ENCRYPT(state.SKs, 0, SIGN(bob_identity_key_pair.private_key, state.T))
 ```
 
 Bob deletes his EK<sub>B</sub> private key. He then sends his EK<sub>B</sub>
@@ -217,7 +217,7 @@ def KeyExchangeAlice(state, alice_identity_key_pair, alice_ephemeral_key_pair, b
   state.T = CONCAT(alice_identity_key_pair.public_key, state.IK)
   state.T = CONCAT(state.T, alice_ephemeral_key_pair.public_key)
   state.T = CONCAT(state.T, state.EK)
-  return ENCRYPT(state.SKs, SIGN(alice_identity_key_pair.private_key, state.T))
+  return ENCRYPT(state.SKs, 0, SIGN(alice_identity_key_pair.private_key, state.T))
 ```
 
 Alice deletes her EK<sub>A</sub> private key. She then sends H<sub>A</sub> to
@@ -225,7 +225,7 @@ Bob and calls _VerifyKeyExchange()_ with H<sub>B</sub>:
 
 ```python
 def VerifyKeyExchange(state, h):
-  return VERIFY(state.IK, DECRYPT(state.SKr, h), state.T)
+  return VERIFY(state.IK, DECRYPT(state.SKr, 0, h), state.T)
 ```
 
 If the verification fails, Alice aborts the protocol.
