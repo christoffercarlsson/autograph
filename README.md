@@ -343,13 +343,14 @@ verification as described in [Section 3.3](#33-out-of-band-verification).
 Upon receiving some message M<sub>N<sub>A</sub></sub> from Alice as described in
 [Section 3.4](#34-encrypted-messaging), Bob can choose to certify Alice's
 ownership of the plaintext D<sub>N<sub>A</sub></sub>. He produces the plaintext
-and the signature C<sub>N<sub>A</sub></sub> by calling _SignMessage()_ with his
-IK<sub>B</sub> private key and message M<sub>N<sub>A</sub></sub>:
+by calling _DecryptMessage()_ with M<sub>N<sub>A</sub></sub>. Bob then produces
+the signature C<sub>N<sub>A</sub></sub> by calling _SignData()_ with his
+IK<sub>B</sub> private key and the plaintext D<sub>N<sub>A</sub></sub>:
 
 ```python
-def SignMessage(state, identity_private_key, m):
-  d = DecryptMessage(state, m)
-  return d, SIGN(identity_private_key, CONCAT(d, state.IK))
+def SignData(state, identity_private_key, d):
+  subject = CONCAT(d, state.IK)
+  return SIGN(identity_private_key, subject)
 ```
 
 If the decryption fails, Bob aborts the protocol.
@@ -359,9 +360,10 @@ her IK<sub>A</sub> private key and the plaintext D<sub>N<sub>A</sub></sub>.
 
 Upon receiving some message M<sub>N<sub>B</sub></sub> from Bob, Alice can choose
 to certify Bob's ownership of the plaintext D<sub>N<sub>B</sub></sub>. She
-produces the plaintext and the signature C<sub>N<sub>B</sub></sub> by calling
-_SignMessage()_ with her IK<sub>A</sub> private key and the message
-M<sub>N<sub>B</sub></sub>.
+produces the plaintext by calling _DecryptMessage()_ with
+M<sub>N<sub>B</sub></sub>. Alice then produces the signature
+C<sub>N<sub>B</sub></sub> by calling _SignData()_ with her IK<sub>A</sub>
+private key and the plaintext D<sub>N<sub>B</sub></sub>.
 
 #### 3.5.2 Certifying identity
 
@@ -403,6 +405,9 @@ verification as described in [Section 3.3](#33-out-of-band-verification).
 
 #### 3.6.1 Verifying data
 
+Bob can choose to verify Alice's ownership of some plaintext
+D<sub>N<sub>A</sub></sub> by performing the following steps:
+
 Through some mechanism, Bob obtains the identity public keys IK and
 corresponding certifiying signatures C<sub>N<sub>A</sub></sub> of some number of
 trusted third parties that in previous protocol runs have certified Alice's
@@ -413,18 +418,18 @@ ownership of some data D<sub>N<sub>A</sub></sub> as described in
 Upon receiving the message M<sub>N<sub>A</sub></sub> from Alice as described in
 [Section 3.4](#34-encrypted-messaging), Bob can choose to verify Alice's
 ownership of the plaintext D<sub>N<sub>A</sub></sub>. He produces the plaintext
-and the verification result by calling _VerifyMessage()_ with the message
-M<sub>N<sub>A</sub></sub> and the set of obtained IK public key and signatures
+by calling _DecryptMessage()_ with M<sub>N<sub>A</sub></sub>. Bob then produces
+the verification result by calling _VerifyData()_ with the plaintext
+D<sub>N<sub>A</sub></sub> and the set of obtained IK public key and signatures
 C<sub>N<sub>A</sub></sub>:
 
 ```python
-def VerifyMessage(state, m, certs):
-  d = DecryptMessage(state, m)
+def VerifyData(state, d, certs):
   subject = CONCAT(d, state.IK)
   for cert in certs:
     if not VERIFY(cert.public_key, cert.signature, subject):
-      return d, False
-  return d, True
+      return False
+  return True
 ```
 
 If the decryption fails, Bob aborts the protocol.
@@ -432,11 +437,8 @@ If the decryption fails, Bob aborts the protocol.
 If the decryption succeeds and if all verifications succeed Bob has successfully
 verified Alice's ownership of the plaintext D<sub>N<sub>A</sub></sub>.
 
-Upon receiving some message M<sub>N<sub>B</sub></sub> from Bob, Alice can choose
-to verify Bob's ownership of the plaintext D<sub>N<sub>B</sub></sub>. She
-produces the plaintext and the signature C<sub>N<sub>B</sub></sub> by calling
-_SignMessage()_ with her IK<sub>A</sub> private key and the message
-M<sub>N<sub>B</sub></sub>.
+By repeating the above steps, Alice can verify Bob's ownership of some plaintext
+D<sub>N<sub>B</sub></sub>.
 
 #### 3.6.2 Verifying identity
 
@@ -464,21 +466,8 @@ def VerifyIdentity(state, certs):
 If all verifications succeed Bob has successfully verified Alice's ownership of
 her IK<sub>A</sub> private key.
 
-Alice can choose to verify Bob's ownership of his IK<sub>B</sub> private key by
-performing the following steps:
-
-Through some mechanism, Alice obtains the identity public keys IK and
-corresponding certifiying signatures C<sub>B</sub> of some number of trusted
-third parties that in previous protocol runs have certified Bob's ownership of
-his IK<sub>B</sub> private key as described in
-[Section 3.5.2](#352-certifying-identity) and
-[Section 3.5.3](#353-obtaining-signatures).
-
-Alice produces the verification result by calling _VerifyIdentity()_ with the
-set of obtained IK public keys and signatures C<sub>B</sub>.
-
-If all verifications succeed Alice has successfully verified Bob's ownership of
-his IK<sub>B</sub> private key.
+By repeating the above steps, Alice can verify Bob's ownership of his
+IK<sub>B</sub> private key.
 
 ## 4. Security considerations
 
