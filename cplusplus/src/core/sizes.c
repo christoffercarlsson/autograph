@@ -2,7 +2,7 @@
 
 unsigned int autograph_handshake_size() { return 80; }
 
-unsigned int autograph_message_extra_size() { return 20; }
+unsigned int autograph_message_extra_size() { return 24; }
 
 unsigned int autograph_private_key_size() { return 32; }
 

@@ -38,7 +38,7 @@ private func createDecrypt(theirSecretKey: Bytes) -> DecryptFunction {
 }
 
 private class EncryptIndexCounter {
-  var index: UInt32
+  var index: UInt64
 
   init() {
     index = 0

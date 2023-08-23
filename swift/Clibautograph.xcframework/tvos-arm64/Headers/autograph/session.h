@@ -16,7 +16,8 @@ int autograph_decrypt(unsigned char *plaintext, const unsigned char *key,
                       const unsigned long long message_size);
 
 int autograph_encrypt(unsigned char *message, const unsigned char *key,
-                      const unsigned int index, const unsigned char *plaintext,
+                      const unsigned long long index,
+                      const unsigned char *plaintext,
                       const unsigned long long plaintext_size);
 
 int autograph_session(const unsigned char *transcript,

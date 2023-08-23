@@ -2,8 +2,12 @@
 #include "sodium.h"
 
 void autograph_crypto_index_to_nonce(unsigned char *nonce,
-                                     const unsigned int index) {
+                                     const unsigned long long index) {
   sodium_memzero(nonce, 12);
+  nonce[4] = (index >> 56) & 0xFF;
+  nonce[5] = (index >> 48) & 0xFF;
+  nonce[6] = (index >> 40) & 0xFF;
+  nonce[7] = (index >> 32) & 0xFF;
   nonce[8] = (index >> 24) & 0xFF;
   nonce[9] = (index >> 16) & 0xFF;
   nonce[10] = (index >> 8) & 0xFF;
@@ -11,7 +15,7 @@ void autograph_crypto_index_to_nonce(unsigned char *nonce,
 }
 
 int autograph_crypto_decrypt(unsigned char *plaintext, const unsigned char *key,
-                             const unsigned int index,
+                             const unsigned long long index,
                              const unsigned char *ciphertext,
                              const unsigned long long ciphertext_size) {
   unsigned char nonce[12];
@@ -24,7 +28,8 @@ int autograph_crypto_decrypt(unsigned char *plaintext, const unsigned char *key,
 }
 
 int autograph_crypto_encrypt(unsigned char *ciphertext,
-                             const unsigned char *key, const unsigned int index,
+                             const unsigned char *key,
+                             const unsigned long long index,
                              const unsigned char *plaintext,
                              const unsigned long long plaintext_size) {
   unsigned char nonce[12];

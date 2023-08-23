@@ -1,14 +1,15 @@
-import { fromInteger } from 'stedy/bytes'
+import { alloc } from 'stedy/bytes'
 import { createCipher } from 'stedy'
 
 const { decrypt: decryptMessage, encrypt: encryptMessage } =
   createCipher('ChaCha20-Poly1305')
 
-const indexToNonce = (index: number) => fromInteger(index).padLeft(12)
+const indexToNonce = (index: bigint) =>
+  alloc(8).writeUint64BE(index).padLeft(12)
 
 export const decrypt = (
   key: BufferSource,
-  index: number,
+  index: bigint,
   ciphertext: BufferSource
 ) => {
   const nonce = indexToNonce(index)
@@ -17,7 +18,7 @@ export const decrypt = (
 
 export const encrypt = (
   key: BufferSource,
-  index: number,
+  index: bigint,
   message: BufferSource
 ) => {
   const nonce = indexToNonce(index)

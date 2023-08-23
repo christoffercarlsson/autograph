@@ -6,12 +6,13 @@ extern "C" {
 #endif
 
 int autograph_crypto_decrypt(unsigned char *plaintext, const unsigned char *key,
-                             const unsigned int index,
+                             const unsigned long long index,
                              const unsigned char *ciphertext,
                              const unsigned long long ciphertext_size);
 
 int autograph_crypto_encrypt(unsigned char *ciphertext,
-                             const unsigned char *key, const unsigned int index,
+                             const unsigned char *key,
+                             const unsigned long long index,
                              const unsigned char *plaintext,
                              const unsigned long long plaintext_size);
 
@@ -50,14 +51,14 @@ HandshakeFunction createHandshake(const bool isInitiator,
                                   const Bytes identityPublicKey);
 
 Party createParty(const bool isInitiator, const SignFunction sign,
-                   const Bytes identityPublicKey);
+                  const Bytes identityPublicKey);
 
 SafetyNumberFunction createSafetyNumber(const Bytes ourIdentityKey);
 
 SessionFunction createSession(const SignFunction sign,
-                               const Bytes theirPublicKey,
-                               const Bytes transcript, const Bytes ourSecretKey,
-                               const Bytes theirSecretKey);
+                              const Bytes theirPublicKey,
+                              const Bytes transcript, const Bytes ourSecretKey,
+                              const Bytes theirSecretKey);
 
 }  // namespace Autograph
 #endif

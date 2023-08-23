@@ -1,4 +1,4 @@
-import { alloc, concat, createFrom, fromInteger } from 'stedy/bytes'
+import { alloc, concat, createFrom } from 'stedy/bytes'
 import {
   CertificationResult,
   CertifyFunction,
@@ -19,7 +19,7 @@ const verifySession = async (
   message: BufferSource
 ) => {
   try {
-    const signature = await decrypt(theirSecretKey, 0, message)
+    const signature = await decrypt(theirSecretKey, 0n, message)
     const verified = await verifySignature(
       transcript,
       theirIdentityKey,
@@ -45,11 +45,11 @@ const createCertify =
 const createDecrypt =
   (theirSecretKey: BufferSource): DecryptFunction =>
   async (message: BufferSource) => {
-    const [nonce, ciphertext] = createFrom(message).read(4)
+    const [nonce, ciphertext] = createFrom(message).read(8)
     try {
       const data = await decrypt(
         theirSecretKey,
-        nonce.readUint32BE(),
+        nonce.readUint64BE() as bigint,
         ciphertext
       )
       return { success: true, data }
@@ -62,16 +62,16 @@ const createDecrypt =
   }
 
 const createEncrypt = (ourSecretKey: BufferSource): EncryptFunction => {
-  let index = 0
+  let index = 0n
   return async (data: BufferSource) => {
-    index += 1
+    index += 1n
     try {
       const ciphertext = await encrypt(ourSecretKey, index, data)
-      const nonce = fromInteger(index)
+      const nonce = alloc(8).writeUint64BE(index)
       const message = concat([nonce, ciphertext])
       return { success: true, message }
     } catch (error) {
-      return { success: false, message: alloc(data.byteLength + 16) }
+      return { success: false, message: alloc(data.byteLength + 24) }
     }
   }
 }

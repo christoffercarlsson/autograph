@@ -13,12 +13,12 @@ TEST_CASE("Message", "[core_message]") {
   std::vector<unsigned char> plaintext = {72, 101, 108, 108, 111, 32,
                                           87, 111, 114, 108, 100};
 
-  std::vector<unsigned char> message = {0,   0,   0,   1,   203, 203, 240, 117,
-                                        151, 142, 77,  113, 252, 151, 171, 12,
-                                        154, 177, 105, 6,   248, 79,  37,  105,
-                                        238, 243, 135, 194, 50,  34,  253};
+  std::vector<unsigned char> message = {
+      0,   0,   0,  0,   0,   0,   0,   1,   203, 203, 240, 117,
+      151, 142, 77, 113, 252, 151, 171, 12,  154, 177, 105, 6,
+      248, 79,  37, 105, 238, 243, 135, 194, 50,  34,  253};
 
-  std::vector<unsigned char> encrypted(plaintext.size() + 20);
+  std::vector<unsigned char> encrypted(plaintext.size() + 24);
   std::vector<unsigned char> decrypted(plaintext.size());
 
   autograph_init();

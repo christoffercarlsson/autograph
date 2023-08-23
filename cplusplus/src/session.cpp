@@ -19,7 +19,7 @@ CertifyFunction createCertify(const SignFunction sign,
 
 DecryptFunction createDecrypt(const Bytes theirSecretKey) {
   auto decryptFunction = [theirSecretKey](const Bytes message) {
-    Bytes plaintext(message.size() - 20);
+    Bytes plaintext(message.size() - 24);
     bool success = autograph_decrypt(plaintext.data(), theirSecretKey.data(),
                                      message.data(), message.size()) == 0;
     DecryptionResult result = {success, plaintext};
@@ -30,7 +30,7 @@ DecryptFunction createDecrypt(const Bytes theirSecretKey) {
 
 class EncryptIndexCounter {
  public:
-  unsigned int index;
+  unsigned long long index;
 
   EncryptIndexCounter() : index(0) {}
 
@@ -42,7 +42,7 @@ EncryptFunction createEncrypt(const Bytes ourSecretKey) {
   auto encryptFunction = [ourSecretKey,
                           indexCounter](const Bytes plaintext) mutable {
     indexCounter.increment();
-    Bytes ciphertext(plaintext.size() + 20);
+    Bytes ciphertext(plaintext.size() + 24);
     bool success = autograph_encrypt(ciphertext.data(), ourSecretKey.data(),
                                      indexCounter.index, plaintext.data(),
                                      plaintext.size()) == 0;

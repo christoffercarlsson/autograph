@@ -57,24 +57,35 @@ int autograph_verify(const unsigned char *their_public_key,
 int autograph_decrypt(unsigned char *plaintext, const unsigned char *key,
                       const unsigned char *message,
                       const unsigned long long message_size) {
-  const unsigned int index =
-      (message[0] << 24) | (message[1] << 16) | (message[2] << 8) | message[3];
-  return autograph_crypto_decrypt(plaintext, key, index, message + 4,
-                                  message_size - 4);
+  const unsigned long long index = ((unsigned long long)message[0] << 56) |
+                                   ((unsigned long long)message[1] << 48) |
+                                   ((unsigned long long)message[2] << 40) |
+                                   ((unsigned long long)message[3] << 32) |
+                                   ((unsigned long long)message[4] << 24) |
+                                   ((unsigned long long)message[5] << 16) |
+                                   ((unsigned long long)message[6] << 8) |
+                                   (unsigned long long)message[7];
+  return autograph_crypto_decrypt(plaintext, key, index, message + 8,
+                                  message_size - 8);
 }
 
 int autograph_encrypt(unsigned char *message, const unsigned char *key,
-                      const unsigned int index, const unsigned char *plaintext,
+                      const unsigned long long index,
+                      const unsigned char *plaintext,
                       const unsigned long long plaintext_size) {
-  int result = autograph_crypto_encrypt(message + 4, key, index, plaintext,
+  int result = autograph_crypto_encrypt(message + 8, key, index, plaintext,
                                         plaintext_size);
   if (result != 0) {
     return -1;
   }
-  message[0] = (index >> 24) & 0xFF;
-  message[1] = (index >> 16) & 0xFF;
-  message[2] = (index >> 8) & 0xFF;
-  message[3] = index & 0xFF;
+  message[0] = (index >> 56) & 0xFF;
+  message[1] = (index >> 48) & 0xFF;
+  message[2] = (index >> 40) & 0xFF;
+  message[3] = (index >> 32) & 0xFF;
+  message[4] = (index >> 24) & 0xFF;
+  message[5] = (index >> 16) & 0xFF;
+  message[6] = (index >> 8) & 0xFF;
+  message[7] = index & 0xFF;
   return 0;
 }
 
