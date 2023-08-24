@@ -191,15 +191,13 @@ by calling _KeyExchangeBob()_:
 def KeyExchangeBob(state, bob_identity_key_pair, bob_ephemeral_key_pair, alice_identity_public_key, alice_ephemeral_public_key):
   state.IK = alice_identity_public_key
   state.EK = alice_ephemeral_public_key
-  dh = DH(bob_ephemeral_key_pair.private_key, state.EK)
-  rk = KDF(dh, 0)
-  state.SKs = KDF(rk, 1)
-  state.SKr = KDF(rk, 0)
+  ikm = DH(bob_ephemeral_key_pair.private_key, state.EK)
+  state.SKs = KDF(ikm, 1)
+  state.SKr = KDF(ikm, 0)
   state.T = CONCAT(state.IK, bob_identity_key_pair.public_key)
   state.T = CONCAT(state.T, state.EK)
   state.T = CONCAT(state.T, bob_ephemeral_key_pair.public_key)
-  sig = SIGN(bob_identity_key_pair.private_key, state.T)
-  return ENCRYPT(state.SKs, 0, sig)
+  return ENCRYPT(state.SKs, 0, SIGN(bob_identity_key_pair.private_key, state.T))
 ```
 
 Bob deletes his EK<sub>B</sub> private key. He then sends his EK<sub>B</sub>
@@ -213,15 +211,13 @@ ciphertext H<sub>A</sub> by calling _KeyExchangeAlice()_:
 def KeyExchangeAlice(state, alice_identity_key_pair, alice_ephemeral_key_pair, bob_identity_public_key, bob_ephemeral_public_key):
   state.IK = bob_identity_public_key
   state.EK = bob_ephemeral_public_key
-  dh = DH(alice_ephemeral_key_pair.private_key, state.EK)
-  rk = KDF(dh, 0)
-  state.SKs = KDF(rk, 0)
-  state.SKr = KDF(rk, 1)
+  ikm = DH(alice_ephemeral_key_pair.private_key, state.EK)
+  state.SKs = KDF(ikm, 0)
+  state.SKr = KDF(ikm, 1)
   state.T = CONCAT(alice_identity_key_pair.public_key, state.IK)
   state.T = CONCAT(state.T, alice_ephemeral_key_pair.public_key)
   state.T = CONCAT(state.T, state.EK)
-  sig = SIGN(alice_identity_key_pair.private_key, state.T)
-  return ENCRYPT(state.SKs, 0, sig)
+  return ENCRYPT(state.SKs, 0, SIGN(alice_identity_key_pair.private_key, state.T))
 ```
 
 Alice deletes her EK<sub>A</sub> private key. She then sends H<sub>A</sub> to
@@ -358,12 +354,8 @@ If the decryption fails, Bob aborts the protocol.
 If the decryption succeeds, Bob has successfully certified Alice's ownership of
 her IK<sub>A</sub> private key and the plaintext D<sub>N<sub>A</sub></sub>.
 
-Upon receiving some message M<sub>N<sub>B</sub></sub> from Bob, Alice can choose
-to certify Bob's ownership of the plaintext D<sub>N<sub>B</sub></sub>. She
-produces the plaintext by calling _DecryptMessage()_ with
-M<sub>N<sub>B</sub></sub>. Alice then produces the signature
-C<sub>N<sub>B</sub></sub> by calling _SignData()_ with her IK<sub>A</sub>
-private key and the plaintext D<sub>N<sub>B</sub></sub>.
+By repeating the above steps, Alice can certify Bob's ownership of some
+plaintext D<sub>N<sub>B</sub></sub>.
 
 #### 3.5.2 Certifying identity
 
@@ -376,9 +368,8 @@ def SignIdentity(state, identity_private_key):
   return SIGN(identity_private_key, state.IK)
 ```
 
-Alice can choose to certify Bob's ownership of his IK<sub>B</sub> private key.
-She produces the signature C<sub>B</sub> by calling _SignIdentity()_ with her
-IK<sub>A</sub> private key.
+By repeating the above steps, Alice can certify Bob's ownership of his
+IK<sub>B</sub> private key.
 
 #### 3.5.3 Obtaining signatures
 
