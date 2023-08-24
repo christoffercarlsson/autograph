@@ -4,7 +4,7 @@
 
 #include "autograph.h"
 
-TEST_CASE("Handshake", "[core_handshake]") {
+TEST_CASE("Key Exchange", "[core_key_exchange]") {
   std::vector<unsigned char> alicePrivateIdentityKey = {
       43, 6,  246, 172, 137, 170, 33,  12, 118, 177, 111, 60, 19, 37, 65, 122,
       28, 34, 200, 251, 96,  35,  187, 52, 74,  224, 143, 39, 90, 51, 33, 140};
@@ -44,7 +44,7 @@ TEST_CASE("Handshake", "[core_handshake]") {
       150, 239, 0,   26,  41,  131, 245, 177, 87,  106, 105, 167, 58,  158, 184,
       244, 65,  205, 42,  40,  80,  134, 52};
 
-  std::vector<unsigned char> aliceMessage = {
+  std::vector<unsigned char> aliceHandshake = {
       157, 61,  99,  76,  123, 207, 247, 194, 32,  224, 244, 148, 38,  107,
       158, 13,  66,  237, 6,   32,  9,   98,  120, 172, 63,  45,  144, 194,
       251, 88,  48,  88,  129, 3,   192, 127, 172, 229, 66,  244, 122, 42,
@@ -63,14 +63,14 @@ TEST_CASE("Handshake", "[core_handshake]") {
       253, 225, 126, 133, 246, 222, 87, 236, 110, 140};
 
   std::vector<unsigned char> transcript(128);
-  std::vector<unsigned char> message(80);
+  std::vector<unsigned char> handshake(80);
   std::vector<unsigned char> ourSecretKey(32);
   std::vector<unsigned char> theirSecretKey(32);
 
   autograph_init();
 
-  int result = autograph_handshake(
-      transcript.data(), message.data(), ourSecretKey.data(),
+  int result = autograph_key_exchange(
+      transcript.data(), handshake.data(), ourSecretKey.data(),
       theirSecretKey.data(), 1, alicePrivateIdentityKey.data(),
       alicePublicIdentityKey.data(), alicePrivateEphemeralKey.data(),
       alicePublicEphemeralKey.data(), bobPublicIdentityKey.data(),
@@ -78,7 +78,7 @@ TEST_CASE("Handshake", "[core_handshake]") {
 
   REQUIRE(result == 0);
   REQUIRE_THAT(transcript, Catch::Matchers::Equals(aliceTranscript));
-  REQUIRE_THAT(message, Catch::Matchers::Equals(aliceMessage));
+  REQUIRE_THAT(handshake, Catch::Matchers::Equals(aliceHandshake));
   REQUIRE_THAT(ourSecretKey, Catch::Matchers::Equals(aliceSecretKey));
   REQUIRE_THAT(theirSecretKey, Catch::Matchers::Equals(bobSecretKey));
 }

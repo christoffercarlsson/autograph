@@ -40,8 +40,8 @@ TEST_CASE("Ownership", "[core_ownership]") {
       "data") {
     std::vector<unsigned char> signature(64);
     int result =
-        autograph_certify(signature.data(), bobPrivateKey.data(),
-                          alicePublicKey.data(), data.data(), data.size());
+        autograph_sign_data(signature.data(), bobPrivateKey.data(),
+                            alicePublicKey.data(), data.data(), data.size());
 
     REQUIRE(result == 0);
     REQUIRE_THAT(signature, Catch::Matchers::Equals(bobSignature));
@@ -51,8 +51,8 @@ TEST_CASE("Ownership", "[core_ownership]") {
       "should allow Bob to verify Alice's ownership of her identity key and "
       "data based on Charlie's public key and signature") {
     int result =
-        autograph_verify(alicePublicKey.data(), aliceCertificate.data(), 1,
-                         data.data(), data.size());
+        autograph_verify_data(alicePublicKey.data(), aliceCertificate.data(), 1,
+                              data.data(), data.size());
 
     REQUIRE(result == 0);
   }

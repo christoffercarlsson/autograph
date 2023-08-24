@@ -27,8 +27,9 @@ SignFunction createSafeSign(const SignFunction sign) {
 SignFunction createSign(const Bytes identityPrivateKey) {
   SignFunction sign = [identityPrivateKey](Bytes subject) {
     Bytes signature(64);
-    bool success = autograph_sign(signature.data(), identityPrivateKey.data(),
-                                  subject.data(), subject.size()) == 0;
+    bool success =
+        autograph_sign_subject(signature.data(), identityPrivateKey.data(),
+                               subject.data(), subject.size()) == 0;
     SignResult result = {success, signature};
     return result;
   };

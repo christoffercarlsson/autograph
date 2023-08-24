@@ -3,7 +3,7 @@
 
 #include "autograph.h"
 
-TEST_CASE("Handshake", "[handshake]") {
+TEST_CASE("Key Exchange", "[key_exchage]") {
   Autograph::KeyPair aliceIdentityKeyPair = {
       {43, 6,  246, 172, 137, 170, 33,  12, 118, 177, 111, 60, 19, 37, 65, 122,
        28, 34, 200, 251, 96,  35,  187, 52, 74,  224, 143, 39, 90, 51, 33, 140},
@@ -35,7 +35,7 @@ TEST_CASE("Handshake", "[handshake]") {
        0,   26,  41,  131, 245, 177, 87,  106, 105, 167, 58,
        158, 184, 244, 65,  205, 42,  40,  80,  134, 52}};
 
-  Autograph::Bytes aliceMessage = {
+  Autograph::Bytes aliceHandshake = {
       157, 61,  99,  76,  123, 207, 247, 194, 32,  224, 244, 148, 38,  107,
       158, 13,  66,  237, 6,   32,  9,   98,  120, 172, 63,  45,  144, 194,
       251, 88,  48,  88,  129, 3,   192, 127, 172, 229, 66,  244, 122, 42,
@@ -43,7 +43,7 @@ TEST_CASE("Handshake", "[handshake]") {
       129, 5,   243, 248, 99,  109, 135, 104, 46,  19,  83,  20,  244, 153,
       122, 18,  90,  151, 188, 95,  57,  79,  224, 173};
 
-  Autograph::Bytes bobMessage = {
+  Autograph::Bytes bobHandshake = {
       10,  63,  180, 74, 97,  108, 26,  163, 144, 152, 159, 14,  195, 134,
       181, 244, 55,  32, 29,  68,  195, 2,   99,  176, 3,   188, 77,  223,
       82,  222, 85,  33, 164, 83,  212, 5,   137, 216, 156, 53,  173, 72,
@@ -60,17 +60,17 @@ TEST_CASE("Handshake", "[handshake]") {
       Autograph::createSign(bobIdentityKeyPair.privateKey),
       bobIdentityKeyPair.publicKey);
 
-  auto aliceResult = alice.performHandshake(aliceEphemeralKeyPair,
-                                            bobIdentityKeyPair.publicKey,
-                                            bobEphemeralKeyPair.publicKey);
-  auto bobResult =
-      bob.performHandshake(bobEphemeralKeyPair, aliceIdentityKeyPair.publicKey,
-                           aliceEphemeralKeyPair.publicKey);
+  auto aliceResult = alice.performKeyExchange(aliceEphemeralKeyPair,
+                                              bobIdentityKeyPair.publicKey,
+                                              bobEphemeralKeyPair.publicKey);
+  auto bobResult = bob.performKeyExchange(bobEphemeralKeyPair,
+                                          aliceIdentityKeyPair.publicKey,
+                                          aliceEphemeralKeyPair.publicKey);
 
   REQUIRE(aliceResult.success == true);
   REQUIRE(bobResult.success == true);
-  REQUIRE_THAT(aliceResult.handshake.message,
-               Catch::Matchers::Equals(aliceMessage));
-  REQUIRE_THAT(bobResult.handshake.message,
-               Catch::Matchers::Equals(bobMessage));
+  REQUIRE_THAT(aliceResult.keyExchange.handshake,
+               Catch::Matchers::Equals(aliceHandshake));
+  REQUIRE_THAT(bobResult.keyExchange.handshake,
+               Catch::Matchers::Equals(bobHandshake));
 }

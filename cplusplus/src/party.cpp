@@ -8,8 +8,9 @@ namespace Autograph {
 Party createParty(const bool isInitiator, const SignFunction sign,
                   const Bytes identityPublicKey) {
   auto calculateSafetyNumber = createSafetyNumber(identityPublicKey);
-  auto performHandshake = createHandshake(isInitiator, sign, identityPublicKey);
-  return {calculateSafetyNumber, performHandshake};
+  auto performKeyExchange =
+      createKeyExchange(isInitiator, sign, identityPublicKey);
+  return {calculateSafetyNumber, performKeyExchange};
 }
 
 Party createInitiator(const SignFunction sign, const Bytes identityPublicKey) {
