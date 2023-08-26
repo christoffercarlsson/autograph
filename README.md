@@ -178,8 +178,9 @@ be used to secure their communication during this protocol run. Alice and Bob
 agree on the shared secret keys SK<sub>A</sub> and SK<sub>B</sub> by performing
 the following steps:
 
-Through some mechanism, Alice obtains Bob's IK<sub>B</sub> public key and Bob
-obtains Alice's IK<sub>A</sub> public key.
+Through some mechanism, Alice obtains Bob's IK<sub>B</sub> public key and
+through some, potentially different, mechanism Bob obtains Alice's
+IK<sub>A</sub> public key.
 
 Alice sends her EK<sub>A</sub> public key to Bob.
 
@@ -379,9 +380,9 @@ future protocol runs. Conversely, other parties can verify Bob's ownership in
 future protocol runs by obtaining the signatures C<sub>B</sub> and/or
 C<sub>N<sub>B</sub></sub>, and Alice's IK<sub>A</sub> public key.
 
-The mechanism by which certifying signatures are obtained by other parties and
-the specifics of how a party determines which identity keys and signatures they
-obtains for a given protocol run is beyond the scope of this document, but
+The mechanism(s) by which certifying signatures are obtained by other parties
+and the specifics of how a party determines which identity keys and signatures
+they obtains for a given protocol run is beyond the scope of this document, but
 subject to the security considerations in
 [Section 4.3](#43-trusted-party-manipulation).
 
