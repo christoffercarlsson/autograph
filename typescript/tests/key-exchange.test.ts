@@ -2,7 +2,7 @@ import { createFrom } from 'stedy/bytes'
 import { createInitiator, createResponder, createSign } from '../src/autograph'
 import { Party } from '../types'
 
-describe('Handshake', () => {
+describe('Key exchange', () => {
   const keyPairs = {
     alice: {
       identity: {
@@ -55,7 +55,7 @@ describe('Handshake', () => {
       }
     }
   }
-  const messages = {
+  const handshakes = {
     alice: createFrom([
       157, 61, 99, 76, 123, 207, 247, 194, 32, 224, 244, 148, 38, 107, 158, 13,
       66, 237, 6, 32, 9, 98, 120, 172, 63, 45, 144, 194, 251, 88, 48, 88, 129,
@@ -85,20 +85,20 @@ describe('Handshake', () => {
     )
   })
 
-  it('should allow Alice and Bob to perform a handshake', async () => {
-    const a = await alice.performHandshake(
+  it('should allow Alice and Bob to perform a key exchange', async () => {
+    const a = await alice.performKeyExchange(
       keyPairs.alice.ephemeral,
       keyPairs.bob.identity.publicKey,
       keyPairs.bob.ephemeral.publicKey
     )
-    const b = await bob.performHandshake(
+    const b = await bob.performKeyExchange(
       keyPairs.bob.ephemeral,
       keyPairs.alice.identity.publicKey,
       keyPairs.alice.ephemeral.publicKey
     )
     expect(a.success).toBe(true)
     expect(b.success).toBe(true)
-    expect(a.handshake.message).toEqual(messages.alice)
-    expect(b.handshake.message).toEqual(messages.bob)
+    expect(a.keyExchange.handshake).toEqual(handshakes.alice)
+    expect(b.keyExchange.handshake).toEqual(handshakes.bob)
   })
 })

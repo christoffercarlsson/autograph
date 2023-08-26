@@ -1,15 +1,24 @@
 import { alloc, concat } from 'stedy/bytes'
 import {
-  HandshakeFunction,
-  HandshakeResult,
+  KeyExchangeFunction,
+  KeyExchangeResult,
+  KeyExchangeVerificationFunction,
   KeyPair,
   SignFunction
 } from '../types'
-import createSession from './session'
 import diffieHellman from './crypto/diffie-hellman'
 import kdf from './crypto/kdf'
-import { encrypt } from './crypto/cipher'
+import { decrypt, encrypt } from './crypto/cipher'
+import { verify as verifySignature } from './crypto/sign'
 import { createErrorSignResult, ensureSignResult } from './utils'
+import {
+  createDecrypt,
+  createEncrypt,
+  createSignData,
+  createSignIdentity,
+  createVerifyData,
+  createVerifyIdentity
+} from './session'
 
 type SecretKeys = {
   ourSecretKey: BufferSource
@@ -41,21 +50,66 @@ const deriveSecretKeys = async (
   return { ourSecretKey, theirSecretKey }
 }
 
-const createHandshakeResult = (
+const verifyHandshake = async (
+  transcript: BufferSource,
+  theirIdentityKey: BufferSource,
+  theirSecretKey: BufferSource,
+  handshake: BufferSource
+) => {
+  try {
+    const signature = await decrypt(theirSecretKey, 0n, handshake)
+    const verified = await verifySignature(
+      transcript,
+      theirIdentityKey,
+      signature
+    )
+    return verified
+  } catch (error) {
+    return false
+  }
+}
+
+const createKeyExchangeVerification =
+  (
+    sign: SignFunction,
+    theirIdentityKey: BufferSource,
+    transcript: BufferSource,
+    ourSecretKey: BufferSource,
+    theirSecretKey: BufferSource
+  ): KeyExchangeVerificationFunction =>
+  async (handshake: BufferSource) => {
+    const success = await verifyHandshake(
+      transcript,
+      theirIdentityKey,
+      theirSecretKey,
+      handshake
+    )
+    const session = {
+      decrypt: createDecrypt(theirSecretKey),
+      encrypt: createEncrypt(ourSecretKey),
+      signData: createSignData(sign, theirIdentityKey),
+      signIdentity: createSignIdentity(sign, theirIdentityKey),
+      verifyData: createVerifyData(theirIdentityKey),
+      verifyIdentity: createVerifyIdentity(theirIdentityKey)
+    }
+    return { success, session }
+  }
+
+const createKeyExchangeResult = (
   success: boolean,
   sign: SignFunction,
   theirIdentityPublicKey: BufferSource,
   transcript: BufferSource,
-  message?: BufferSource,
+  handshake?: BufferSource,
   ourSecretKey?: BufferSource,
   theirSecretKey?: BufferSource
-): HandshakeResult => {
+): KeyExchangeResult => {
   if (!success) {
     return {
       success,
-      handshake: {
-        message: alloc(80),
-        establishSession: createSession(
+      keyExchange: {
+        handshake: alloc(80),
+        verify: createKeyExchangeVerification(
           sign,
           theirIdentityPublicKey,
           transcript,
@@ -67,9 +121,9 @@ const createHandshakeResult = (
   }
   return {
     success,
-    handshake: {
-      message,
-      establishSession: createSession(
+    keyExchange: {
+      handshake,
+      verify: createKeyExchangeVerification(
         sign,
         theirIdentityPublicKey,
         transcript,
@@ -91,12 +145,12 @@ const createSafeSign =
     }
   }
 
-const createHandshake =
+const createKeyExchange =
   (
     isInitiator: boolean,
     sign: SignFunction,
     identityPublicKey: BufferSource
-  ): HandshakeFunction =>
+  ): KeyExchangeFunction =>
   async (
     ourEphemeralKeyPair: KeyPair,
     theirIdentityKey: BufferSource,
@@ -117,18 +171,18 @@ const createHandshake =
         ourEphemeralKeyPair.privateKey,
         theirEphemeralKey
       )
-      const message = await encrypt(ourSecretKey, 0, signature)
-      return createHandshakeResult(
+      const handshake = await encrypt(ourSecretKey, 0n, signature)
+      return createKeyExchangeResult(
         success,
         safeSign,
         theirIdentityKey,
         transcript,
-        message,
+        handshake,
         ourSecretKey,
         theirSecretKey
       )
     } catch (error) {
-      return createHandshakeResult(
+      return createKeyExchangeResult(
         false,
         safeSign,
         theirIdentityKey,
@@ -137,4 +191,4 @@ const createHandshake =
     }
   }
 
-export default createHandshake
+export default createKeyExchange

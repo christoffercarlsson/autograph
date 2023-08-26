@@ -1,48 +1,18 @@
 import { alloc, concat, createFrom } from 'stedy/bytes'
 import {
-  CertificationResult,
-  CertifyFunction,
   DecryptFunction,
   EncryptFunction,
-  SessionFunction,
   SignFunction,
-  VerifyFunction
+  SignDataFunction,
+  SignIdentityFunction,
+  VerifyDataFunction,
+  VerifyIdentityFunction
 } from '../types'
 import { decrypt, encrypt } from './crypto/cipher'
 import { verify as verifySignature } from './crypto/sign'
 import { createErrorSignResult, ensureSignResult } from './utils'
 
-const verifySession = async (
-  transcript: BufferSource,
-  theirIdentityKey: BufferSource,
-  theirSecretKey: BufferSource,
-  message: BufferSource
-) => {
-  try {
-    const signature = await decrypt(theirSecretKey, 0n, message)
-    const verified = await verifySignature(
-      transcript,
-      theirIdentityKey,
-      signature
-    )
-    return verified
-  } catch (error) {
-    return false
-  }
-}
-
-const createCertify =
-  (sign: SignFunction, theirPublicKey: BufferSource): CertifyFunction =>
-  async (data?: BufferSource) => {
-    try {
-      const result = await sign(concat([data, theirPublicKey]))
-      return ensureSignResult(result) as CertificationResult
-    } catch (error) {
-      return createErrorSignResult() as CertificationResult
-    }
-  }
-
-const createDecrypt =
+export const createDecrypt =
   (theirSecretKey: BufferSource): DecryptFunction =>
   async (message: BufferSource) => {
     const [nonce, ciphertext] = createFrom(message).read(8)
@@ -61,7 +31,7 @@ const createDecrypt =
     }
   }
 
-const createEncrypt = (ourSecretKey: BufferSource): EncryptFunction => {
+export const createEncrypt = (ourSecretKey: BufferSource): EncryptFunction => {
   let index = 0n
   return async (data: BufferSource) => {
     index += 1n
@@ -76,51 +46,53 @@ const createEncrypt = (ourSecretKey: BufferSource): EncryptFunction => {
   }
 }
 
-const createVerify =
-  (theirIdentityKey: BufferSource): VerifyFunction =>
-  async (certificates: BufferSource, data?: BufferSource) => {
+export const createSignData =
+  (sign: SignFunction, theirPublicKey: BufferSource): SignDataFunction =>
+  async (data: BufferSource) => {
     try {
-      const subject = concat([data, theirIdentityKey])
-      const results = await Promise.all(
-        createFrom(certificates)
-          .split(96)
-          .map((certificate) => {
-            const [identityKey, signature] = certificate.read(32)
-            return verifySignature(subject, identityKey, signature)
-          })
-      )
-      return results.length > 0 && results.every((result) => result === true)
+      const result = await sign(concat([data, theirPublicKey]))
+      return ensureSignResult(result)
     } catch (error) {
-      return false
+      return createErrorSignResult()
     }
   }
 
-const createSession =
-  (
-    sign: SignFunction,
-    theirIdentityKey: BufferSource,
-    transcript: BufferSource,
-    ourSecretKey: BufferSource,
-    theirSecretKey: BufferSource
-  ): SessionFunction =>
-  async (message: BufferSource) => {
-    const success = await verifySession(
-      transcript,
-      theirIdentityKey,
-      theirSecretKey,
-      message
+export const createSignIdentity =
+  (sign: SignFunction, theirPublicKey: BufferSource): SignIdentityFunction =>
+  async () => {
+    try {
+      const result = await sign(theirPublicKey)
+      return ensureSignResult(result)
+    } catch (error) {
+      return createErrorSignResult()
+    }
+  }
+
+const verifyCertificates = async (
+  certificates: BufferSource,
+  subject: BufferSource
+) => {
+  try {
+    const results = await Promise.all(
+      createFrom(certificates)
+        .split(96)
+        .map((certificate) => {
+          const [identityKey, signature] = certificate.read(32)
+          return verifySignature(subject, identityKey, signature)
+        })
     )
-    const certify = createCertify(sign, theirIdentityKey)
-    const decrypt = createDecrypt(theirSecretKey)
-    const encrypt = createEncrypt(ourSecretKey)
-    const verify = createVerify(theirIdentityKey)
-    const session = {
-      certify,
-      decrypt,
-      encrypt,
-      verify
-    }
-    return { success, session }
+    return results.length > 0 && results.every((result) => result === true)
+  } catch (error) {
+    return false
   }
+}
 
-export default createSession
+export const createVerifyData =
+  (theirIdentityKey: BufferSource): VerifyDataFunction =>
+  (certificates: BufferSource, data: BufferSource) =>
+    verifyCertificates(certificates, concat([data, theirIdentityKey]))
+
+export const createVerifyIdentity =
+  (theirIdentityKey: BufferSource): VerifyIdentityFunction =>
+  async (certificates: BufferSource) =>
+    verifyCertificates(certificates, theirIdentityKey)

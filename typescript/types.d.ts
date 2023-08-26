@@ -7,7 +7,7 @@ export type SafetyNumberFunction = (
   theirIdentityKey: BufferSource
 ) => Promise<SafetyNumberResult>
 
-export type CertificationResult = {
+export type SignResult = {
   success: boolean
   signature: BufferSource
 }
@@ -22,9 +22,9 @@ export type EncryptionResult = {
   message: BufferSource
 }
 
-export type CertifyFunction = (
-  data?: BufferSource
-) => Promise<CertificationResult>
+export type SignDataFunction = (data: BufferSource) => Promise<SignResult>
+
+export type SignIdentityFunction = () => Promise<SignResult>
 
 export type DecryptFunction = (
   message: BufferSource
@@ -32,24 +32,32 @@ export type DecryptFunction = (
 
 export type EncryptFunction = (data: BufferSource) => Promise<EncryptionResult>
 
-export type VerifyFunction = (
+export type VerifyDataFunction = (
   certificates: BufferSource,
-  data?: BufferSource
+  data: BufferSource
+) => Promise<boolean>
+
+export type VerifyIdentityFunction = (
+  certificates: BufferSource
 ) => Promise<boolean>
 
 export type Session = {
-  certify: CertifyFunction
   decrypt: DecryptFunction
   encrypt: EncryptFunction
-  verify: VerifyFunction
+  signData: SignDataFunction
+  signIdentity: SignIdentityFunction
+  verifyData: VerifyDataFunction
+  verifyIdentity: VerifyIdentityFunction
 }
 
-export type SessionResult = {
+export type KeyExchangeVerificationResult = {
   success: boolean
   session: Session
 }
 
-export type SessionFunction = (message: BufferSource) => Promise<SessionResult>
+export type KeyExchangeVerificationFunction = (
+  handshake: BufferSource
+) => Promise<KeyExchangeVerificationResult>
 
 export type KeyPair = {
   publicKey: BufferSource
@@ -61,30 +69,25 @@ export type KeyPairResult = {
   keyPair: KeyPair
 }
 
-export type Handshake = {
-  message: BufferSource
-  establishSession: SessionFunction
+export type KeyExchange = {
+  handshake: BufferSource
+  verify: KeyExchangeVerificationFunction
 }
 
-export type HandshakeResult = {
+export type KeyExchangeResult = {
   success: boolean
-  handshake: Handshake
+  keyExchange: KeyExchange
 }
 
-export type HandshakeFunction = (
+export type KeyExchangeFunction = (
   ourEphemeralKeyPair: KeyPair,
   theirIdentityKey: BufferSource,
   theirEphemeralKey: BufferSource
-) => Promise<HandshakeResult>
+) => Promise<KeyExchangeResult>
 
 export type Party = {
   calculateSafetyNumber: SafetyNumberFunction
-  performHandshake: HandshakeFunction
-}
-
-export type SignResult = {
-  success: boolean
-  signature: BufferSource
+  performKeyExchange: KeyExchangeFunction
 }
 
 export type SignFunction = (

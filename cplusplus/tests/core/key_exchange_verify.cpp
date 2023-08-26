@@ -3,7 +3,7 @@
 
 #include "autograph.h"
 
-TEST_CASE("Key Exchange Verify", "[core_key_exchange_verify]") {
+TEST_CASE("Key exchange verification", "[core_key_exchange_verify]") {
   std::vector<unsigned char> transcript = {
       91,  119, 85,  151, 32,  20,  121, 20,  19,  106, 90,  56,  141, 90,  16,
       210, 14,  244, 60,  251, 140, 48,  190, 65,  194, 35,  166, 246, 1,   209,

@@ -2,7 +2,7 @@
 
 #include "autograph.h"
 
-TEST_CASE("Key Pair", "[key_pair]") {
+TEST_CASE("Key pair", "[key_pair]") {
   Autograph::init();
 
   SECTION("should generate ephemeral key pairs") {

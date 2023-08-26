@@ -4,7 +4,7 @@
 
 #include "autograph.h"
 
-TEST_CASE("Key Exchange", "[core_key_exchange]") {
+TEST_CASE("Key exchange", "[core_key_exchange]") {
   std::vector<unsigned char> alicePrivateIdentityKey = {
       43, 6,  246, 172, 137, 170, 33,  12, 118, 177, 111, 60, 19, 37, 65, 122,
       28, 34, 200, 251, 96,  35,  187, 52, 74,  224, 143, 39, 90, 51, 33, 140};

@@ -4,7 +4,7 @@
 
 #include "autograph.h"
 
-TEST_CASE("Key Pair", "[core_key_pair]") {
+TEST_CASE("Key pair", "[core_key_pair]") {
   std::vector<unsigned char> emptyKey(32);
   std::vector<unsigned char> privateKey(32);
   std::vector<unsigned char> publicKey(32);
