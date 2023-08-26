@@ -19,11 +19,6 @@ struct KeyPairResult {
   KeyPair keyPair;
 };
 
-struct CertificationResult {
-  bool success;
-  Bytes signature;
-};
-
 struct DecryptionResult {
   bool success;
   Bytes data;
@@ -39,7 +34,14 @@ struct SafetyNumberResult {
   Bytes safetyNumber;
 };
 
-using CertifyFunction = std::function<CertificationResult(const Bytes)>;
+struct SignResult {
+  bool success;
+  Bytes signature;
+};
+
+using SignDataFunction = std::function<SignResult(const Bytes)>;
+
+using SignIdentityFunction = std::function<SignResult()>;
 
 using DecryptFunction = std::function<DecryptionResult(const Bytes)>;
 
@@ -47,43 +49,43 @@ using EncryptFunction = std::function<EncryptionResult(const Bytes)>;
 
 using SafetyNumberFunction = std::function<SafetyNumberResult(const Bytes)>;
 
-using VerifyFunction = std::function<bool(const Bytes, const Bytes)>;
+using VerifyDataFunction = std::function<bool(const Bytes, const Bytes)>;
+
+using VerifyIdentityFunction = std::function<bool(const Bytes)>;
 
 struct Session {
-  CertifyFunction certify;
   DecryptFunction decrypt;
   EncryptFunction encrypt;
-  VerifyFunction verify;
+  SignDataFunction signData;
+  SignIdentityFunction signIdentity;
+  VerifyDataFunction verifyData;
+  VerifyIdentityFunction verifyIdentity;
 };
 
-struct SessionResult {
+struct KeyExchangeVerificationResult {
   bool success;
   Session session;
 };
 
-using SessionFunction = std::function<SessionResult(const Bytes)>;
+using KeyExchangeVerificationFunction =
+    std::function<KeyExchangeVerificationResult(const Bytes)>;
 
-struct Handshake {
-  Bytes message;
-  SessionFunction establishSession;
+struct KeyExchange {
+  Bytes handshake;
+  KeyExchangeVerificationFunction verify;
 };
 
-struct HandshakeResult {
+struct KeyExchangeResult {
   bool success;
-  Handshake handshake;
+  KeyExchange keyExchange;
 };
 
-using HandshakeFunction =
-    std::function<HandshakeResult(KeyPair &, const Bytes, const Bytes)>;
+using KeyExchangeFunction =
+    std::function<KeyExchangeResult(KeyPair &, const Bytes, const Bytes)>;
 
 struct Party {
   SafetyNumberFunction calculateSafetyNumber;
-  HandshakeFunction performHandshake;
-};
-
-struct SignResult {
-  bool success;
-  Bytes signature;
+  KeyExchangeFunction performKeyExchange;
 };
 
 using SignFunction = std::function<SignResult(const Bytes)>;

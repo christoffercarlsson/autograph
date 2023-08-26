@@ -1,29 +1,7 @@
 import Clibautograph
 import Foundation
 
-private func createCertify(
-  sign: @escaping SignFunction,
-  theirPublicKey: Bytes
-) -> CertifyFunction {
-  let certifyFunction: CertifyFunction = { [sign, theirPublicKey] data in
-    let dataSize = UInt64((data != nil) ? data!.count : 0)
-    var subject = createSubjectBytes(size: dataSize)
-    autograph_subject(
-      &subject,
-      theirPublicKey,
-      data,
-      dataSize
-    )
-    let result = sign(subject)
-    return CertificationResult(
-      success: result.success,
-      signature: result.signature
-    )
-  }
-  return certifyFunction
-}
-
-private func createDecrypt(theirSecretKey: Bytes) -> DecryptFunction {
+internal func createDecrypt(theirSecretKey: Bytes) -> DecryptFunction {
   let decryptFunction: DecryptFunction = { [theirSecretKey] message in
     var data = createPlaintextBytes(size: message.count)
     let success = autograph_decrypt(
@@ -37,7 +15,7 @@ private func createDecrypt(theirSecretKey: Bytes) -> DecryptFunction {
   return decryptFunction
 }
 
-private class EncryptIndexCounter {
+internal class EncryptionIndexCounter {
   var index: UInt64
 
   init() {
@@ -49,8 +27,8 @@ private class EncryptIndexCounter {
   }
 }
 
-private func createEncrypt(ourSecretKey: Bytes) -> EncryptFunction {
-  let indexCounter = EncryptIndexCounter()
+internal func createEncrypt(ourSecretKey: Bytes) -> EncryptFunction {
+  let indexCounter = EncryptionIndexCounter()
   let encryptFunction: EncryptFunction = { [ourSecretKey, indexCounter] data in
     indexCounter.increment()
     var message = createMessageBytes(size: data.count)
@@ -66,57 +44,72 @@ private func createEncrypt(ourSecretKey: Bytes) -> EncryptFunction {
   return encryptFunction
 }
 
-private func createVerify(
+internal func createSignData(
+  sign: @escaping SignFunction,
   theirPublicKey: Bytes
-) -> VerifyFunction {
-  let verifyFunction: VerifyFunction = { [theirPublicKey] certificates, data in
-    let certificateCount = certificates
-      .count /
-      (PUBLIC_KEY_SIZE + SIGNATURE_SIZE)
-    let result = autograph_verify(
+) -> SignDataFunction {
+  let signDataFunction: SignDataFunction = { [sign, theirPublicKey] data in
+    let dataSize = UInt64(data.count)
+    var subject = createSubjectBytes(size: dataSize)
+    autograph_subject(
+      &subject,
       theirPublicKey,
-      certificates,
-      UInt64(certificateCount),
       data,
-      UInt64((data != nil) ? data!.count : 0)
+      dataSize
     )
-    return result == 0
+    let result = sign(subject)
+    return SignResult(
+      success: result.success,
+      signature: result.signature
+    )
   }
-  return verifyFunction
+  return signDataFunction
 }
 
-internal func createSession(
+internal func createSignIdentity(
   sign: @escaping SignFunction,
-  theirPublicKey: Bytes,
-  transcript: Bytes,
-  ourSecretKey: Bytes,
-  theirSecretKey: Bytes
-) -> SessionFunction {
-  let sessionFunction: SessionFunction = { [
-    sign,
-    theirPublicKey,
-    transcript,
-    ourSecretKey,
-    theirSecretKey
-  ] theirCiphertext in
-    let success = autograph_session(
-      transcript,
-      theirPublicKey,
-      theirSecretKey,
-      theirCiphertext
-    ) == 0
-    let session = Session(
-      certify: createCertify(
-        sign: sign,
-        theirPublicKey: theirPublicKey
-      ),
-      decrypt: createDecrypt(theirSecretKey: theirSecretKey),
-      encrypt: createEncrypt(ourSecretKey: ourSecretKey),
-      verify: createVerify(
-        theirPublicKey: theirPublicKey
-      )
+  theirPublicKey: Bytes
+) -> SignIdentityFunction {
+  let signIdentityFunction: SignIdentityFunction = { [sign, theirPublicKey] in
+    let result = sign(theirPublicKey)
+    return SignResult(
+      success: result.success,
+      signature: result.signature
     )
-    return SessionResult(success: success, session: session)
   }
-  return sessionFunction
+  return signIdentityFunction
+}
+
+private func countCertificates(_ certificates: Bytes) -> UInt64 {
+  UInt64(certificates.count / (PUBLIC_KEY_SIZE + SIGNATURE_SIZE))
+}
+
+internal func createVerifyData(
+  theirPublicKey: Bytes
+) -> VerifyDataFunction {
+  let verifyDataFunction: VerifyDataFunction =
+    { [theirPublicKey] certificates, data in
+      autograph_verify_data(
+        theirPublicKey,
+        certificates,
+        countCertificates(certificates),
+        data,
+        UInt64(data.count)
+      ) == 0
+    }
+  return verifyDataFunction
+}
+
+internal func createVerifyIdentity(
+  theirPublicKey: Bytes
+) -> VerifyIdentityFunction {
+  let verifyIdentityFunction: VerifyIdentityFunction =
+    { [theirPublicKey] certificates in
+      autograph_verify_identity(
+        theirPublicKey,
+        certificates,
+        countCertificates(certificates)
+      ) == 0
+    }
+  return verifyIdentityFunction
 }

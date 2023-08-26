@@ -1,7 +1,7 @@
 @testable import Autograph
 import XCTest
 
-final class HandshakeTests: XCTestCase {
+final class KeyExchangeTests: XCTestCase {
   let aliceIdentityKeyPair = KeyPair(privateKey: [
     43,
     6,
@@ -110,7 +110,7 @@ final class HandshakeTests: XCTestCase {
       138,
     ]
   )
-  let aliceMessage: Bytes = [
+  let aliceHandshake: Bytes = [
     157, 61, 99, 76, 123, 207, 247, 194, 32, 224, 244, 148, 38, 107,
     158, 13, 66, 237, 6, 32, 9, 98, 120, 172, 63, 45, 144, 194,
     251, 88, 48, 88, 129, 3, 192, 127, 172, 229, 66, 244, 122, 42,
@@ -118,7 +118,7 @@ final class HandshakeTests: XCTestCase {
     129, 5, 243, 248, 99, 109, 135, 104, 46, 19, 83, 20, 244, 153,
     122, 18, 90, 151, 188, 95, 57, 79, 224, 173,
   ]
-  let bobMessage: Bytes = [
+  let bobHandshake: Bytes = [
     10, 63, 180, 74, 97, 108, 26, 163, 144, 152, 159, 14, 195, 134,
     181, 244, 55, 32, 29, 68, 195, 2, 99, 176, 3, 188, 77, 223,
     82, 222, 85, 33, 164, 83, 212, 5, 137, 216, 156, 53, 173, 72,
@@ -162,20 +162,20 @@ final class HandshakeTests: XCTestCase {
     )
   }
 
-  func testPerformHandshake() {
-    let a = alice.performHandshake(
+  func testPerformKeyExchange() {
+    let a = alice.performKeyExchange(
       &aliceEphemeralKeyPair,
       bobIdentityKeyPair.publicKey,
       bobEphemeralKeyPair.publicKey
     )
-    let b = bob.performHandshake(
+    let b = bob.performKeyExchange(
       &bobEphemeralKeyPair,
       aliceIdentityKeyPair.publicKey,
       aliceEphemeralKeyPair.publicKey
     )
     XCTAssertTrue(a.success)
     XCTAssertTrue(b.success)
-    XCTAssertEqual(a.handshake.message, aliceMessage)
-    XCTAssertEqual(b.handshake.message, bobMessage)
+    XCTAssertEqual(a.keyExchange.handshake, aliceHandshake)
+    XCTAssertEqual(b.keyExchange.handshake, bobHandshake)
   }
 }

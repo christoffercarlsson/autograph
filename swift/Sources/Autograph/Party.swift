@@ -5,15 +5,14 @@ internal func createParty(
   sign: @escaping SignFunction,
   identityPublicKey: Bytes
 ) -> Party {
-  let calculateSafetyNumber =
-    createSafetyNumber(ourIdentityKey: identityPublicKey)
-  let performHandshake = createHandshake(
-    isInitiator: isInitiator,
-    sign: sign,
-    identityPublicKey: identityPublicKey
-  )
-  return Party(
-    calculateSafetyNumber: calculateSafetyNumber,
-    performHandshake: performHandshake
+  Party(
+    calculateSafetyNumber: createSafetyNumber(
+      ourIdentityKey: identityPublicKey
+    ),
+    performKeyExchange: createKeyExchange(
+      isInitiator: isInitiator,
+      sign: sign,
+      identityPublicKey: identityPublicKey
+    )
   )
 }

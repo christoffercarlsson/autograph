@@ -22,7 +22,7 @@ public class KeyPairResult {
   }
 }
 
-public class CertificationResult {
+public class SignResult {
   var success: Bool
   var signature: Bytes
 
@@ -52,10 +52,12 @@ public class EncryptionResult {
   }
 }
 
-public typealias CertifyFunction = (Bytes?) -> CertificationResult
 public typealias DecryptFunction = (Bytes) -> DecryptionResult
 public typealias EncryptFunction = (Bytes) -> EncryptionResult
-public typealias VerifyFunction = (Bytes, Bytes?) -> Bool
+public typealias SignDataFunction = (Bytes) -> SignResult
+public typealias SignIdentityFunction = () -> SignResult
+public typealias VerifyDataFunction = (Bytes, Bytes) -> Bool
+public typealias VerifyIdentityFunction = (Bytes) -> Bool
 
 public class SafetyNumberResult {
   var success: Bool
@@ -70,25 +72,31 @@ public class SafetyNumberResult {
 public typealias SafetyNumberFunction = (Bytes) -> SafetyNumberResult
 
 public class Session {
-  var certify: CertifyFunction
-  var decrypt: DecryptFunction
   var encrypt: EncryptFunction
-  var verify: VerifyFunction
+  var decrypt: DecryptFunction
+  var signData: SignDataFunction
+  var signIdentity: SignIdentityFunction
+  var verifyData: VerifyDataFunction
+  var verifyIdentity: VerifyIdentityFunction
 
   init(
-    certify: @escaping CertifyFunction,
     decrypt: @escaping DecryptFunction,
     encrypt: @escaping EncryptFunction,
-    verify: @escaping VerifyFunction
+    signData: @escaping SignDataFunction,
+    signIdentity: @escaping SignIdentityFunction,
+    verifyData: @escaping VerifyDataFunction,
+    verifyIdentity: @escaping VerifyIdentityFunction
   ) {
-    self.certify = certify
     self.decrypt = decrypt
     self.encrypt = encrypt
-    self.verify = verify
+    self.signData = signData
+    self.signIdentity = signIdentity
+    self.verifyData = verifyData
+    self.verifyIdentity = verifyIdentity
   }
 }
 
-public class SessionResult {
+public class KeyExchangeVerificationResult {
   var success: Bool
   var session: Session
 
@@ -98,52 +106,43 @@ public class SessionResult {
   }
 }
 
-public typealias SessionFunction = (Bytes) -> SessionResult
+public typealias KeyExchangeVerificationFunction = (Bytes)
+  -> KeyExchangeVerificationResult
 
-public class Handshake {
-  var message: Bytes
-  var establishSession: SessionFunction
+public class KeyExchange {
+  var handshake: Bytes
+  var verify: KeyExchangeVerificationFunction
 
-  init(message: Bytes, establishSession: @escaping SessionFunction) {
-    self.message = message
-    self.establishSession = establishSession
-  }
-}
-
-public class HandshakeResult {
-  var success: Bool
-  var handshake: Handshake
-
-  init(success: Bool, handshake: Handshake) {
-    self.success = success
+  init(handshake: Bytes, verify: @escaping KeyExchangeVerificationFunction) {
     self.handshake = handshake
+    self.verify = verify
   }
 }
 
-public typealias HandshakeFunction = (inout KeyPair, Bytes, Bytes)
-  -> HandshakeResult
-
-public class SignResult {
+public class KeyExchangeResult {
   var success: Bool
-  var signature: Bytes
+  var keyExchange: KeyExchange
 
-  init(success: Bool, signature: Bytes) {
+  init(success: Bool, keyExchange: KeyExchange) {
     self.success = success
-    self.signature = signature
+    self.keyExchange = keyExchange
   }
 }
+
+public typealias KeyExchangeFunction = (inout KeyPair, Bytes, Bytes)
+  -> KeyExchangeResult
 
 public typealias SignFunction = (Bytes) -> SignResult
 
 public class Party {
   var calculateSafetyNumber: SafetyNumberFunction
-  var performHandshake: HandshakeFunction
+  var performKeyExchange: KeyExchangeFunction
 
   init(
     calculateSafetyNumber: @escaping SafetyNumberFunction,
-    performHandshake: @escaping HandshakeFunction
+    performKeyExchange: @escaping KeyExchangeFunction
   ) {
     self.calculateSafetyNumber = calculateSafetyNumber
-    self.performHandshake = performHandshake
+    self.performKeyExchange = performKeyExchange
   }
 }

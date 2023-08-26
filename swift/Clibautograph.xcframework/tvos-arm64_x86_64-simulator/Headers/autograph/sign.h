@@ -5,9 +5,10 @@
 extern "C" {
 #endif
 
-int autograph_sign(unsigned char *signature, const unsigned char *private_key,
-                   const unsigned char *subject,
-                   const unsigned long long subject_size);
+int autograph_sign_subject(unsigned char *signature,
+                           const unsigned char *private_key,
+                           const unsigned char *subject,
+                           const unsigned long long subject_size);
 
 #ifdef __cplusplus
 }  // extern "C"

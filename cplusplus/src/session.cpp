@@ -38,17 +38,17 @@ DecryptFunction createDecrypt(const Bytes theirSecretKey) {
   return decryptFunction;
 }
 
-class EncryptIndexCounter {
+class EncryptionIndexCounter {
  public:
   unsigned long long index;
 
-  EncryptIndexCounter() : index(0) {}
+  EncryptionIndexCounter() : index(0) {}
 
   void increment() { index += 1; }
 };
 
 EncryptFunction createEncrypt(const Bytes ourSecretKey) {
-  EncryptIndexCounter indexCounter;
+  EncryptionIndexCounter indexCounter;
   auto encryptFunction = [ourSecretKey,
                           indexCounter](const Bytes plaintext) mutable {
     indexCounter.increment();

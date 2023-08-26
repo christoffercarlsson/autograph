@@ -47,8 +47,7 @@ internal func createSignatureBytes() -> Bytes {
 }
 
 internal func createSubjectBytes(size: UInt64) -> Bytes {
-  let subjectSize = autograph_subject_size(size)
-  return createBytes(Int(subjectSize))
+  createBytes(Int(autograph_subject_size(size)))
 }
 
 internal func createTranscriptBytes() -> Bytes {

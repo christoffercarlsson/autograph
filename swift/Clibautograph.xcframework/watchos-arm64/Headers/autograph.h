@@ -1,8 +1,8 @@
 #ifndef AUTOGRAPH_H
 #define AUTOGRAPH_H
 
-#include "autograph/handshake.h"
 #include "autograph/init.h"
+#include "autograph/key_exchange.h"
 #include "autograph/key_pair.h"
 #include "autograph/party.h"
 #include "autograph/private.h"

@@ -49,7 +49,7 @@ public struct Autograph {
   public func createSign(identityPrivateKey: Bytes) -> SignFunction {
     let sign: SignFunction = { [identityPrivateKey] subject in
       var signature = createSignatureBytes()
-      let success = autograph_sign(
+      let success = autograph_sign_subject(
         &signature,
         identityPrivateKey,
         subject,
