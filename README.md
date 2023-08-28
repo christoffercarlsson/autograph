@@ -117,10 +117,6 @@ use the little-endian encoding as specified in \[[4](#7-references)\]. The
 resulting byte sequences for X25519 and Ed25519 public keys will be 32 bytes
 long.
 
-In the Python code that follows, the private- and public keys of a key pair
-object are accessed as the members **private_key** and **public_key**,
-respectively.
-
 Autograph will use the following symmetric secret keys:
 
 | Name           | Definition         |
@@ -189,16 +185,24 @@ keys SK<sub>A</sub> and SK<sub>B</sub> and produces the ciphertext H<sub>B</sub>
 by calling _KeyExchangeBob()_:
 
 ```python
-def KeyExchangeBob(state, bob_identity_key_pair, bob_ephemeral_key_pair, alice_identity_public_key, alice_ephemeral_public_key):
+def KeyExchangeBob(
+  state,
+  bob_identity_private_key,
+  bob_identity_public_key,
+  bob_ephemeral_private_key,
+  bob_ephemeral_public_key,
+  alice_identity_public_key,
+  alice_ephemeral_public_key
+):
   state.IK = alice_identity_public_key
   state.EK = alice_ephemeral_public_key
-  ikm = DH(bob_ephemeral_key_pair.private_key, state.EK)
+  ikm = DH(bob_ephemeral_private_key, state.EK)
   state.SKs = KDF(ikm, 1)
   state.SKr = KDF(ikm, 0)
-  state.T = CONCAT(state.IK, bob_identity_key_pair.public_key)
+  state.T = CONCAT(state.IK, bob_identity_public_key)
   state.T = CONCAT(state.T, state.EK)
-  state.T = CONCAT(state.T, bob_ephemeral_key_pair.public_key)
-  return ENCRYPT(state.SKs, 0, SIGN(bob_identity_key_pair.private_key, state.T))
+  state.T = CONCAT(state.T, bob_ephemeral_public_key)
+  return ENCRYPT(state.SKs, 0, SIGN(bob_identity_private_key, state.T))
 ```
 
 Bob deletes his EK<sub>B</sub> private key. He then sends his EK<sub>B</sub>
@@ -209,16 +213,24 @@ derives the secret keys SK<sub>A</sub> and SK<sub>B</sub> and produces the
 ciphertext H<sub>A</sub> by calling _KeyExchangeAlice()_:
 
 ```python
-def KeyExchangeAlice(state, alice_identity_key_pair, alice_ephemeral_key_pair, bob_identity_public_key, bob_ephemeral_public_key):
+def KeyExchangeAlice(
+  state,
+  alice_identity_private_key,
+  alice_identity_public_key,
+  alice_ephemeral_private_key,
+  alice_ephemeral_public_key,
+  bob_identity_public_key,
+  bob_ephemeral_public_key
+):
   state.IK = bob_identity_public_key
   state.EK = bob_ephemeral_public_key
-  ikm = DH(alice_ephemeral_key_pair.private_key, state.EK)
+  ikm = DH(alice_ephemeral_private_key, state.EK)
   state.SKs = KDF(ikm, 0)
   state.SKr = KDF(ikm, 1)
-  state.T = CONCAT(alice_identity_key_pair.public_key, state.IK)
-  state.T = CONCAT(state.T, alice_ephemeral_key_pair.public_key)
+  state.T = CONCAT(alice_identity_public_key, state.IK)
+  state.T = CONCAT(state.T, alice_ephemeral_public_key)
   state.T = CONCAT(state.T, state.EK)
-  return ENCRYPT(state.SKs, 0, SIGN(alice_identity_key_pair.private_key, state.T))
+  return ENCRYPT(state.SKs, 0, SIGN(alice_identity_private_key, state.T))
 ```
 
 Alice deletes her EK<sub>A</sub> private key. She then sends H<sub>A</sub> to
