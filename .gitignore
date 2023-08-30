@@ -42,6 +42,13 @@ swift/.swiftpm/xcode/package.xcworkspace/contents.xcworkspacedata
 swift/.netrc
 
 # TypeScript-specific files
-typescript/coverage/
-typescript/dist/
-typescript/node_modules/
+coverage/
+dist/
+node_modules/
+
+# generated types
+.astro/
+
+# environment variables
+.env
+.env.production
