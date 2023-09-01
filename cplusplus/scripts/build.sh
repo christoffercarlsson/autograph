@@ -8,6 +8,7 @@ BUILD_DIR="${SOURCE_DIR}/build"
 AUTOGRAPH_DEBUG=0
 AUTOGRAPH_INSTALL=0
 AUTOGRAPH_TESTS=0
+AUTOGRAPH_WASM=0
 
 while [ $# -gt 0 ]; do
   case $1 in
@@ -24,12 +25,26 @@ while [ $# -gt 0 ]; do
       AUTOGRAPH_TESTS=1
       shift
       ;;
+    -w | --wasm | --web-assembly)
+      AUTOGRAPH_WASM=1
+      shift
+      ;;
     *)
       echo "Invalid option: $1" >&2
       exit 1
       ;;
   esac
 done
+
+if [[ "${AUTOGRAPH_WASM}" == "1" ]]
+then
+  AUTOGRAPH_DEBUG=0
+  AUTOGRAPH_INSTALL=0
+  AUTOGRAPH_TESTS=0
+  AUTOGRAPH_CMAKE_CMD="emcmake cmake"
+else
+  AUTOGRAPH_CMAKE_CMD="cmake"
+fi
 
 if [[ "${AUTOGRAPH_INSTALL}" == "1" ]]
 then
@@ -45,11 +60,11 @@ fi
 
 generate_cmake() {
   rm -rf "${BUILD_DIR}"
-  cmake --no-warn-unused-cli \
-        -DCMAKE_BUILD_TYPE=${AUTOGRAPH_BUILD_TYPE} \
-        -DAUTOGRAPH_INSTALL=${AUTOGRAPH_INSTALL} \
-        -DAUTOGRAPH_TESTS=${AUTOGRAPH_TESTS} \
-        -B "${BUILD_DIR}" "${SOURCE_DIR}"
+  ${AUTOGRAPH_CMAKE_CMD} --no-warn-unused-cli \
+    -DCMAKE_BUILD_TYPE=${AUTOGRAPH_BUILD_TYPE} \
+    -DAUTOGRAPH_INSTALL=${AUTOGRAPH_INSTALL} \
+    -DAUTOGRAPH_TESTS=${AUTOGRAPH_TESTS} \
+    -B "${BUILD_DIR}" "${SOURCE_DIR}"
 }
 
 build_target() {

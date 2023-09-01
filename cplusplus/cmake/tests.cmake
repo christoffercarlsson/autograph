@@ -5,7 +5,7 @@ if(AUTOGRAPH_TESTS)
        ${CMAKE_CURRENT_SOURCE_DIR}/tests/*.cpp)
   add_executable(autograph-tests ${AUTOGRAPH_TEST_SOURCES})
 
-  target_link_libraries(autograph-tests PRIVATE autograph
+  target_link_libraries(autograph-tests PRIVATE ${AUTOGRAPH_TARGET}
                                                 Catch2::Catch2WithMain)
 
   target_include_directories(autograph-tests
