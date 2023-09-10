@@ -1,5 +1,6 @@
 coverage
 dist
+wasm
 .eslintrc.cjs
 .prettierrc.cjs
 jest.config.cjs

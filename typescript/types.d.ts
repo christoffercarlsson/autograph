@@ -1,44 +1,42 @@
 export type SafetyNumberResult = {
   success: boolean
-  safetyNumber: BufferSource
+  safetyNumber: Uint8Array
 }
 
 export type SafetyNumberFunction = (
-  theirIdentityKey: BufferSource
+  theirIdentityKey: Uint8Array
 ) => Promise<SafetyNumberResult>
 
 export type SignResult = {
   success: boolean
-  signature: BufferSource
+  signature: Uint8Array
 }
 
 export type DecryptionResult = {
   success: boolean
-  data: BufferSource
+  data: Uint8Array
 }
 
 export type EncryptionResult = {
   success: boolean
-  message: BufferSource
+  message: Uint8Array
 }
 
-export type SignDataFunction = (data: BufferSource) => Promise<SignResult>
+export type SignDataFunction = (data: Uint8Array) => Promise<SignResult>
 
 export type SignIdentityFunction = () => Promise<SignResult>
 
-export type DecryptFunction = (
-  message: BufferSource
-) => Promise<DecryptionResult>
+export type DecryptFunction = (message: Uint8Array) => Promise<DecryptionResult>
 
-export type EncryptFunction = (data: BufferSource) => Promise<EncryptionResult>
+export type EncryptFunction = (data: Uint8Array) => Promise<EncryptionResult>
 
 export type VerifyDataFunction = (
-  certificates: BufferSource,
-  data: BufferSource
+  certificates: Uint8Array,
+  data: Uint8Array
 ) => Promise<boolean>
 
 export type VerifyIdentityFunction = (
-  certificates: BufferSource
+  certificates: Uint8Array
 ) => Promise<boolean>
 
 export type Session = {
@@ -56,12 +54,12 @@ export type KeyExchangeVerificationResult = {
 }
 
 export type KeyExchangeVerificationFunction = (
-  handshake: BufferSource
+  handshake: Uint8Array
 ) => Promise<KeyExchangeVerificationResult>
 
 export type KeyPair = {
-  publicKey: BufferSource
-  privateKey: BufferSource
+  publicKey: Uint8Array
+  privateKey: Uint8Array
 }
 
 export type KeyPairResult = {
@@ -70,7 +68,7 @@ export type KeyPairResult = {
 }
 
 export type KeyExchange = {
-  handshake: BufferSource
+  handshake: Uint8Array
   verify: KeyExchangeVerificationFunction
 }
 
@@ -81,8 +79,8 @@ export type KeyExchangeResult = {
 
 export type KeyExchangeFunction = (
   ourEphemeralKeyPair: KeyPair,
-  theirIdentityKey: BufferSource,
-  theirEphemeralKey: BufferSource
+  theirIdentityKey: Uint8Array,
+  theirEphemeralKey: Uint8Array
 ) => Promise<KeyExchangeResult>
 
 export type Party = {
@@ -91,5 +89,21 @@ export type Party = {
 }
 
 export type SignFunction = (
-  subject: BufferSource
+  subject: Uint8Array
 ) => Promise<SignResult> | SignResult
+
+export type EmscriptenModule = {
+  _malloc: (size: number) => number
+  _free: (ptr: number) => void
+  ccall: (
+    name: string,
+    returnType: string,
+    types: string[],
+    values: (number | bigint)[]
+  ) => number
+  HEAPU8: Uint8Array
+}
+
+export type EmscriptenValue = number | bigint | Uint8Array
+
+export type EmscriptenAddressPool = Map<number, Uint8Array>

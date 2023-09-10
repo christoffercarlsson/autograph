@@ -1,11 +1,11 @@
 import { build } from 'esbuild'
 import sourceMapPlugin from 'esbuild-plugin-exclude-vendor-source-maps'
 import { globby } from 'globby'
-import { exit } from 'process'
+import { exit } from 'node:process'
+import { copyFile } from 'node:fs/promises'
 
 const run = async () => {
   const sharedOptions = {
-    chunkNames: 'src/[hash]',
     format: 'esm',
     outbase: '.',
     outdir: 'dist',
@@ -17,13 +17,13 @@ const run = async () => {
     ...sharedOptions,
     entryPoints: ['src/autograph.ts'],
     bundle: true,
-    external: ['stedy'],
     splitting: true
   })
   await build({
     ...sharedOptions,
     entryPoints: await globby('tests/**/*.test.ts')
   })
+  await copyFile('wasm/autograph.wasm', 'dist/src/autograph.wasm')
 }
 
 run().catch((error) => {

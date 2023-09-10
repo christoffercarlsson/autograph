@@ -48,6 +48,7 @@ module.exports = {
     }
   },
   rules: {
+    camelcase: 'off',
     'no-bitwise': 'off',
     'no-restricted-syntax': 'off',
     'node/no-missing-import': 'off',

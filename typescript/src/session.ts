@@ -1,4 +1,3 @@
-import { alloc, concat, createFrom } from 'stedy/bytes'
 import {
   DecryptFunction,
   EncryptFunction,
@@ -8,91 +7,76 @@ import {
   VerifyDataFunction,
   VerifyIdentityFunction
 } from '../types'
-import { decrypt, encrypt } from './crypto/cipher'
-import { verify as verifySignature } from './crypto/sign'
-import { createErrorSignResult, ensureSignResult } from './utils'
+import { createMessageBytes, createPlaintextBytes } from './utils'
+import {
+  autograph_decrypt,
+  autograph_encrypt,
+  autograph_verify_data,
+  autograph_verify_identity
+} from './clib'
 
 export const createDecrypt =
-  (theirSecretKey: BufferSource): DecryptFunction =>
-  async (message: BufferSource) => {
-    const [nonce, ciphertext] = createFrom(message).read(8)
-    try {
-      const data = await decrypt(
-        theirSecretKey,
-        nonce.readUint64BE() as bigint,
-        ciphertext
-      )
-      return { success: true, data }
-    } catch (error) {
-      return {
-        success: false,
-        data: alloc(Math.max(ciphertext.byteLength - 16, 0))
-      }
-    }
+  (theirSecretKey: Uint8Array): DecryptFunction =>
+  async (message: Uint8Array) => {
+    const data = createPlaintextBytes(message.byteLength)
+    const success = await autograph_decrypt(
+      data,
+      theirSecretKey,
+      message,
+      BigInt(message.byteLength)
+    )
+    return { success, data }
   }
 
-export const createEncrypt = (ourSecretKey: BufferSource): EncryptFunction => {
+export const createEncrypt = (ourSecretKey: Uint8Array): EncryptFunction => {
   let index = 0n
-  return async (data: BufferSource) => {
+  return async (data: Uint8Array) => {
     index += 1n
-    try {
-      const ciphertext = await encrypt(ourSecretKey, index, data)
-      const nonce = alloc(8).writeUint64BE(index)
-      const message = concat([nonce, ciphertext])
-      return { success: true, message }
-    } catch (error) {
-      return { success: false, message: alloc(data.byteLength + 24) }
-    }
+    const message = createMessageBytes(data.byteLength)
+    const success = await autograph_encrypt(
+      message,
+      ourSecretKey,
+      index,
+      data,
+      BigInt(data.byteLength)
+    )
+    return { success, message }
   }
 }
 
 export const createSignData =
-  (sign: SignFunction, theirPublicKey: BufferSource): SignDataFunction =>
-  async (data: BufferSource) => {
-    try {
-      const result = await sign(concat([data, theirPublicKey]))
-      return ensureSignResult(result)
-    } catch (error) {
-      return createErrorSignResult()
-    }
+  (sign: SignFunction, theirPublicKey: Uint8Array): SignDataFunction =>
+  async (data: Uint8Array) => {
+    const subject = new Uint8Array(data.byteLength + theirPublicKey.byteLength)
+    subject.set(data)
+    subject.set(theirPublicKey, data.byteLength)
+    return sign(subject)
   }
 
 export const createSignIdentity =
-  (sign: SignFunction, theirPublicKey: BufferSource): SignIdentityFunction =>
-  async () => {
-    try {
-      const result = await sign(theirPublicKey)
-      return ensureSignResult(result)
-    } catch (error) {
-      return createErrorSignResult()
-    }
-  }
+  (sign: SignFunction, theirPublicKey: Uint8Array): SignIdentityFunction =>
+  async () =>
+    sign(theirPublicKey)
 
-const verifyCertificates = async (
-  certificates: BufferSource,
-  subject: BufferSource
-) => {
-  try {
-    const results = await Promise.all(
-      createFrom(certificates)
-        .split(96)
-        .map((certificate) => {
-          const [identityKey, signature] = certificate.read(32)
-          return verifySignature(subject, identityKey, signature)
-        })
-    )
-    return results.length > 0 && results.every((result) => result === true)
-  } catch (error) {
-    return false
-  }
-}
+const countCertificates = (certificates: Uint8Array) =>
+  BigInt(certificates.byteLength / 96)
 
 export const createVerifyData =
-  (theirIdentityKey: BufferSource): VerifyDataFunction =>
-  (certificates: BufferSource, data: BufferSource) =>
-    verifyCertificates(certificates, concat([data, theirIdentityKey]))
+  (theirIdentityKey: Uint8Array): VerifyDataFunction =>
+  (certificates: Uint8Array, data: Uint8Array) =>
+    autograph_verify_data(
+      theirIdentityKey,
+      certificates,
+      countCertificates(certificates),
+      data,
+      BigInt(data.byteLength)
+    )
 
 export const createVerifyIdentity =
-  (theirIdentityKey: BufferSource): VerifyIdentityFunction =>
-  async (certificates: BufferSource) =>
-    verifyCertificates(certificates, theirIdentityKey)
+  (theirIdentityKey: Uint8Array): VerifyIdentityFunction =>
+  async (certificates: Uint8Array) =>
+    autograph_verify_identity(
+      theirIdentityKey,
+      certificates,
+      countCertificates(certificates)
+    )

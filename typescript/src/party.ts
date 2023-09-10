@@ -5,7 +5,7 @@ import createSafetyNumber from './safety-number'
 const createParty = (
   isInitiator: boolean,
   sign: SignFunction,
-  identityPublicKey: BufferSource
+  identityPublicKey: Uint8Array
 ): Party => ({
   calculateSafetyNumber: createSafetyNumber(identityPublicKey),
   performKeyExchange: createKeyExchange(isInitiator, sign, identityPublicKey)

@@ -1,56 +1,13 @@
-import {
-  generateKeyPair as generateX25519KeyPair,
-  generateSignKeyPair as generateEd25519KeyPair
-} from 'stedy'
-import { alloc } from 'stedy/bytes'
-import { KeyPair, KeyPairResult, SignFunction } from '../types'
+import { autograph_init as init } from './clib'
+import { generateIdentityKeyPair, generateEphemeralKeyPair } from './key-pair'
 import createParty from './party'
-import { createErrorSignResult, ensureSignResult, exportKeyPair } from './utils'
-import { sign } from './crypto/sign'
-
-const createKeyPairResult = async (
-  success: boolean,
-  keyPair?: KeyPair
-): Promise<KeyPairResult> => {
-  if (success) {
-    return { success, keyPair: await exportKeyPair(keyPair) }
-  }
-  return { success, keyPair: { publicKey: alloc(32), privateKey: alloc(32) } }
-}
-
-const generateIdentityKeyPair = async (): Promise<KeyPairResult> => {
-  try {
-    const keyPair = await generateEd25519KeyPair()
-    return createKeyPairResult(true, keyPair)
-  } catch (error) {
-    return createKeyPairResult(false)
-  }
-}
-
-const generateEphemeralKeyPair = async (): Promise<KeyPairResult> => {
-  try {
-    const keyPair = await generateX25519KeyPair()
-    return createKeyPairResult(true, keyPair)
-  } catch (error) {
-    return createKeyPairResult(false)
-  }
-}
-
-const createSign =
-  (identityPrivateKey: BufferSource): SignFunction =>
-  async (subject: BufferSource) => {
-    try {
-      const signature = await sign(identityPrivateKey, subject)
-      return ensureSignResult({ success: true, signature })
-    } catch (error) {
-      return createErrorSignResult()
-    }
-  }
+import { createSign } from './sign'
+import { KeyPair, SignFunction } from '../types'
 
 const ensureParty = (
   isInitiator: boolean,
   a: KeyPair | SignFunction,
-  b?: BufferSource
+  b?: Uint8Array
 ) => {
   const keyPair = a as KeyPair
   if (ArrayBuffer.isView(keyPair.privateKey)) {
@@ -63,10 +20,10 @@ const ensureParty = (
   return createParty(isInitiator, a as SignFunction, b)
 }
 
-const createInitiator = (a: KeyPair | SignFunction, b?: BufferSource) =>
+const createInitiator = (a: KeyPair | SignFunction, b?: Uint8Array) =>
   ensureParty(true, a, b)
 
-const createResponder = (a: KeyPair | SignFunction, b?: BufferSource) =>
+const createResponder = (a: KeyPair | SignFunction, b?: Uint8Array) =>
   ensureParty(false, a, b)
 
 export {
@@ -74,5 +31,6 @@ export {
   createResponder,
   createSign,
   generateIdentityKeyPair,
-  generateEphemeralKeyPair
+  generateEphemeralKeyPair,
+  init
 }
