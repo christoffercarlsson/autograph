@@ -57,11 +57,7 @@ internal func createSignData(
       data,
       dataSize
     )
-    let result = sign(subject)
-    return SignResult(
-      success: result.success,
-      signature: result.signature
-    )
+    return sign(subject)
   }
   return signDataFunction
 }
@@ -71,11 +67,7 @@ internal func createSignIdentity(
   theirPublicKey: Bytes
 ) -> SignIdentityFunction {
   let signIdentityFunction: SignIdentityFunction = { [sign, theirPublicKey] in
-    let result = sign(theirPublicKey)
-    return SignResult(
-      success: result.success,
-      signature: result.signature
-    )
+    sign(theirPublicKey)
   }
   return signIdentityFunction
 }
