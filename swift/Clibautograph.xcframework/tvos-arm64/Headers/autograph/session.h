@@ -24,12 +24,10 @@ int autograph_sign_identity(unsigned char *signature,
                             const unsigned char *our_private_key,
                             const unsigned char *their_public_key);
 
-void autograph_subject(unsigned char *subject,
+int autograph_subject(unsigned char *subject,
                        const unsigned char *their_public_key,
                        const unsigned char *data,
                        const unsigned long long data_size);
-
-unsigned long long autograph_subject_size(const unsigned long long data_size);
 
 int autograph_verify_data(const unsigned char *their_public_key,
                           const unsigned char *certificates,
