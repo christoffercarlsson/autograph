@@ -49,13 +49,12 @@ internal func createSignData(
   theirPublicKey: Bytes
 ) -> SignDataFunction {
   let signDataFunction: SignDataFunction = { [sign, theirPublicKey] data in
-    let dataSize = UInt64(data.count)
-    var subject = createSubjectBytes(size: dataSize)
+    var subject = createSubjectBytes(size: data.count)
     autograph_subject(
       &subject,
       theirPublicKey,
       data,
-      dataSize
+      UInt64(data.count)
     )
     return sign(subject)
   }

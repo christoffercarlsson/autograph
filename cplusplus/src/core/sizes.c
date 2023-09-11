@@ -8,9 +8,9 @@ unsigned int autograph_private_key_size() { return 32; }
 
 unsigned int autograph_public_key_size() { return 32; }
 
-unsigned int autograph_secret_key_size() { return 32; }
-
 unsigned int autograph_safety_number_size() { return 60; }
+
+unsigned int autograph_secret_key_size() { return 32; }
 
 unsigned int autograph_signature_size() { return 64; }
 

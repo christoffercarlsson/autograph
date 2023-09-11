@@ -1,14 +1,14 @@
 import Clibautograph
 import Foundation
 
-internal let HANDSHAKE_SIZE = Int(autograph_handshake_size())
-internal let MESSAGE_EXTRA_SIZE = Int(autograph_message_extra_size())
-internal let PRIVATE_KEY_SIZE = Int(autograph_private_key_size())
-internal let PUBLIC_KEY_SIZE = Int(autograph_public_key_size())
-internal let SAFETY_NUMBER_SIZE = Int(autograph_safety_number_size())
-internal let SECRET_KEY_SIZE = Int(autograph_secret_key_size())
-internal let SIGNATURE_SIZE = Int(autograph_signature_size())
-internal let TRANSCRIPT_SIZE = Int(autograph_transcript_size())
+internal let HANDSHAKE_SIZE = 80
+internal let MESSAGE_EXTRA_SIZE = 24
+internal let PRIVATE_KEY_SIZE = 32
+internal let PUBLIC_KEY_SIZE = 32
+internal let SAFETY_NUMBER_SIZE = 60
+internal let SECRET_KEY_SIZE = 32
+internal let SIGNATURE_SIZE = 64
+internal let TRANSCRIPT_SIZE = 128
 
 internal func createBytes(_ size: Int) -> Bytes {
   Bytes(repeating: 0, count: size)
@@ -46,8 +46,8 @@ internal func createSignatureBytes() -> Bytes {
   createBytes(SIGNATURE_SIZE)
 }
 
-internal func createSubjectBytes(size: UInt64) -> Bytes {
-  createBytes(Int(autograph_subject_size(size)))
+internal func createSubjectBytes(size: Int) -> Bytes {
+  createBytes(PUBLIC_KEY_SIZE + size)
 }
 
 internal func createTranscriptBytes() -> Bytes {

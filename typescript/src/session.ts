@@ -7,10 +7,15 @@ import {
   VerifyDataFunction,
   VerifyIdentityFunction
 } from '../types'
-import { createMessageBytes, createPlaintextBytes } from './utils'
+import {
+  createMessageBytes,
+  createPlaintextBytes,
+  createSubjectBytes
+} from './utils'
 import {
   autograph_decrypt,
   autograph_encrypt,
+  autograph_subject,
   autograph_verify_data,
   autograph_verify_identity
 } from './clib'
@@ -47,9 +52,13 @@ export const createEncrypt = (ourSecretKey: Uint8Array): EncryptFunction => {
 export const createSignData =
   (sign: SignFunction, theirPublicKey: Uint8Array): SignDataFunction =>
   async (data: Uint8Array) => {
-    const subject = new Uint8Array(data.byteLength + theirPublicKey.byteLength)
-    subject.set(data)
-    subject.set(theirPublicKey, data.byteLength)
+    const subject = createSubjectBytes(data.byteLength)
+    await autograph_subject(
+      subject,
+      theirPublicKey,
+      data,
+      BigInt(data.byteLength)
+    )
     return sign(subject)
   }
 

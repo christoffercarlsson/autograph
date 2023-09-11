@@ -14,4 +14,6 @@ export const createSecretKeyBytes = () => new Uint8Array(32)
 
 export const createSignatureBytes = () => new Uint8Array(64)
 
+export const createSubjectBytes = (size: number) => new Uint8Array(size + 32)
+
 export const createTranscriptBytes = () => new Uint8Array(128)

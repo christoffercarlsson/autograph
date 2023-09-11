@@ -7,7 +7,7 @@ namespace Autograph {
 SignDataFunction createSignData(const SignFunction sign,
                                 const Bytes theirPublicKey) {
   auto signDataFunction = [sign, theirPublicKey](const Bytes data) {
-    Bytes subject(autograph_subject_size(data.size()));
+    Bytes subject(data.size() + 32);
     autograph_subject(subject.data(), theirPublicKey.data(), data.data(),
                       data.size());
     auto signResult = sign(subject);
