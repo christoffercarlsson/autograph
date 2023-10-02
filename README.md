@@ -1,6 +1,6 @@
 # The Autograph Protocol
 
-Revision 3 (Draft 4), 2023-08-22
+Revision 3 (Draft 5), 2023-10-02
 
 Christoffer Carlsson (editor)
 
