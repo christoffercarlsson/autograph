@@ -166,10 +166,16 @@ parameters:
 | Name     | Definition                                                                             |
 | :------- | :------------------------------------------------------------------------------------- |
 | MAX_SKIP | The maximum number of message keys that can be skipped during the current protocol run |
+| CTX      | An arbitrary byte sequence that describes the current application context              |
 
 The **MAX_SKIP** constant should be set high enough to tolerate routine lost or
 delayed messages, but low enough that a malicious sender can't trigger excessive
 recipient computation.
+
+**CTX** is an optional byte sequence that is used as additional input to key
+deriviation calculations. It can be set to any arbitrary value that Alice and
+Bob agrees upon. If CTX is not given, it is interpreted as an empty byte
+sequence.
 
 ## 3. The Autograph protocol
 
@@ -343,7 +349,7 @@ producing the message M<sub>N<sub>A</sub></sub>:
 ```python
 def EncryptMessage(state, d):
   state.Ns += 1
-  state.SKs = KDF(state.SKs, state.Ns)
+  state.SKs = KDF(state.SKs, CONCAT(CTX, state.Ns))
   mk = KDF(state.SKs, state.Ns)
   m = ENCRYPT(mk, d)
   del mk
@@ -362,7 +368,7 @@ def DecryptMessage(state, m):
     return n, plaintext
   while plaintext == None:
     state.Nr += 1
-    state.SKr = KDF(state.SKr, state.Nr)
+    state.SKr = KDF(state.SKr, CONCAT(CTX, state.Nr))
     mk = KDF(state.SKr, state.Nr)
     plaintext = DECRYPT(mk, m)
     if plaintext == None:
