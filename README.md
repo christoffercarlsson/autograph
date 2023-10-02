@@ -58,9 +58,11 @@ Autograph requires defining the following functions:
 - **ENCRYPT(K, M)** returns the ciphertext of the ChaCha20-Poly1305
   \[[1](#7-references)\] encryption of plaintext **M** with the 256-bit key
   **K**. The nonce is 12 zero-filled bytes. The 128-bit authentication tag is
-  appended to the ciphertext.
+  appended to the ciphertext. Prior to encrypting, the plaintext M is padded to
+  a block size of 16 bytes using the ISO/IEC 7816-4 padding algorithm.
 - **DECRYPT(K, C)** returns plaintext of the ChaCha20-Poly1305 decryption of
-  ciphertext **C** with the key **K** and nonce **N**.
+  ciphertext **C** with the key **K** and nonce **N**. The plaintext padding is
+  removed following a successful decryption.
 - **DH(K1, K2)** returns 32 bytes of shared secret output from the X25519
   \[[2](#7-references)\] Elliptic Curve Diffie-Hellman (ECDH)
   \[[3](#7-references)\] function involving the private key **K1** and the
