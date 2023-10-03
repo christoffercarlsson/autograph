@@ -8,12 +8,12 @@ Christoffer Carlsson (editor)
 
 - [1. Introduction](#1-introduction)
 - [2. Preliminaries](#2-preliminaries)
-  - [2.1. External functions](#21-external-functions)
-  - [2.2. Roles](#22-roles)
-  - [2.3. Keys](#23-keys)
-  - [2.4. Message indexing](#24-message-indexing)
-  - [2.5. State variables](#25-state-variables)
-  - [2.6. Parameters](#26-parameters)
+  - [2.1. Parameters](#21-parameters)
+  - [2.2. External functions](#22-external-functions)
+  - [2.3. Roles](#23-roles)
+  - [2.4. Keys](#24-keys)
+  - [2.5. Message indexing](#25-message-indexing)
+  - [2.6. State variables](#26-state-variables)
 - [3. The Autograph protocol](#3-the-autograph-protocol)
   - [3.1. Initialization](#31-initialization)
   - [3.2. Key exchange](#32-key-exchange)
@@ -50,7 +50,20 @@ Autograph provides cryptographic deniability and forward secrecy.
 
 ## 2. Preliminaries
 
-### 2.1. External functions
+### 2.1. Parameters
+
+Prior to a protocol run, the parties involved will need to agree on the
+following parameters:
+
+| Name     | Definition                                                                             |
+| :------- | :------------------------------------------------------------------------------------- |
+| MAX_SKIP | The maximum number of message keys that can be skipped during the current protocol run |
+
+The **MAX_SKIP** constant should be set high enough to tolerate routine lost or
+delayed messages, but low enough that a malicious sender can't trigger excessive
+recipient computation.
+
+### 2.2. External functions
 
 Autograph requires defining the following functions:
 
@@ -88,7 +101,7 @@ Autograph requires defining the following functions:
   In the Python code that follows, the _DECRYPT()_ function returns _None_ if
   decryption fails.
 
-### 2.2. Roles
+### 2.3. Roles
 
 The Autograph protocol involves two parties. The protocol allows each party to
 send encrypted messages to the other party. The protocol also allows each party
@@ -105,7 +118,7 @@ during the key exchange.
 To simplify description this document will use the role **Alice** to refer to
 the initiator, and the role **Bob** to refer to the responder.
 
-### 2.3. Keys
+### 2.4. Keys
 
 Autograph will use the following elliptic curve key pairs:
 
@@ -124,16 +137,14 @@ long.
 
 Autograph will use the following symmetric secret keys:
 
-| Name           | Definition          |
-| :------------- | :------------------ |
-| SK<sub>A</sub> | Alice's secret key  |
-| SK<sub>B</sub> | Bob's secret key    |
-| MK<sub>A</sub> | Alice's message key |
-| MK<sub>B</sub> | Bob's message key   |
+| Name           | Definition         |
+| :------------- | :----------------- |
+| SK<sub>A</sub> | Alice's secret key |
+| SK<sub>B</sub> | Bob's secret key   |
 
 Secret keys will be 32 bytes long.
 
-### 2.4. Message indexing
+### 2.5. Message indexing
 
 Each message is indexed by a 64-bit big-endian unsigned integer N (N<sub>A</sub>
 for Alice, N<sub>B</sub> for Bob). The index is one-based. N is increased by 1
@@ -142,7 +153,7 @@ second message is assigned index 2, the third message 3, and so on:
 
 N<sub>1</sub> = 1, N<sub>2</sub> = 2, N<sub>3</sub> = 3 ... N<sub>i</sub> = i
 
-### 2.5. State variables
+### 2.6. State variables
 
 Each party tracks the following state variables:
 
@@ -159,25 +170,6 @@ Each party tracks the following state variables:
 
 In the Python code that follows, the state variables are accessed as members of
 a **state** object.
-
-### 2.6. Parameters
-
-Prior to a protocol run, Alice and Bob will need to agree on the following
-parameters:
-
-| Name     | Definition                                                                             |
-| :------- | :------------------------------------------------------------------------------------- |
-| MAX_SKIP | The maximum number of message keys that can be skipped during the current protocol run |
-| CTX      | An arbitrary byte sequence that describes the current application context              |
-
-The **MAX_SKIP** constant should be set high enough to tolerate routine lost or
-delayed messages, but low enough that a malicious sender can't trigger excessive
-recipient computation.
-
-**CTX** is an optional byte sequence that is used as additional input to key
-deriviation calculations. It can be set to any arbitrary value that Alice and
-Bob agrees upon. If CTX is not given, it is interpreted as an empty byte
-sequence.
 
 ## 3. The Autograph protocol
 
@@ -283,10 +275,10 @@ If both verifications succeeds, Alice and Bob have now established two 32-byte
 secret keys, SK<sub>A</sub> and SK<sub>B</sub>, that will be used to secure
 their communication during this protocol run.
 
-The ability to derive the correct SK<sub>A</sub> and SK<sub>B</sub> initial
-secret keys combined with the successful verification of H<sub>A</sub> and
-H<sub>B</sub> authenticates the key exchange and certifies that both Alice and
-Bob are in control of their IK and EK private keys.
+The ability to derive the correct SK<sub>A</sub> and SK<sub>B</sub> secret keys
+combined with the successful verification of H<sub>A</sub> and H<sub>B</sub>
+authenticates the key exchange and certifies that both Alice and Bob are in
+control of their IK and EK private keys.
 
 ### 3.3. Out-of-band verification
 
@@ -345,17 +337,14 @@ Alice and Bob performs a key exchange as described in
 For each message that Alice sends to Bob the following steps are performed:
 
 Alice encrypts some plaintext D<sub>N<sub>A</sub></sub> with the secret key
-MK<sub>A</sub> by calling _EncryptMessage()_ with D<sub>N<sub>A</sub></sub>,
+SK<sub>A</sub> by calling _EncryptMessage()_ with D<sub>N<sub>A</sub></sub>,
 producing the message M<sub>N<sub>A</sub></sub>:
 
 ```python
 def EncryptMessage(state, d):
   state.Ns += 1
-  state.SKs = KDF(state.SKs, CONCAT(CTX, state.Ns))
-  mk = KDF(state.SKs, state.Ns)
-  m = ENCRYPT(mk, d)
-  del mk
-  return m
+  state.SKs = KDF(state.SKs, state.Ns)
+  return ENCRYPT(state.SKs, d)
 ```
 
 Alice sends M<sub>N<sub>A</sub></sub> to Bob.
@@ -370,21 +359,18 @@ def DecryptMessage(state, m):
     return n, plaintext
   while plaintext == None:
     state.Nr += 1
-    state.SKr = KDF(state.SKr, CONCAT(CTX, state.Nr))
-    mk = KDF(state.SKr, state.Nr)
-    plaintext = DECRYPT(mk, m)
+    state.SKr = KDF(state.SKr, state.Nr)
+    plaintext = DECRYPT(state.SKr, m)
     if plaintext == None:
-      state.SKIPPED[state.Nr] = mk
-    else:
-      del mk
+      state.SKIPPED[state.Nr] = state.SKr
     if len(state.SKIPPED) > MAX_SKIP:
       del state.SKIPPED
       return 0, None
   return state.Nr, plaintext
 
 def TrySkippedMessageKeys(state, m):
-  for n, mk in state.SKIPPED.items():
-    plaintext = DECRYPT(mk, m)
+  for n, sk in state.SKIPPED.items():
+    plaintext = DECRYPT(sk, m)
     if plaintext != None:
       del state.SKIPPED[n]
       return n, plaintext
@@ -398,7 +384,7 @@ D<sub>N<sub>A</sub></sub> was sent by Alice and that it hasn't been tampered
 with in transit.
 
 By repeating the above steps, Bob can send encrypted messages back to Alice
-using the SK<sub>B</sub> and MK<sub>B</sub> secret keys.
+using the SK<sub>B</sub> secret key.
 
 ### 3.5. Certifying ownership
 
