@@ -93,8 +93,8 @@ Autograph requires defining the following functions:
   - Input keying material = The byte sequence **KM**.
   - Salt = A zero-filled byte sequence with the same length as the output of
     SHA-512 (64 bytes).
-  - Info = The byte sequence **C** representing the context for the derived key
-    material.
+  - Info = A 64-bit big-endian unsigned integer **C** representing the context
+    for the derived key material.
 - **HASH(M, N)** returns 64 bytes of SHA-512 output produced by iteratively
   hashing the byte sequence **M** **N** times.
 
@@ -219,8 +219,8 @@ def KeyExchangeBob(
   state.IK = alice_identity_public_key
   state.EK = alice_ephemeral_public_key
   ikm = DH(bob_ephemeral_private_key, state.EK)
-  state.SKs = KDF(ikm, bob_identity_public_key)
-  state.SKr = KDF(ikm, state.IK)
+  state.SKs = KDF(ikm, 1)
+  state.SKr = KDF(ikm, 0)
   state.T = CONCAT(state.IK, bob_identity_public_key)
   state.T = CONCAT(state.T, state.EK)
   state.T = CONCAT(state.T, bob_ephemeral_public_key)
@@ -247,8 +247,8 @@ def KeyExchangeAlice(
   state.IK = bob_identity_public_key
   state.EK = bob_ephemeral_public_key
   ikm = DH(alice_ephemeral_private_key, state.EK)
-  state.SKs = KDF(ikm, alice_identity_public_key)
-  state.SKr = KDF(ikm, state.IK)
+  state.SKs = KDF(ikm, 0)
+  state.SKr = KDF(ikm, 1)
   state.T = CONCAT(alice_identity_public_key, state.IK)
   state.T = CONCAT(state.T, alice_ephemeral_public_key)
   state.T = CONCAT(state.T, state.EK)
