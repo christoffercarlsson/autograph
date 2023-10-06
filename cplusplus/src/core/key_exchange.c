@@ -5,23 +5,22 @@
 #include "private.h"
 #include "sodium.h"
 
-const unsigned char CONTEXT_INITIATOR = 0;
-const unsigned char CONTEXT_RESPONDER = 1;
-
 int autograph_key_exchange_derive_keys(unsigned char *our_secret_key,
                                        unsigned char *their_secret_key,
                                        const unsigned int is_initiator,
                                        unsigned char *our_private_key,
                                        const unsigned char *their_public_key) {
   unsigned char ikm[32];
+  unsigned char context_initiator[8] = {0, 0, 0, 0, 0, 0, 0, 0};
+  unsigned char context_responder[8] = {0, 0, 0, 0, 0, 0, 0, 1};
   int dh_result =
       autograph_crypto_diffie_hellman(ikm, our_private_key, their_public_key);
   int our_key_result = autograph_crypto_kdf(
       our_secret_key, ikm,
-      is_initiator == 1 ? &CONTEXT_INITIATOR : &CONTEXT_RESPONDER);
+      is_initiator == 1 ? context_initiator : context_responder);
   int their_key_result = autograph_crypto_kdf(
       their_secret_key, ikm,
-      is_initiator == 1 ? &CONTEXT_RESPONDER : &CONTEXT_INITIATOR);
+      is_initiator == 1 ? context_responder : context_initiator);
   sodium_memzero(our_private_key, 32);
   sodium_memzero(ikm, 32);
   return dh_result == 0 && our_key_result == 0 && their_key_result == 0 ? 0
@@ -70,7 +69,7 @@ int autograph_key_exchange_signature(
     return -1;
   }
   int ciphertext_result =
-      autograph_crypto_encrypt(handshake, our_secret_key, 0, our_signature, 64);
+      autograph_crypto_encrypt(handshake, our_secret_key, our_signature, 64);
   if (ciphertext_result != 0) {
     return -1;
   }
@@ -111,7 +110,7 @@ int autograph_key_exchange_verify(const unsigned char *transcript,
                                   const unsigned char *ciphertext) {
   unsigned char signature[64];
   int decrypt_result =
-      autograph_crypto_decrypt(signature, their_secret_key, 0, ciphertext, 80);
+      autograph_crypto_decrypt(signature, their_secret_key, ciphertext, 80);
   if (decrypt_result != 0) {
     return -1;
   }

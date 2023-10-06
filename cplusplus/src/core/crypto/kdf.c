@@ -15,7 +15,7 @@ int autograph_crypto_kdf_expand(unsigned char *okm, const unsigned char *prk,
                                 const unsigned char *context) {
   crypto_auth_hmacsha512_state state;
   crypto_auth_hmacsha512_init(&state, prk, 64);
-  crypto_auth_hmacsha512_update(&state, context, 1);
+  crypto_auth_hmacsha512_update(&state, context, 8);
   const unsigned char counter = 1;
   crypto_auth_hmacsha512_update(&state, &counter, 1);
   return crypto_auth_hmacsha512_final(&state, okm);

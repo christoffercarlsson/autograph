@@ -19,8 +19,8 @@ set(AUTOGRAPH_EXPORTED_FUNCTIONS
     autograph_subject
     autograph_verify_data
     autograph_verify_identity
-    free
-    malloc)
+    calloc
+    free)
 
 string(JOIN "\'\,\'_" AUTOGRAPH_EXPORTED_FUNCTIONS
        ${AUTOGRAPH_EXPORTED_FUNCTIONS})

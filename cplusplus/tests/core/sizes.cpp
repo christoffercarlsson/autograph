@@ -8,7 +8,7 @@ TEST_CASE("Data sizes", "[core_sizes]") {
   }
 
   SECTION("should return the correct message extra size") {
-    REQUIRE(autograph_message_extra_size() == 24);
+    REQUIRE(autograph_message_extra_size() == 16);
   }
 
   SECTION("should return the correct private key size") {

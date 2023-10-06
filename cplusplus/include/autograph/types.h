@@ -21,11 +21,13 @@ struct KeyPairResult {
 
 struct DecryptionResult {
   bool success;
+  unsigned long long index;
   Bytes data;
 };
 
 struct EncryptionResult {
   bool success;
+  unsigned long long index;
   Bytes message;
 };
 

@@ -5,28 +5,40 @@
 #include "autograph.h"
 
 TEST_CASE("Message", "[core_message]") {
-  std::vector<unsigned char> secretKey = {
-      204, 150, 53,  221, 135, 13,  190, 124, 249, 0,   114,
-      60,  155, 58,  196, 204, 106, 115, 64,  123, 101, 116,
-      92,  214, 170, 19,  239, 225, 138, 163, 113, 129};
+  std::vector<unsigned char> ourSecretKey = {
+      50, 39, 85, 42,  95,  114, 112, 113, 69, 107, 88,
+      88, 7,  64, 247, 62,  198, 119, 19,  11, 207, 20,
+      76, 33, 81, 185, 177, 24,  255, 204, 65, 152};
+
+  std::vector<unsigned char> theirSecretKey = {
+      50, 39, 85, 42,  95,  114, 112, 113, 69, 107, 88,
+      88, 7,  64, 247, 62,  198, 119, 19,  11, 207, 20,
+      76, 33, 81, 185, 177, 24,  255, 204, 65, 152};
 
   std::vector<unsigned char> plaintext = {72, 101, 108, 108, 111, 32,
                                           87, 111, 114, 108, 100};
 
   std::vector<unsigned char> message = {
-      0,   0,   0,  0,   0,   0,   0,   1,   203, 203, 240, 117,
-      151, 142, 77, 113, 252, 151, 171, 12,  154, 177, 105, 6,
-      248, 79,  37, 105, 238, 243, 135, 194, 50,  34,  253};
+      133, 247, 214, 87, 210, 66, 77,  105, 105, 94,  229, 171, 72, 191,
+      74,  90,  69,  11, 177, 60, 219, 207, 74,  250, 37,  63,  165};
 
-  std::vector<unsigned char> encrypted(plaintext.size() + 24);
+  std::vector<unsigned char> encrypted(plaintext.size() + 16);
   std::vector<unsigned char> decrypted(plaintext.size());
+  std::vector<unsigned char> messageIndex(8);
+  std::vector<unsigned char> decryptIndex(8);
+  std::vector<unsigned char> skippedKeys(40002);
+  std::vector<unsigned char> encryptIndex(8);
 
   autograph_init();
 
-  int encryptResult = autograph_encrypt(encrypted.data(), secretKey.data(), 1,
-                                        plaintext.data(), plaintext.size());
-  int decryptResult = autograph_decrypt(decrypted.data(), secretKey.data(),
-                                        encrypted.data(), encrypted.size());
+  int encryptResult = autograph_encrypt(encrypted.data(), encryptIndex.data(),
+                                        ourSecretKey.data(), plaintext.data(),
+                                        plaintext.size());
+
+  int decryptResult = autograph_decrypt(decrypted.data(), messageIndex.data(),
+                                        decryptIndex.data(), skippedKeys.data(),
+                                        theirSecretKey.data(), encrypted.data(),
+                                        encrypted.size());
 
   REQUIRE(encryptResult == 0);
   REQUIRE(decryptResult == 0);

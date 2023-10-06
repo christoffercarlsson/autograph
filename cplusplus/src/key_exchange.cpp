@@ -6,9 +6,9 @@ namespace Autograph {
 
 KeyExchangeVerificationFunction createKeyExchangeVerification(
     const SignFunction sign, const Bytes theirPublicKey, const Bytes transcript,
-    const Bytes ourSecretKey, const Bytes theirSecretKey) {
+    Bytes ourSecretKey, Bytes theirSecretKey) {
   auto verify = [sign, theirPublicKey, transcript, ourSecretKey,
-                 theirSecretKey](const Bytes theirMessage) {
+                 theirSecretKey](const Bytes theirMessage) mutable {
     bool success = autograph_key_exchange_verify(
                        transcript.data(), theirPublicKey.data(),
                        theirSecretKey.data(), theirMessage.data()) == 0;

@@ -27,36 +27,39 @@ SignIdentityFunction createSignIdentity(const SignFunction sign,
   return signIdentityFunction;
 }
 
-DecryptFunction createDecrypt(const Bytes theirSecretKey) {
-  auto decryptFunction = [theirSecretKey](const Bytes message) {
-    Bytes plaintext(message.size() - 24);
-    bool success = autograph_decrypt(plaintext.data(), theirSecretKey.data(),
-                                     message.data(), message.size()) == 0;
-    DecryptionResult result = {success, plaintext};
+unsigned long long bytesToIndex(const Bytes bytes) {
+  unsigned long long number = 0;
+  for (unsigned int i = 0; i < 8; i++) {
+    number = (number << 8) | bytes[i];
+  }
+  return number;
+}
+
+DecryptFunction createDecrypt(Bytes theirSecretKey) {
+  Bytes messageIndex(8);
+  Bytes decryptIndex(8);
+  Bytes skippedKeys(40002);
+  auto decryptFunction = [theirSecretKey, messageIndex, decryptIndex,
+                          skippedKeys](const Bytes message) mutable {
+    Bytes plaintext(message.size() - 16);
+    bool success = autograph_decrypt(plaintext.data(), messageIndex.data(),
+                                     decryptIndex.data(), skippedKeys.data(),
+                                     theirSecretKey.data(), message.data(),
+                                     message.size()) == 0;
+    DecryptionResult result = {success, bytesToIndex(messageIndex), plaintext};
     return result;
   };
   return decryptFunction;
 }
 
-class EncryptionIndexCounter {
- public:
-  unsigned long long index;
-
-  EncryptionIndexCounter() : index(0) {}
-
-  void increment() { index += 1; }
-};
-
-EncryptFunction createEncrypt(const Bytes ourSecretKey) {
-  EncryptionIndexCounter indexCounter;
-  auto encryptFunction = [ourSecretKey,
-                          indexCounter](const Bytes plaintext) mutable {
-    indexCounter.increment();
-    Bytes ciphertext(plaintext.size() + 24);
-    bool success = autograph_encrypt(ciphertext.data(), ourSecretKey.data(),
-                                     indexCounter.index, plaintext.data(),
-                                     plaintext.size()) == 0;
-    EncryptionResult result = {success, ciphertext};
+EncryptFunction createEncrypt(Bytes ourSecretKey) {
+  Bytes index(8);
+  auto encryptFunction = [ourSecretKey, index](const Bytes plaintext) mutable {
+    Bytes ciphertext(plaintext.size() + 16);
+    bool success =
+        autograph_encrypt(ciphertext.data(), index.data(), ourSecretKey.data(),
+                          plaintext.data(), plaintext.size()) == 0;
+    EncryptionResult result = {success, bytesToIndex(index), ciphertext};
     return result;
   };
   return encryptFunction;

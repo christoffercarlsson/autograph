@@ -3,39 +3,132 @@
 #include <string.h>
 
 #include "private.h"
+#include "sodium.h"
 
-int autograph_decrypt(unsigned char *plaintext, const unsigned char *key,
-                      const unsigned char *message,
-                      const unsigned long long message_size) {
-  const unsigned long long index = ((unsigned long long)message[0] << 56) |
-                                   ((unsigned long long)message[1] << 48) |
-                                   ((unsigned long long)message[2] << 40) |
-                                   ((unsigned long long)message[3] << 32) |
-                                   ((unsigned long long)message[4] << 24) |
-                                   ((unsigned long long)message[5] << 16) |
-                                   ((unsigned long long)message[6] << 8) |
-                                   (unsigned long long)message[7];
-  return autograph_crypto_decrypt(plaintext, key, index, message + 8,
-                                  message_size - 8);
+void autograph_increment_index(unsigned char *index) {
+  unsigned long long number = 0;
+  for (int i = 0; i < 8; i++) {
+    number = (number << 8) | index[i];
+  }
+  number++;
+  for (int i = 7; i >= 0; i--) {
+    index[i] = (unsigned char)(number & 0xFF);
+    number >>= 8;
+  }
 }
 
-int autograph_encrypt(unsigned char *message, const unsigned char *key,
-                      const unsigned long long index,
-                      const unsigned char *plaintext,
-                      const unsigned long long plaintext_size) {
-  int result = autograph_crypto_encrypt(message + 8, key, index, plaintext,
-                                        plaintext_size);
-  if (result != 0) {
-    return -1;
+int autograph_kdf_ratchet(unsigned char *key, unsigned char *index) {
+  unsigned char k[32];
+  memmove(k, key, 32);
+  autograph_increment_index(index);
+  int result = autograph_crypto_kdf(key, k, index);
+  sodium_memzero(k, 32);
+  return result;
+}
+
+int autograph_session_fail(unsigned char *key, unsigned char *skipped_keys,
+                           unsigned char *message_index) {
+  sodium_memzero(key, 32);
+  if (skipped_keys != NULL) {
+    sodium_memzero(skipped_keys, 40002);
   }
-  message[0] = (index >> 56) & 0xFF;
-  message[1] = (index >> 48) & 0xFF;
-  message[2] = (index >> 40) & 0xFF;
-  message[3] = (index >> 32) & 0xFF;
-  message[4] = (index >> 24) & 0xFF;
-  message[5] = (index >> 16) & 0xFF;
-  message[6] = (index >> 8) & 0xFF;
-  message[7] = index & 0xFF;
+  sodium_memzero(message_index, 8);
+  return -1;
+}
+
+unsigned short autograph_skipped_keys_count(const unsigned char *skipped_keys) {
+  return ((skipped_keys[0] << 8) | skipped_keys[1]);
+}
+
+unsigned short autograph_skipped_keys_offset(const unsigned short i) {
+  return 2 + i * 40;
+}
+
+int autograph_update_skipped_keys(unsigned char *skipped_keys,
+                                  unsigned short count) {
+  skipped_keys[0] = (count >> 8) & 0xFF;
+  skipped_keys[1] = count & 0xFF;
+  unsigned short offset = autograph_skipped_keys_offset(count);
+  sodium_memzero(skipped_keys + offset, 40002 - offset);
+  return 0;
+}
+
+int autograph_delete_skipped_key(unsigned char *skipped_keys,
+                                 const unsigned short i) {
+  unsigned short new_count = autograph_skipped_keys_count(skipped_keys) - 1;
+  if (new_count > 0 && i != new_count) {
+    memmove(skipped_keys + autograph_skipped_keys_offset(i),
+            skipped_keys + autograph_skipped_keys_offset(new_count), 40);
+  }
+  return autograph_update_skipped_keys(skipped_keys, new_count);
+}
+
+int autograph_decrypt_skipped(unsigned char *plaintext,
+                              unsigned char *message_index,
+                              unsigned char *skipped_keys,
+                              const unsigned char *message,
+                              const unsigned long long message_size) {
+  unsigned short skipped_count = autograph_skipped_keys_count(skipped_keys);
+  if (skipped_count == 0) {
+    return 1;
+  }
+  for (int i = 0; i < skipped_count; i++) {
+    unsigned short offset = autograph_skipped_keys_offset(i);
+    if (autograph_crypto_decrypt(plaintext, skipped_keys + offset + 8, message,
+                                 message_size) == 0) {
+      memmove(message_index, skipped_keys + offset, 8);
+      return autograph_delete_skipped_key(skipped_keys, i) != 0 ? -1 : 0;
+    }
+  }
+  return 1;
+}
+
+int autograph_skip_key(unsigned char *key, unsigned char *message_index,
+                       unsigned char *skipped_keys) {
+  unsigned short new_count = autograph_skipped_keys_count(skipped_keys) + 1;
+  unsigned short offset = autograph_skipped_keys_offset(new_count);
+  memmove(skipped_keys + offset, message_index, 8);
+  memmove(skipped_keys + offset + 8, key, 32);
+  return autograph_update_skipped_keys(skipped_keys, new_count);
+}
+
+int autograph_decrypt(unsigned char *plaintext, unsigned char *message_index,
+                      unsigned char *decrypt_index, unsigned char *skipped_keys,
+                      unsigned char *key, const unsigned char *message,
+                      const unsigned long long message_size) {
+  int result = autograph_decrypt_skipped(plaintext, message_index, skipped_keys,
+                                         message, message_size);
+  if (result < 0) {
+    return autograph_session_fail(key, skipped_keys, message_index);
+  }
+  while (result != 0) {
+    if (autograph_kdf_ratchet(key, decrypt_index) != 0) {
+      return autograph_session_fail(key, skipped_keys, message_index);
+    }
+    result = autograph_crypto_decrypt(plaintext, key, message, message_size);
+    if (result == 0) {
+      memmove(message_index, decrypt_index, 8);
+    } else {
+      if (autograph_skipped_keys_count(skipped_keys) == 1000) {
+        return autograph_session_fail(key, skipped_keys, message_index);
+      }
+      if (autograph_skip_key(key, decrypt_index, skipped_keys) != 0) {
+        return autograph_session_fail(key, skipped_keys, message_index);
+      }
+    }
+  }
+  return 0;
+}
+
+int autograph_encrypt(unsigned char *message, unsigned char *message_index,
+                      unsigned char *key, const unsigned char *plaintext,
+                      const unsigned long long plaintext_size) {
+  if (autograph_kdf_ratchet(key, message_index) != 0) {
+    return autograph_session_fail(key, NULL, message_index);
+  }
+  if (autograph_crypto_encrypt(message, key, plaintext, plaintext_size) != 0) {
+    return autograph_session_fail(key, NULL, message_index);
+  }
   return 0;
 }
 
@@ -48,9 +141,7 @@ int autograph_sign_data(unsigned char *signature,
   unsigned char subject[subject_size];
   autograph_subject(subject, their_public_key, data, data_size);
   return autograph_crypto_sign(signature, our_private_key, subject,
-                               subject_size) == 0
-             ? 0
-             : -1;
+                               subject_size);
 }
 
 int autograph_sign_identity(unsigned char *signature,
@@ -61,9 +152,9 @@ int autograph_sign_identity(unsigned char *signature,
 }
 
 int autograph_subject(unsigned char *subject,
-                       const unsigned char *their_public_key,
-                       const unsigned char *data,
-                       const unsigned long long data_size) {
+                      const unsigned char *their_public_key,
+                      const unsigned char *data,
+                      const unsigned long long data_size) {
   if (data_size > 0) {
     memmove(subject, data, data_size);
   }
