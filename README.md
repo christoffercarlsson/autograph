@@ -1,6 +1,6 @@
 # The Autograph Protocol
 
-Revision 3 (Draft 5), 2023-10-02
+Revision 3 (Draft 5), 2023-10-06
 
 Christoffer Carlsson (editor)
 
@@ -8,12 +8,11 @@ Christoffer Carlsson (editor)
 
 - [1. Introduction](#1-introduction)
 - [2. Preliminaries](#2-preliminaries)
-  - [2.1. Parameters](#21-parameters)
-  - [2.2. External functions](#22-external-functions)
-  - [2.3. Roles](#23-roles)
-  - [2.4. Keys](#24-keys)
-  - [2.5. Message indexing](#25-message-indexing)
-  - [2.6. State variables](#26-state-variables)
+  - [2.1. External functions](#22-external-functions)
+  - [2.2. Roles](#23-roles)
+  - [2.3. Keys](#24-keys)
+  - [2.4. Message indexing](#25-message-indexing)
+  - [2.5. State variables](#26-state-variables)
 - [3. The Autograph protocol](#3-the-autograph-protocol)
   - [3.1. Initialization](#31-initialization)
   - [3.2. Key exchange](#32-key-exchange)
@@ -50,20 +49,7 @@ Autograph provides cryptographic deniability and forward secrecy.
 
 ## 2. Preliminaries
 
-### 2.1. Parameters
-
-Prior to a protocol run, the parties involved will need to agree on the
-following parameters:
-
-| Name     | Definition                                                                             |
-| :------- | :------------------------------------------------------------------------------------- |
-| MAX_SKIP | The maximum number of message keys that can be skipped during the current protocol run |
-
-The **MAX_SKIP** constant should be set high enough to tolerate routine lost or
-delayed messages, but low enough that a malicious sender can't trigger excessive
-recipient computation.
-
-### 2.2. External functions
+### 2.1. External functions
 
 Autograph requires defining the following functions:
 
@@ -101,7 +87,7 @@ Autograph requires defining the following functions:
   In the Python code that follows, the _DECRYPT()_ function returns _None_ if
   decryption fails.
 
-### 2.3. Roles
+### 2.2. Roles
 
 The Autograph protocol involves two parties. The protocol allows each party to
 send encrypted messages to the other party. The protocol also allows each party
@@ -118,7 +104,7 @@ during the key exchange.
 To simplify description this document will use the role **Alice** to refer to
 the initiator, and the role **Bob** to refer to the responder.
 
-### 2.4. Keys
+### 2.3. Keys
 
 Autograph will use the following elliptic curve key pairs:
 
@@ -144,7 +130,7 @@ Autograph will use the following symmetric secret keys:
 
 Secret keys will be 32 bytes long.
 
-### 2.5. Message indexing
+### 2.4. Message indexing
 
 Each message is indexed by a 64-bit big-endian unsigned integer N (N<sub>A</sub>
 for Alice, N<sub>B</sub> for Bob). The index is one-based. N is increased by 1
@@ -153,7 +139,7 @@ second message is assigned index 2, the third message 3, and so on:
 
 N<sub>1</sub> = 1, N<sub>2</sub> = 2, N<sub>3</sub> = 3 ... N<sub>i</sub> = i
 
-### 2.6. State variables
+### 2.5. State variables
 
 Each party tracks the following state variables:
 
@@ -363,7 +349,7 @@ def DecryptMessage(state, m):
     plaintext = DECRYPT(state.SKr, m)
     if plaintext == None:
       state.SKIPPED[state.Nr] = state.SKr
-    if len(state.SKIPPED) > MAX_SKIP:
+    if len(state.SKIPPED) > 1000:
       del state.SKIPPED
       return 0, None
   return state.Nr, plaintext
