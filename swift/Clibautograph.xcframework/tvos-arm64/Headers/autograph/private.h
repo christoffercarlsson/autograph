@@ -6,13 +6,11 @@ extern "C" {
 #endif
 
 int autograph_crypto_decrypt(unsigned char *plaintext, const unsigned char *key,
-                             const unsigned long long index,
                              const unsigned char *ciphertext,
                              const unsigned long long ciphertext_size);
 
 int autograph_crypto_encrypt(unsigned char *ciphertext,
                              const unsigned char *key,
-                             const unsigned long long index,
                              const unsigned char *plaintext,
                              const unsigned long long plaintext_size);
 

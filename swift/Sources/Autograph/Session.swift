@@ -1,45 +1,42 @@
 import Clibautograph
 import Foundation
 
-internal func createDecrypt(theirSecretKey: Bytes) -> DecryptFunction {
-  let decryptFunction: DecryptFunction = { [theirSecretKey] message in
+internal func createDecrypt(state: DecryptionState) -> DecryptFunction {
+  let decryptFunction: DecryptFunction = { [state] message in
     var data = createPlaintextBytes(size: message.count)
     let success = autograph_decrypt(
       &data,
-      theirSecretKey,
+      &state.messageIndex,
+      &state.decryptIndex,
+      &state.skippedKeys,
+      &state.secretKey,
       message,
       UInt64(message.count)
     ) == 0
-    return DecryptionResult(success: success, data: data)
+    return DecryptionResult(
+      success: success,
+      index: state.getMessageIndex(),
+      data: data
+    )
   }
   return decryptFunction
 }
 
-internal class EncryptionIndexCounter {
-  var index: UInt64
-
-  init() {
-    index = 0
-  }
-
-  public func increment() {
-    index += 1
-  }
-}
-
-internal func createEncrypt(ourSecretKey: Bytes) -> EncryptFunction {
-  let indexCounter = EncryptionIndexCounter()
-  let encryptFunction: EncryptFunction = { [ourSecretKey, indexCounter] data in
-    indexCounter.increment()
+internal func createEncrypt(state: EncryptionState) -> EncryptFunction {
+  let encryptFunction: EncryptFunction = { [state] data in
     var message = createMessageBytes(size: data.count)
     let success = autograph_encrypt(
       &message,
-      ourSecretKey,
-      indexCounter.index,
+      &state.messageIndex,
+      &state.secretKey,
       data,
       UInt64(data.count)
     ) == 0
-    return EncryptionResult(success: success, message: message)
+    return EncryptionResult(
+      success: success,
+      index: state.getMessageIndex(),
+      message: message
+    )
   }
   return encryptFunction
 }

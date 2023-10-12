@@ -38,8 +38,8 @@ internal func createKeyExchange(
       sign: safeSign,
       theirPublicKey: theirIdentityKey,
       transcript: transcript,
-      ourSecretKey: ourSecretKey,
-      theirSecretKey: theirSecretKey
+      ourSecretKey: &ourSecretKey,
+      theirSecretKey: &theirSecretKey
     )
     let keyExchange = KeyExchange(
       handshake: handshake,
@@ -55,25 +55,27 @@ internal func createKeyExchangeVerification(
   sign: @escaping SignFunction,
   theirPublicKey: Bytes,
   transcript: Bytes,
-  ourSecretKey: Bytes,
-  theirSecretKey: Bytes
+  ourSecretKey: inout Bytes,
+  theirSecretKey: inout Bytes
 ) -> KeyExchangeVerificationFunction {
+  let decryptState = DecryptionState(secretKey: &theirSecretKey)
+  let encryptState = EncryptionState(secretKey: &ourSecretKey)
   let verify: KeyExchangeVerificationFunction = { [
     sign,
     theirPublicKey,
     transcript,
-    ourSecretKey,
-    theirSecretKey
+    decryptState,
+    encryptState
   ] theirCiphertext in
     let success = autograph_key_exchange_verify(
       transcript,
       theirPublicKey,
-      theirSecretKey,
+      decryptState.secretKey,
       theirCiphertext
     ) == 0
     let session = Session(
-      decrypt: createDecrypt(theirSecretKey: theirSecretKey),
-      encrypt: createEncrypt(ourSecretKey: ourSecretKey),
+      decrypt: createDecrypt(state: decryptState),
+      encrypt: createEncrypt(state: encryptState),
       signData: createSignData(
         sign: sign,
         theirPublicKey: theirPublicKey

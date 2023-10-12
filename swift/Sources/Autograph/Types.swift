@@ -34,21 +34,57 @@ public class SignResult {
 
 public class DecryptionResult {
   var success: Bool
+  var index: UInt64
   var data: Bytes
 
-  init(success: Bool, data: Bytes) {
+  init(success: Bool, index: UInt64, data: Bytes) {
     self.success = success
+    self.index = index
     self.data = data
+  }
+}
+
+internal class DecryptionState {
+  var decryptIndex: Bytes
+  var messageIndex: Bytes
+  var secretKey: Bytes
+  var skippedKeys: Bytes
+
+  init(secretKey: inout Bytes) {
+    decryptIndex = createBytes(8)
+    messageIndex = createBytes(8)
+    self.secretKey = secretKey
+    skippedKeys = createBytes(40002)
+  }
+
+  func getMessageIndex() -> UInt64 {
+    bytesToIndex(messageIndex)
   }
 }
 
 public class EncryptionResult {
   var success: Bool
+  var index: UInt64
   var message: Bytes
 
-  init(success: Bool, message: Bytes) {
+  init(success: Bool, index: UInt64, message: Bytes) {
     self.success = success
+    self.index = index
     self.message = message
+  }
+}
+
+internal class EncryptionState {
+  var messageIndex: Bytes
+  var secretKey: Bytes
+
+  init(secretKey: inout Bytes) {
+    messageIndex = createBytes(8)
+    self.secretKey = secretKey
+  }
+
+  func getMessageIndex() -> UInt64 {
+    bytesToIndex(messageIndex)
   }
 }
 

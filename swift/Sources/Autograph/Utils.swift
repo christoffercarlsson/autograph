@@ -2,13 +2,21 @@ import Clibautograph
 import Foundation
 
 internal let HANDSHAKE_SIZE = 80
-internal let MESSAGE_EXTRA_SIZE = 24
+internal let MESSAGE_EXTRA_SIZE = 16
 internal let PRIVATE_KEY_SIZE = 32
 internal let PUBLIC_KEY_SIZE = 32
 internal let SAFETY_NUMBER_SIZE = 60
 internal let SECRET_KEY_SIZE = 32
 internal let SIGNATURE_SIZE = 64
 internal let TRANSCRIPT_SIZE = 128
+
+internal func bytesToIndex(_ bytes: Bytes) -> UInt64 {
+  var result: UInt64 = 0
+  for i in 0 ..< 8 {
+    result = (result << 8) | UInt64(bytes[i])
+  }
+  return result
+}
 
 internal func createBytes(_ size: Int) -> Bytes {
   Bytes(repeating: 0, count: size)
