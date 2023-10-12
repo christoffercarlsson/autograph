@@ -10,18 +10,18 @@ const createKeyPair = () => ({
   publicKey: createPublicKeyBytes()
 })
 
-export const generateEphemeralKeyPair = async (): Promise<KeyPairResult> => {
+export const generateEphemeralKeyPair = (): KeyPairResult => {
   const keyPair = createKeyPair()
-  const success = await autograph_key_pair_ephemeral(
+  const success = autograph_key_pair_ephemeral(
     keyPair.privateKey,
     keyPair.publicKey
   )
   return { success, keyPair }
 }
 
-export const generateIdentityKeyPair = async (): Promise<KeyPairResult> => {
+export const generateIdentityKeyPair = (): KeyPairResult => {
   const keyPair = createKeyPair()
-  const success = await autograph_key_pair_identity(
+  const success = autograph_key_pair_identity(
     keyPair.privateKey,
     keyPair.publicKey
   )

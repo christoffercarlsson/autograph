@@ -4,9 +4,9 @@ import { createSafetyNumberBytes } from './utils'
 
 const createSafetyNumber =
   (ourIdentityKey: Uint8Array): SafetyNumberFunction =>
-  async (theirIdentityKey: Uint8Array) => {
+  (theirIdentityKey: Uint8Array) => {
     const safetyNumber = createSafetyNumberBytes()
-    const success = await autograph_safety_number(
+    const success = autograph_safety_number(
       safetyNumber,
       ourIdentityKey,
       theirIdentityKey

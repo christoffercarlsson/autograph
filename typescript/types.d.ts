@@ -5,7 +5,7 @@ export type SafetyNumberResult = {
 
 export type SafetyNumberFunction = (
   theirIdentityKey: Uint8Array
-) => Promise<SafetyNumberResult>
+) => SafetyNumberResult
 
 export type SignResult = {
   success: boolean
@@ -14,30 +14,32 @@ export type SignResult = {
 
 export type DecryptionResult = {
   success: boolean
+  index: bigint
   data: Uint8Array
 }
 
 export type EncryptionResult = {
   success: boolean
+  index: bigint
   message: Uint8Array
 }
 
-export type SignDataFunction = (data: Uint8Array) => Promise<SignResult>
+export type SignDataFunction = (
+  data: Uint8Array
+) => SignResult | Promise<SignResult>
 
-export type SignIdentityFunction = () => Promise<SignResult>
+export type SignIdentityFunction = () => SignResult | Promise<SignResult>
 
-export type DecryptFunction = (message: Uint8Array) => Promise<DecryptionResult>
+export type DecryptFunction = (message: Uint8Array) => DecryptionResult
 
-export type EncryptFunction = (data: Uint8Array) => Promise<EncryptionResult>
+export type EncryptFunction = (data: Uint8Array) => EncryptionResult
 
 export type VerifyDataFunction = (
   certificates: Uint8Array,
   data: Uint8Array
-) => Promise<boolean>
+) => boolean
 
-export type VerifyIdentityFunction = (
-  certificates: Uint8Array
-) => Promise<boolean>
+export type VerifyIdentityFunction = (certificates: Uint8Array) => boolean
 
 export type Session = {
   decrypt: DecryptFunction
@@ -55,7 +57,7 @@ export type KeyExchangeVerificationResult = {
 
 export type KeyExchangeVerificationFunction = (
   handshake: Uint8Array
-) => Promise<KeyExchangeVerificationResult>
+) => KeyExchangeVerificationResult
 
 export type KeyPair = {
   publicKey: Uint8Array
@@ -93,7 +95,7 @@ export type SignFunction = (
 ) => Promise<SignResult> | SignResult
 
 export type EmscriptenModule = {
-  _malloc: (size: number) => number
+  _calloc: (size: number, elementSize: number) => number
   _free: (ptr: number) => void
   ccall: (
     name: string,

@@ -40,7 +40,7 @@ const createKeyExchange =
     const transcript = createTranscriptBytes()
     const ourSecretKey = createSecretKeyBytes()
     const theirSecretKey = createSecretKeyBytes()
-    const transcriptSuccess = await autograph_key_exchange_transcript(
+    const transcriptSuccess = autograph_key_exchange_transcript(
       transcript,
       isInitiator ? 1 : 0,
       identityPublicKey,
@@ -49,7 +49,7 @@ const createKeyExchange =
       theirEphemeralKey
     )
     const { success: signSuccess, signature } = await safeSign(transcript)
-    const keyExchangeSuccess = await autograph_key_exchange_signature(
+    const keyExchangeSuccess = autograph_key_exchange_signature(
       handshake,
       ourSecretKey,
       theirSecretKey,
@@ -80,8 +80,8 @@ const createKeyExchangeVerification =
     ourSecretKey: Uint8Array,
     theirSecretKey: Uint8Array
   ): KeyExchangeVerificationFunction =>
-  async (handshake: Uint8Array) => {
-    const success = await autograph_key_exchange_verify(
+  (handshake: Uint8Array) => {
+    const success = autograph_key_exchange_verify(
       transcript,
       theirIdentityKey,
       theirSecretKey,

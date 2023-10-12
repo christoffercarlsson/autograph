@@ -15,7 +15,7 @@ const allocate = (
   const values = args.map((value) => {
     if (value instanceof Uint8Array) {
       types.push('number')
-      const address = Module._malloc(value.byteLength)
+      const address = Module._calloc(value.byteLength, 1)
       addresses.set(address, value)
       Module.HEAPU8.set(value, address)
       return address
@@ -33,10 +33,7 @@ const deallocate = (addresses: EmscriptenAddressPool) => {
   })
 }
 
-const call = async (name: string, ...args: EmscriptenValue[]) => {
-  if (!Module) {
-    Module = (await wasmModule()) as EmscriptenModule
-  }
+const call = (name: string, ...args: EmscriptenValue[]) => {
   const addresses: EmscriptenAddressPool = new Map()
   const { types, values } = allocate(addresses, args)
   const result = Module.ccall(name, 'number', types, values)
@@ -46,20 +43,46 @@ const call = async (name: string, ...args: EmscriptenValue[]) => {
 
 export const autograph_decrypt = (
   plaintext: Uint8Array,
+  message_index: Uint8Array,
+  decrypt_index: Uint8Array,
+  skipped_keys: Uint8Array,
   key: Uint8Array,
   message: Uint8Array,
   message_size: bigint
-) => call('autograph_decrypt', plaintext, key, message, message_size)
+) =>
+  call(
+    'autograph_decrypt',
+    plaintext,
+    message_index,
+    decrypt_index,
+    skipped_keys,
+    key,
+    message,
+    message_size
+  )
 
 export const autograph_encrypt = (
   message: Uint8Array,
+  message_index: Uint8Array,
   key: Uint8Array,
-  index: bigint,
   plaintext: Uint8Array,
   plaintext_size: bigint
-) => call('autograph_encrypt', message, key, index, plaintext, plaintext_size)
+) =>
+  call(
+    'autograph_encrypt',
+    message,
+    message_index,
+    key,
+    plaintext,
+    plaintext_size
+  )
 
-export const autograph_init = async () => call('autograph_init')
+export const autograph_init = async () => {
+  if (!Module) {
+    Module = (await wasmModule()) as EmscriptenModule
+  }
+  return call('autograph_init')
+}
 
 export const autograph_key_exchange = (
   transcript: Uint8Array,
