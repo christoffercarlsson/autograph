@@ -8,7 +8,6 @@ import {
   VerifyIdentityFunction
 } from '../types'
 import {
-  bytesToIndex,
   createMessageBytes,
   createPlaintextBytes,
   createSubjectBytes
@@ -16,6 +15,8 @@ import {
 import {
   autograph_decrypt,
   autograph_encrypt,
+  autograph_read_uint32,
+  autograph_read_uint64,
   autograph_subject,
   autograph_verify_data,
   autograph_verify_identity
@@ -24,34 +25,44 @@ import {
 export const createDecrypt = (theirSecretKey: Uint8Array): DecryptFunction => {
   const messageIndex = new Uint8Array(8)
   const decryptIndex = new Uint8Array(8)
+  const plaintextSize = new Uint8Array(4)
   const skippedKeys = new Uint8Array(40002)
   return (message: Uint8Array) => {
-    const data = createPlaintextBytes(message.byteLength)
+    const plaintext = createPlaintextBytes(message.byteLength)
     const success = autograph_decrypt(
-      data,
+      plaintext,
+      plaintextSize,
       messageIndex,
       decryptIndex,
       skippedKeys,
       theirSecretKey,
       message,
-      BigInt(message.byteLength)
+      message.byteLength
     )
-    return { success, index: bytesToIndex(messageIndex), data }
+    return {
+      success,
+      index: autograph_read_uint64(messageIndex),
+      data: plaintext.subarray(0, autograph_read_uint32(plaintextSize))
+    }
   }
 }
 
 export const createEncrypt = (ourSecretKey: Uint8Array): EncryptFunction => {
   const messageIndex = new Uint8Array(8)
-  return (data: Uint8Array) => {
-    const message = createMessageBytes(data.byteLength)
+  return (plaintext: Uint8Array) => {
+    const message = createMessageBytes(plaintext.byteLength)
     const success = autograph_encrypt(
       message,
       messageIndex,
       ourSecretKey,
-      data,
-      BigInt(data.byteLength)
+      plaintext,
+      plaintext.byteLength
     )
-    return { success, index: bytesToIndex(messageIndex), message }
+    return {
+      success,
+      index: autograph_read_uint64(messageIndex),
+      message
+    }
   }
 }
 
@@ -59,7 +70,7 @@ export const createSignData =
   (sign: SignFunction, theirPublicKey: Uint8Array): SignDataFunction =>
   (data: Uint8Array) => {
     const subject = createSubjectBytes(data.byteLength)
-    autograph_subject(subject, theirPublicKey, data, BigInt(data.byteLength))
+    autograph_subject(subject, theirPublicKey, data, data.byteLength)
     return sign(subject)
   }
 
@@ -69,7 +80,7 @@ export const createSignIdentity =
     sign(theirPublicKey)
 
 const countCertificates = (certificates: Uint8Array) =>
-  BigInt(certificates.byteLength / 96)
+  certificates.byteLength / 96
 
 export const createVerifyData =
   (theirIdentityKey: Uint8Array): VerifyDataFunction =>
@@ -79,7 +90,7 @@ export const createVerifyData =
       certificates,
       countCertificates(certificates),
       data,
-      BigInt(data.byteLength)
+      data.byteLength
     )
 
 export const createVerifyIdentity =

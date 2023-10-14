@@ -15,6 +15,6 @@ int autograph_key_pair_identity(unsigned char *private_key,
   int result;
   result = crypto_sign_keypair(public_key, sk) == 0 ? 0 : -1;
   memmove(private_key, sk, 32);
-  sodium_memzero(sk, sizeof sk);
+  sodium_memzero(sk, 64);
   return result;
 }

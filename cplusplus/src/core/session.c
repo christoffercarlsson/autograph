@@ -2,14 +2,12 @@
 
 #include <string.h>
 
+#include "numbers.h"
 #include "private.h"
 #include "sodium.h"
 
 void autograph_increment_index(unsigned char *index) {
-  unsigned long long number = 0;
-  for (int i = 0; i < 8; i++) {
-    number = (number << 8) | index[i];
-  }
+  unsigned long long number = autograph_read_uint64(index);
   number++;
   for (int i = 7; i >= 0; i--) {
     index[i] = (unsigned char)(number & 0xFF);
@@ -64,17 +62,19 @@ int autograph_delete_skipped_key(unsigned char *skipped_keys,
 }
 
 int autograph_decrypt_skipped(unsigned char *plaintext,
+                              unsigned char *plaintext_size,
                               unsigned char *message_index,
                               unsigned char *skipped_keys,
                               const unsigned char *message,
-                              const unsigned long long message_size) {
+                              const unsigned int message_size) {
   unsigned short skipped_count = autograph_skipped_keys_count(skipped_keys);
   if (skipped_count == 0) {
     return 1;
   }
   for (int i = 0; i < skipped_count; i++) {
     unsigned short offset = autograph_skipped_keys_offset(i);
-    if (autograph_crypto_decrypt(plaintext, skipped_keys + offset + 8, message,
+    if (autograph_crypto_decrypt(plaintext, plaintext_size,
+                                 skipped_keys + offset + 8, message,
                                  message_size) == 0) {
       memmove(message_index, skipped_keys + offset, 8);
       return autograph_delete_skipped_key(skipped_keys, i) != 0 ? -1 : 0;
@@ -92,12 +92,14 @@ int autograph_skip_key(unsigned char *key, unsigned char *message_index,
   return autograph_update_skipped_keys(skipped_keys, new_count);
 }
 
-int autograph_decrypt(unsigned char *plaintext, unsigned char *message_index,
+int autograph_decrypt(unsigned char *plaintext, unsigned char *plaintext_size,
+                      unsigned char *message_index,
                       unsigned char *decrypt_index, unsigned char *skipped_keys,
                       unsigned char *key, const unsigned char *message,
-                      const unsigned long long message_size) {
-  int result = autograph_decrypt_skipped(plaintext, message_index, skipped_keys,
-                                         message, message_size);
+                      const unsigned int message_size) {
+  int result =
+      autograph_decrypt_skipped(plaintext, plaintext_size, message_index,
+                                skipped_keys, message, message_size);
   if (result < 0) {
     return autograph_session_fail(key, skipped_keys, message_index);
   }
@@ -105,7 +107,8 @@ int autograph_decrypt(unsigned char *plaintext, unsigned char *message_index,
     if (autograph_kdf_ratchet(key, decrypt_index) != 0) {
       return autograph_session_fail(key, skipped_keys, message_index);
     }
-    result = autograph_crypto_decrypt(plaintext, key, message, message_size);
+    result = autograph_crypto_decrypt(plaintext, plaintext_size, key, message,
+                                      message_size);
     if (result == 0) {
       memmove(message_index, decrypt_index, 8);
     } else {
@@ -122,7 +125,7 @@ int autograph_decrypt(unsigned char *plaintext, unsigned char *message_index,
 
 int autograph_encrypt(unsigned char *message, unsigned char *message_index,
                       unsigned char *key, const unsigned char *plaintext,
-                      const unsigned long long plaintext_size) {
+                      const unsigned int plaintext_size) {
   if (autograph_kdf_ratchet(key, message_index) != 0) {
     return autograph_session_fail(key, NULL, message_index);
   }
@@ -136,8 +139,8 @@ int autograph_sign_data(unsigned char *signature,
                         const unsigned char *our_private_key,
                         const unsigned char *their_public_key,
                         const unsigned char *data,
-                        const unsigned long long data_size) {
-  const unsigned long long subject_size = data_size + 32;
+                        const unsigned int data_size) {
+  unsigned int subject_size = data_size + 32;
   unsigned char subject[subject_size];
   autograph_subject(subject, their_public_key, data, data_size);
   return autograph_crypto_sign(signature, our_private_key, subject,
@@ -153,8 +156,7 @@ int autograph_sign_identity(unsigned char *signature,
 
 int autograph_subject(unsigned char *subject,
                       const unsigned char *their_public_key,
-                      const unsigned char *data,
-                      const unsigned long long data_size) {
+                      const unsigned char *data, const unsigned int data_size) {
   if (data_size > 0) {
     memmove(subject, data, data_size);
   }
@@ -164,16 +166,16 @@ int autograph_subject(unsigned char *subject,
 
 int autograph_verify_data(const unsigned char *their_public_key,
                           const unsigned char *certificates,
-                          const unsigned long long certificate_count,
+                          const unsigned int certificate_count,
                           const unsigned char *data,
-                          const unsigned long long data_size) {
+                          const unsigned int data_size) {
   if (certificates == NULL || certificate_count == 0) {
     return -1;
   }
-  const unsigned long long subject_size = data_size + 32;
+  unsigned int subject_size = data_size + 32;
   unsigned char subject[subject_size];
   autograph_subject(subject, their_public_key, data, data_size);
-  for (unsigned long long i = 0; i < certificate_count; i++) {
+  for (unsigned int i = 0; i < certificate_count; i++) {
     const unsigned char *certificate = certificates + i * 96;
     int verify_result = autograph_crypto_verify(certificate, subject,
                                                 subject_size, certificate + 32);
@@ -186,7 +188,7 @@ int autograph_verify_data(const unsigned char *their_public_key,
 
 int autograph_verify_identity(const unsigned char *their_public_key,
                               const unsigned char *certificates,
-                              const unsigned long long certificate_count) {
+                              const unsigned int certificate_count) {
   return autograph_verify_data(their_public_key, certificates,
                                certificate_count, NULL, 0);
 }

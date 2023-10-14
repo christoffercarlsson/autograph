@@ -18,12 +18,16 @@ TEST_CASE("Message", "[core_message]") {
   std::vector<unsigned char> plaintext = {72, 101, 108, 108, 111, 32,
                                           87, 111, 114, 108, 100};
 
-  std::vector<unsigned char> message = {
-      133, 247, 214, 87, 210, 66, 77,  105, 105, 94,  229, 171, 72, 191,
-      74,  90,  69,  11, 177, 60, 219, 207, 74,  250, 37,  63,  165};
+  std::vector<unsigned char> message = {133, 247, 214, 87,  210, 66,  77,  105,
+                                        105, 94,  229, 248, 76,  207, 31,  228,
+                                        73,  37,  32,  45,  125, 163, 240, 75,
+                                        45,  197, 224, 166, 218, 59,  107, 249};
 
-  std::vector<unsigned char> encrypted(plaintext.size() + 16);
-  std::vector<unsigned char> decrypted(plaintext.size());
+  auto ciphertextSize = autograph_ciphertext_size(plaintext.size());
+  auto plaintextSize = autograph_plaintext_size(ciphertextSize);
+
+  std::vector<unsigned char> encrypted(ciphertextSize);
+  std::vector<unsigned char> decrypted(plaintextSize);
   std::vector<unsigned char> messageIndex(8);
   std::vector<unsigned char> decryptIndex(8);
   std::vector<unsigned char> skippedKeys(40002);
@@ -35,10 +39,12 @@ TEST_CASE("Message", "[core_message]") {
                                         ourSecretKey.data(), plaintext.data(),
                                         plaintext.size());
 
-  int decryptResult = autograph_decrypt(decrypted.data(), messageIndex.data(),
-                                        decryptIndex.data(), skippedKeys.data(),
-                                        theirSecretKey.data(), encrypted.data(),
-                                        encrypted.size());
+  int decryptResult = autograph_decrypt(
+      decrypted.data(), NULL, messageIndex.data(), decryptIndex.data(),
+      skippedKeys.data(), theirSecretKey.data(), encrypted.data(),
+      encrypted.size());
+
+  decrypted.resize(plaintext.size());
 
   REQUIRE(encryptResult == 0);
   REQUIRE(decryptResult == 0);

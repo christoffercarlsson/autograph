@@ -3,38 +3,39 @@ import Foundation
 
 internal func createDecrypt(state: DecryptionState) -> DecryptFunction {
   let decryptFunction: DecryptFunction = { [state] message in
-    var data = createPlaintextBytes(size: message.count)
+    var data = createPlaintextBytes(message.count)
     let success = autograph_decrypt(
       &data,
+      &state.plaintextSize,
       &state.messageIndex,
       &state.decryptIndex,
       &state.skippedKeys,
       &state.secretKey,
       message,
-      UInt64(message.count)
+      UInt32(message.count)
     ) == 0
     return DecryptionResult(
       success: success,
-      index: state.getMessageIndex(),
-      data: data
+      index: state.readMessageIndex(),
+      data: state.resizeData(&data)
     )
   }
   return decryptFunction
 }
 
 internal func createEncrypt(state: EncryptionState) -> EncryptFunction {
-  let encryptFunction: EncryptFunction = { [state] data in
-    var message = createMessageBytes(size: data.count)
+  let encryptFunction: EncryptFunction = { [state] plaintext in
+    var message = createMessageBytes(plaintext.count)
     let success = autograph_encrypt(
       &message,
       &state.messageIndex,
       &state.secretKey,
-      data,
-      UInt64(data.count)
+      plaintext,
+      UInt32(plaintext.count)
     ) == 0
     return EncryptionResult(
       success: success,
-      index: state.getMessageIndex(),
+      index: state.readMessageIndex(),
       message: message
     )
   }
@@ -46,12 +47,12 @@ internal func createSignData(
   theirPublicKey: Bytes
 ) -> SignDataFunction {
   let signDataFunction: SignDataFunction = { [sign, theirPublicKey] data in
-    var subject = createSubjectBytes(size: data.count)
+    var subject = createSubjectBytes(data.count)
     autograph_subject(
       &subject,
       theirPublicKey,
       data,
-      UInt64(data.count)
+      UInt32(data.count)
     )
     return sign(subject)
   }
@@ -68,8 +69,8 @@ internal func createSignIdentity(
   return signIdentityFunction
 }
 
-private func countCertificates(_ certificates: Bytes) -> UInt64 {
-  UInt64(certificates.count / (PUBLIC_KEY_SIZE + SIGNATURE_SIZE))
+private func countCertificates(_ certificates: Bytes) -> UInt32 {
+  UInt32(certificates.count / (PUBLIC_KEY_SIZE + SIGNATURE_SIZE))
 }
 
 internal func createVerifyData(
@@ -82,7 +83,7 @@ internal func createVerifyData(
         certificates,
         countCertificates(certificates),
         data,
-        UInt64(data.count)
+        UInt32(data.count)
       ) == 0
     }
   return verifyDataFunction

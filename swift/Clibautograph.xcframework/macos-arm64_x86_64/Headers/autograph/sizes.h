@@ -5,9 +5,13 @@
 extern "C" {
 #endif
 
+unsigned int autograph_ciphertext_size(unsigned int plaintext_size);
+
 unsigned int autograph_handshake_size();
 
 unsigned int autograph_message_extra_size();
+
+unsigned int autograph_plaintext_size(unsigned int ciphertext_size);
 
 unsigned int autograph_private_key_size();
 

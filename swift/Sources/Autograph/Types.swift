@@ -1,3 +1,4 @@
+import Clibautograph
 import Foundation
 
 public typealias Bytes = [UInt8]
@@ -47,18 +48,28 @@ public class DecryptionResult {
 internal class DecryptionState {
   var decryptIndex: Bytes
   var messageIndex: Bytes
+  var plaintextSize: Bytes
   var secretKey: Bytes
   var skippedKeys: Bytes
 
   init(secretKey: inout Bytes) {
     decryptIndex = createBytes(8)
     messageIndex = createBytes(8)
+    plaintextSize = createBytes(4)
     self.secretKey = secretKey
     skippedKeys = createBytes(40002)
   }
 
-  func getMessageIndex() -> UInt64 {
-    bytesToIndex(messageIndex)
+  func readMessageIndex() -> UInt64 {
+    autograph_read_uint64(&messageIndex)
+  }
+
+  func readPlaintextSize() -> Int {
+    Int(autograph_read_uint32(&plaintextSize))
+  }
+
+  func resizeData(_ plaintext: inout Bytes) -> Bytes {
+    Array(plaintext[0 ..< readPlaintextSize()])
   }
 }
 
@@ -83,8 +94,8 @@ internal class EncryptionState {
     self.secretKey = secretKey
   }
 
-  func getMessageIndex() -> UInt64 {
-    bytesToIndex(messageIndex)
+  func readMessageIndex() -> UInt64 {
+    autograph_read_uint64(&messageIndex)
   }
 }
 

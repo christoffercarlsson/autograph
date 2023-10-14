@@ -1,11 +1,12 @@
-export const bytesToIndex = (bytes: Uint8Array) =>
-  new DataView(bytes.buffer, bytes.byteOffset, bytes.byteLength).getBigUint64(0)
+import { autograph_ciphertext_size, autograph_plaintext_size } from './clib'
 
-export const createHandshakeBytes = () => new Uint8Array(80)
+export const createHandshakeBytes = () => new Uint8Array(96)
 
-export const createMessageBytes = (size: number) => new Uint8Array(size + 16)
+export const createMessageBytes = (size: number) =>
+  new Uint8Array(autograph_ciphertext_size(size))
 
-export const createPlaintextBytes = (size: number) => new Uint8Array(size - 16)
+export const createPlaintextBytes = (size: number) =>
+  new Uint8Array(autograph_plaintext_size(size))
 
 export const createPrivateKeyBytes = () => new Uint8Array(32)
 

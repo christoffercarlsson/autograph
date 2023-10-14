@@ -62,18 +62,12 @@ int autograph_key_exchange_signature(
     const unsigned char *our_signature,
     unsigned char *our_private_ephemeral_key,
     const unsigned char *their_public_ephemeral_key) {
-  int derive_result = autograph_key_exchange_derive_keys(
-      our_secret_key, their_secret_key, is_initiator, our_private_ephemeral_key,
-      their_public_ephemeral_key);
-  if (derive_result != 0) {
+  if (autograph_key_exchange_derive_keys(
+          our_secret_key, their_secret_key, is_initiator,
+          our_private_ephemeral_key, their_public_ephemeral_key) != 0) {
     return -1;
   }
-  int ciphertext_result =
-      autograph_crypto_encrypt(handshake, our_secret_key, our_signature, 64);
-  if (ciphertext_result != 0) {
-    return -1;
-  }
-  return 0;
+  return autograph_crypto_encrypt(handshake, our_secret_key, our_signature, 64);
 }
 
 int autograph_key_exchange(unsigned char *transcript, unsigned char *handshake,
@@ -86,17 +80,15 @@ int autograph_key_exchange(unsigned char *transcript, unsigned char *handshake,
                            const unsigned char *our_public_ephemeral_key,
                            const unsigned char *their_public_identity_key,
                            const unsigned char *their_public_ephemeral_key) {
-  int transcript_result = autograph_key_exchange_transcript(
-      transcript, is_initiator, our_public_identity_key,
-      our_public_ephemeral_key, their_public_identity_key,
-      their_public_ephemeral_key);
-  if (transcript_result != 0) {
+  if (autograph_key_exchange_transcript(
+          transcript, is_initiator, our_public_identity_key,
+          our_public_ephemeral_key, their_public_identity_key,
+          their_public_ephemeral_key) != 0) {
     return -1;
   }
   unsigned char signature[64];
-  int sign_result = autograph_crypto_sign(signature, our_private_identity_key,
-                                          transcript, 128);
-  if (sign_result != 0) {
+  if (autograph_crypto_sign(signature, our_private_identity_key, transcript,
+                            128) != 0) {
     return -1;
   }
   return autograph_key_exchange_signature(
@@ -108,10 +100,9 @@ int autograph_key_exchange_verify(const unsigned char *transcript,
                                   const unsigned char *their_identity_key,
                                   const unsigned char *their_secret_key,
                                   const unsigned char *ciphertext) {
-  unsigned char signature[64];
-  int decrypt_result =
-      autograph_crypto_decrypt(signature, their_secret_key, ciphertext, 80);
-  if (decrypt_result != 0) {
+  unsigned char signature[80];
+  if (autograph_crypto_decrypt(signature, NULL, their_secret_key, ciphertext,
+                               96) != 0) {
     return -1;
   }
   return autograph_crypto_verify(their_identity_key, transcript, 128,

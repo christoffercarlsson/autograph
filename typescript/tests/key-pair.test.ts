@@ -11,8 +11,8 @@ describe('Key pair', () => {
     await init()
   })
 
-  it('should generate ephemeral key pairs', async () => {
-    const { success, keyPair } = await generateEphemeralKeyPair()
+  it('should generate ephemeral key pairs', () => {
+    const { success, keyPair } = generateEphemeralKeyPair()
     expect(success).toBe(true)
     expect(keyPair.privateKey).toBeInstanceOf(Uint8Array)
     expect(keyPair.publicKey).toBeInstanceOf(Uint8Array)
@@ -22,8 +22,8 @@ describe('Key pair', () => {
     expect(keyPair.publicKey).not.toEqual(emptyKey)
   })
 
-  it('should generate identity key pairs', async () => {
-    const { success, keyPair } = await generateIdentityKeyPair()
+  it('should generate identity key pairs', () => {
+    const { success, keyPair } = generateIdentityKeyPair()
     expect(success).toBe(true)
     expect(keyPair.privateKey).toBeInstanceOf(Uint8Array)
     expect(keyPair.publicKey).toBeInstanceOf(Uint8Array)

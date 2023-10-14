@@ -4,7 +4,7 @@
 #include "sodium.h"
 
 int autograph_crypto_hash(unsigned char *digest, const unsigned char *message,
-                          const unsigned long long message_size,
+                          const unsigned int message_size,
                           const unsigned int iterations) {
   unsigned char d[64];
   int initial_result = crypto_hash_sha512(digest, message, message_size);

@@ -5,6 +5,6 @@
 int autograph_sign_subject(unsigned char *signature,
                            const unsigned char *private_key,
                            const unsigned char *subject,
-                           const unsigned long long subject_size) {
+                           const unsigned int subject_size) {
   return autograph_crypto_sign(signature, private_key, subject, subject_size);
 }

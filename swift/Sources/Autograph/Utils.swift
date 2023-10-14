@@ -1,8 +1,7 @@
 import Clibautograph
 import Foundation
 
-internal let HANDSHAKE_SIZE = 80
-internal let MESSAGE_EXTRA_SIZE = 16
+internal let HANDSHAKE_SIZE = 96
 internal let PRIVATE_KEY_SIZE = 32
 internal let PUBLIC_KEY_SIZE = 32
 internal let SAFETY_NUMBER_SIZE = 60
@@ -10,28 +9,26 @@ internal let SECRET_KEY_SIZE = 32
 internal let SIGNATURE_SIZE = 64
 internal let TRANSCRIPT_SIZE = 128
 
-internal func bytesToIndex(_ bytes: Bytes) -> UInt64 {
-  var result: UInt64 = 0
-  for i in 0 ..< 8 {
-    result = (result << 8) | UInt64(bytes[i])
-  }
-  return result
-}
-
 internal func createBytes(_ size: Int) -> Bytes {
   Bytes(repeating: 0, count: size)
+}
+
+internal func createBytes(_ size: UInt32) -> Bytes {
+  createBytes(Int(size))
 }
 
 internal func createHandshakeBytes() -> Bytes {
   createBytes(HANDSHAKE_SIZE)
 }
 
-internal func createMessageBytes(size: Int) -> Bytes {
-  createBytes(size + MESSAGE_EXTRA_SIZE)
+internal func createMessageBytes(_ size: Int) -> Bytes {
+  let ciphertextSize = autograph_ciphertext_size(UInt32(size))
+  return createBytes(ciphertextSize)
 }
 
-internal func createPlaintextBytes(size: Int) -> Bytes {
-  createBytes(size - MESSAGE_EXTRA_SIZE)
+internal func createPlaintextBytes(_ size: Int) -> Bytes {
+  let plaintextSize = autograph_plaintext_size(UInt32(size))
+  return createBytes(plaintextSize)
 }
 
 internal func createPrivateKeyBytes() -> Bytes {
@@ -54,7 +51,7 @@ internal func createSignatureBytes() -> Bytes {
   createBytes(SIGNATURE_SIZE)
 }
 
-internal func createSubjectBytes(size: Int) -> Bytes {
+internal func createSubjectBytes(_ size: Int) -> Bytes {
   createBytes(PUBLIC_KEY_SIZE + size)
 }
 

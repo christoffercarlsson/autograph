@@ -53,7 +53,7 @@ public struct Autograph {
         &signature,
         identityPrivateKey,
         subject,
-        UInt64(subject.count)
+        UInt32(subject.count)
       ) == 0
       return SignResult(success: success, signature: signature)
     }

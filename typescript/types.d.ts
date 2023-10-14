@@ -102,7 +102,7 @@ export type EmscriptenModule = {
     returnType: string,
     types: string[],
     values: (number | bigint)[]
-  ) => number
+  ) => number | bigint
   HEAPU8: Uint8Array
 }
 

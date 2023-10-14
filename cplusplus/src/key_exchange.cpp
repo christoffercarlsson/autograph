@@ -37,7 +37,7 @@ KeyExchangeFunction createKeyExchange(const bool isInitiator,
     Bytes transcript(128);
     Bytes ourSecretKey(32);
     Bytes theirSecretKey(32);
-    Bytes handshake(80);
+    Bytes handshake(96);
     bool transcriptSuccess =
         autograph_key_exchange_transcript(
             transcript.data(), isInitiator ? 1 : 0, ourIdentityPublicKey.data(),

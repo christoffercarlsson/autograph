@@ -1,8 +1,16 @@
 #include "sizes.h"
 
-unsigned int autograph_handshake_size() { return 80; }
+unsigned int autograph_ciphertext_size(unsigned int plaintext_size) {
+  return plaintext_size + 16 - plaintext_size % 16 + 16;
+}
+
+unsigned int autograph_handshake_size() { return 96; }
 
 unsigned int autograph_message_extra_size() { return 16; }
+
+unsigned int autograph_plaintext_size(unsigned int ciphertext_size) {
+  return ciphertext_size - 16;
+}
 
 unsigned int autograph_private_key_size() { return 32; }
 

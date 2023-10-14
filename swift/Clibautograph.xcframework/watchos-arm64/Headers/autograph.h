@@ -4,6 +4,7 @@
 #include "autograph/init.h"
 #include "autograph/key_exchange.h"
 #include "autograph/key_pair.h"
+#include "autograph/numbers.h"
 #include "autograph/party.h"
 #include "autograph/private.h"
 #include "autograph/safety_number.h"

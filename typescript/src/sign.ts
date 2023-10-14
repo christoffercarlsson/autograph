@@ -33,7 +33,7 @@ export const createSign =
       signature,
       identityPrivateKey,
       subject,
-      BigInt(subject.byteLength)
+      subject.byteLength
     )
     return { success, signature }
   }

@@ -36,11 +36,11 @@ describe('Safety number', () => {
     await init()
   })
 
-  it('should allow Alice and Bob to calculate safety numbers', async () => {
+  it('should allow Alice and Bob to calculate safety numbers', () => {
     const alice = createInitiator(keyPairs.alice)
     const bob = createResponder(keyPairs.bob)
-    const a = await alice.calculateSafetyNumber(keyPairs.bob.publicKey)
-    const b = await bob.calculateSafetyNumber(keyPairs.alice.publicKey)
+    const a = alice.calculateSafetyNumber(keyPairs.bob.publicKey)
+    const b = bob.calculateSafetyNumber(keyPairs.alice.publicKey)
     expect(a.safetyNumber).toEqual(safetyNumber)
     expect(b.safetyNumber).toEqual(safetyNumber)
   })

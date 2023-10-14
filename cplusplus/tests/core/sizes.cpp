@@ -3,12 +3,22 @@
 #include "autograph.h"
 
 TEST_CASE("Data sizes", "[core_sizes]") {
+  SECTION("should return the correct ciphertext size") {
+    REQUIRE(autograph_ciphertext_size(11) == 32);
+    REQUIRE(autograph_ciphertext_size(16) == 48);
+  }
+
   SECTION("should return the correct handshake size") {
-    REQUIRE(autograph_handshake_size() == 80);
+    REQUIRE(autograph_handshake_size() == 96);
   }
 
   SECTION("should return the correct message extra size") {
     REQUIRE(autograph_message_extra_size() == 16);
+  }
+
+  SECTION("should return the correct plaintext size") {
+    REQUIRE(autograph_plaintext_size(32) == 16);
+    REQUIRE(autograph_plaintext_size(64) == 48);
   }
 
   SECTION("should return the correct private key size") {

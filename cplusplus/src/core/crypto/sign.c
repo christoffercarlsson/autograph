@@ -4,7 +4,7 @@
 int autograph_crypto_sign(unsigned char *signature,
                           const unsigned char *private_key,
                           const unsigned char *message,
-                          const unsigned long long message_size) {
+                          const unsigned int message_size) {
   unsigned char sk[64];
   unsigned char pk[32];
   int seed_result = crypto_sign_seed_keypair(pk, sk, private_key);
@@ -18,7 +18,7 @@ int autograph_crypto_sign(unsigned char *signature,
 
 int autograph_crypto_verify(const unsigned char *public_key,
                             const unsigned char *message,
-                            const unsigned long long message_size,
+                            const unsigned int message_size,
                             const unsigned char *signature) {
   return crypto_sign_verify_detached(signature, message, message_size,
                                      public_key) == 0

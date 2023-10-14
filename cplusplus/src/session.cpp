@@ -1,6 +1,8 @@
 #include "session.h"
 
+#include "numbers.h"
 #include "private.h"
+#include "sizes.h"
 
 namespace Autograph {
 
@@ -27,26 +29,24 @@ SignIdentityFunction createSignIdentity(const SignFunction sign,
   return signIdentityFunction;
 }
 
-unsigned long long bytesToIndex(const Bytes bytes) {
-  unsigned long long number = 0;
-  for (unsigned int i = 0; i < 8; i++) {
-    number = (number << 8) | bytes[i];
-  }
-  return number;
-}
-
 DecryptFunction createDecrypt(Bytes theirSecretKey) {
   Bytes messageIndex(8);
   Bytes decryptIndex(8);
+  Bytes plaintextSize(4);
   Bytes skippedKeys(40002);
   auto decryptFunction = [theirSecretKey, messageIndex, decryptIndex,
-                          skippedKeys](const Bytes message) mutable {
-    Bytes plaintext(message.size() - 16);
-    bool success = autograph_decrypt(plaintext.data(), messageIndex.data(),
-                                     decryptIndex.data(), skippedKeys.data(),
-                                     theirSecretKey.data(), message.data(),
-                                     message.size()) == 0;
-    DecryptionResult result = {success, bytesToIndex(messageIndex), plaintext};
+                          skippedKeys,
+                          plaintextSize](const Bytes message) mutable {
+    Bytes plaintext(autograph_plaintext_size(message.size()));
+    bool success = autograph_decrypt(plaintext.data(), plaintextSize.data(),
+                                     messageIndex.data(), decryptIndex.data(),
+                                     skippedKeys.data(), theirSecretKey.data(),
+                                     message.data(), message.size()) == 0;
+    if (success) {
+      plaintext.resize(autograph_read_uint32(plaintextSize.data()));
+    }
+    DecryptionResult result = {
+        success, autograph_read_uint64(messageIndex.data()), plaintext};
     return result;
   };
   return decryptFunction;
@@ -55,11 +55,12 @@ DecryptFunction createDecrypt(Bytes theirSecretKey) {
 EncryptFunction createEncrypt(Bytes ourSecretKey) {
   Bytes index(8);
   auto encryptFunction = [ourSecretKey, index](const Bytes plaintext) mutable {
-    Bytes ciphertext(plaintext.size() + 16);
+    Bytes ciphertext(autograph_ciphertext_size(plaintext.size()));
     bool success =
         autograph_encrypt(ciphertext.data(), index.data(), ourSecretKey.data(),
                           plaintext.data(), plaintext.size()) == 0;
-    EncryptionResult result = {success, bytesToIndex(index), ciphertext};
+    EncryptionResult result = {success, autograph_read_uint64(index.data()),
+                               ciphertext};
     return result;
   };
   return encryptFunction;

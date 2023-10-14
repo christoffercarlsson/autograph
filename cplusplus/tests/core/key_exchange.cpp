@@ -49,8 +49,9 @@ TEST_CASE("Key exchange", "[core_key_exchange]") {
       92,  152, 101, 211, 214, 130, 33,  158, 114, 200, 43,  30,  212, 100,
       176, 149, 15,  111, 170, 186, 36,  10,  90,  136, 46,  170, 120, 191,
       170, 14,  31,  53,  72,  56,  227, 194, 21,  164, 251, 208, 203, 182,
-      242, 115, 6,   54,  114, 120, 212, 226, 217, 45,  107, 53,  22,  58,
-      188, 197, 140, 223, 140, 127, 205, 2,   45,  86};
+      242, 115, 6,   54,  114, 120, 212, 226, 72,  160, 235, 116, 148, 31,
+      19,  62,  52,  116, 28,  172, 227, 191, 95,  152, 15,  140, 105, 200,
+      21,  203, 72,  193, 215, 42,  20,  254, 193, 178, 56,  137};
 
   std::vector<unsigned char> aliceSecretKey = {
       50, 39, 85, 42,  95,  114, 112, 113, 69, 107, 88,
@@ -63,7 +64,7 @@ TEST_CASE("Key exchange", "[core_key_exchange]") {
       140, 47,  83,  197, 190, 113, 200, 228, 185, 207};
 
   std::vector<unsigned char> transcript(128);
-  std::vector<unsigned char> handshake(80);
+  std::vector<unsigned char> handshake(96);
   std::vector<unsigned char> ourSecretKey(32);
   std::vector<unsigned char> theirSecretKey(32);
 
