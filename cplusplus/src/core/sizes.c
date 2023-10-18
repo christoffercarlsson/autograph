@@ -8,8 +8,6 @@ unsigned int autograph_handshake_size() { return 96; }
 
 unsigned int autograph_index_size() { return 8; }
 
-unsigned int autograph_message_extra_size() { return 16; }
-
 unsigned int autograph_plaintext_size(unsigned int ciphertext_size) {
   return ciphertext_size - 16;
 }
