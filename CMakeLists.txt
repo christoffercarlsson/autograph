@@ -11,5 +11,6 @@ endif()
 
 include(cplusplus/cmake/sources.cmake)
 include(cplusplus/cmake/targets.cmake)
+include(cplusplus/cmake/benchmarks.cmake)
 include(cplusplus/cmake/tests.cmake)
 include(cplusplus/cmake/install.cmake)

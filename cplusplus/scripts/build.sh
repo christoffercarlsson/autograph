@@ -5,6 +5,7 @@ set -e
 SOURCE_DIR="$(cd "$(dirname "$0")/.." && pwd)"
 BUILD_DIR="${SOURCE_DIR}/build"
 
+AUTOGRAPH_BENCHMARKS=0
 AUTOGRAPH_DEBUG=0
 AUTOGRAPH_INSTALL=0
 AUTOGRAPH_TESTS=0
@@ -12,6 +13,11 @@ AUTOGRAPH_WASM=0
 
 while [ $# -gt 0 ]; do
   case $1 in
+    -b | --benchmarks | --with-benchmarks)
+      AUTOGRAPH_BENCHMARKS=1
+      AUTOGRAPH_INSTALL=1
+      shift
+      ;;
     -d | --debug)
       AUTOGRAPH_DEBUG=1
       shift
@@ -21,6 +27,7 @@ while [ $# -gt 0 ]; do
       shift
       ;;
     -t | --tests | --with-tests)
+      AUTOGRAPH_BENCHMARKS=1
       AUTOGRAPH_INSTALL=1
       AUTOGRAPH_TESTS=1
       shift
@@ -38,6 +45,7 @@ done
 
 if [[ "${AUTOGRAPH_WASM}" == "1" ]]
 then
+  AUTOGRAPH_BENCHMARKS=0
   AUTOGRAPH_DEBUG=0
   AUTOGRAPH_INSTALL=0
   AUTOGRAPH_TESTS=0
@@ -62,6 +70,7 @@ generate_cmake() {
   rm -rf "${BUILD_DIR}"
   ${AUTOGRAPH_CMAKE_CMD} --no-warn-unused-cli \
     -DCMAKE_BUILD_TYPE=${AUTOGRAPH_BUILD_TYPE} \
+    -DAUTOGRAPH_BENCHMARKS=${AUTOGRAPH_BENCHMARKS} \
     -DAUTOGRAPH_INSTALL=${AUTOGRAPH_INSTALL} \
     -DAUTOGRAPH_TESTS=${AUTOGRAPH_TESTS} \
     -B "${BUILD_DIR}" "${SOURCE_DIR}/.."

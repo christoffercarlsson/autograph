@@ -8,7 +8,8 @@ if(AUTOGRAPH_INSTALL)
     INCLUDES
     DESTINATION include)
 
-  install(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/cplusplus/include/ DESTINATION include)
+  install(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/cplusplus/include/
+          DESTINATION include)
 
   install(
     EXPORT autograph-targets

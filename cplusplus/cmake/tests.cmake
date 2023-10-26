@@ -8,8 +8,8 @@ if(AUTOGRAPH_TESTS)
   target_link_libraries(autograph-tests PRIVATE ${AUTOGRAPH_TARGET}
                                                 Catch2::Catch2WithMain)
 
-  target_include_directories(autograph-tests
-                             PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/cplusplus/include)
+  target_include_directories(
+    autograph-tests PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/cplusplus/include)
 
   list(APPEND AUTOGRAPH_INSTALL_TARGETS autograph-tests)
 endif()
