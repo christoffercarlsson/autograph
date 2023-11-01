@@ -5,23 +5,14 @@ import {
 } from './clib'
 
 export const HANDSHAKE_SIZE = 96
-
 export const INDEX_SIZE = 8
-
 export const PRIVATE_KEY_SIZE = 32
-
 export const PUBLIC_KEY_SIZE = 32
-
 export const SAFETY_NUMBER_SIZE = 60
-
 export const SECRET_KEY_SIZE = 32
-
 export const SIGNATURE_SIZE = 64
-
 export const SIZE_SIZE = 4
-
 export const SKIPPED_KEYS_SIZE = 40002
-
 export const TRANSCRIPT_SIZE = 128
 
 export const createCiphertextBytes = (size: number) =>

@@ -31,6 +31,9 @@ cmake_install.cmake
 compile_commands.json
 install_manifest.txt
 
+# Rust-specific files
+rust/target/
+
 # Swift-specific files
 .build/
 .swiftpm/
