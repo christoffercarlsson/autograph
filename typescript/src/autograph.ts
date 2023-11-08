@@ -35,18 +35,6 @@ import { generateIdentityKeyPair, generateEphemeralKeyPair } from './key-pair'
 import createParty from './party'
 import { createSign } from './sign'
 import { KeyPair, SignFunction } from '../types'
-import {
-  HANDSHAKE_SIZE,
-  INDEX_SIZE,
-  PRIVATE_KEY_SIZE,
-  PUBLIC_KEY_SIZE,
-  SAFETY_NUMBER_SIZE,
-  SECRET_KEY_SIZE,
-  SIGNATURE_SIZE,
-  SIZE_SIZE,
-  SKIPPED_KEYS_SIZE,
-  TRANSCRIPT_SIZE
-} from './utils'
 
 const ensureParty = (
   isInitiator: boolean,
@@ -71,16 +59,6 @@ const createResponder = (a: KeyPair | SignFunction, b?: Uint8Array) =>
   ensureParty(false, a, b)
 
 export {
-  HANDSHAKE_SIZE,
-  INDEX_SIZE,
-  PRIVATE_KEY_SIZE,
-  PUBLIC_KEY_SIZE,
-  SAFETY_NUMBER_SIZE,
-  SECRET_KEY_SIZE,
-  SIGNATURE_SIZE,
-  SIZE_SIZE,
-  SKIPPED_KEYS_SIZE,
-  TRANSCRIPT_SIZE,
   autograph_ciphertext_size,
   autograph_decrypt,
   autograph_encrypt,
