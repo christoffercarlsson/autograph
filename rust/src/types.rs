@@ -1,10 +1,7 @@
-use crate::{
-    clib::{autograph_read_uint32, autograph_read_uint64},
-    utils::{create_index_bytes, create_size_bytes, create_skipped_keys_bytes},
-};
 use alloc::boxed::Box;
 use alloc::vec::Vec;
 
+#[derive(Debug)]
 pub enum AutographError {
     InitializationError,
 }
@@ -32,60 +29,10 @@ pub struct DecryptionResult {
     pub data: Bytes,
 }
 
-pub struct DecryptionState {
-    pub decrypt_index: Bytes,
-    pub message_index: Bytes,
-    pub plaintext_size: Bytes,
-    pub secret_key: Bytes,
-    pub skipped_keys: Bytes,
-}
-
-impl DecryptionState {
-    pub fn new(secret_key: Bytes) -> Self {
-        Self {
-            decrypt_index: create_index_bytes(),
-            message_index: create_index_bytes(),
-            plaintext_size: create_size_bytes(),
-            secret_key,
-            skipped_keys: create_skipped_keys_bytes(),
-        }
-    }
-
-    pub fn read_message_index(&self) -> u64 {
-        unsafe { autograph_read_uint64(self.message_index.as_ptr()) }
-    }
-
-    fn read_plaintext_size(&self) -> usize {
-        unsafe { autograph_read_uint32(self.plaintext_size.as_ptr()) as usize }
-    }
-
-    pub fn resize_data(&self, plaintext: &mut Bytes) {
-        plaintext.truncate(self.read_plaintext_size());
-    }
-}
-
 pub struct EncryptionResult {
     pub success: bool,
     pub index: u64,
     pub message: Bytes,
-}
-
-pub struct EncryptionState {
-    pub message_index: Bytes,
-    pub secret_key: Bytes,
-}
-
-impl EncryptionState {
-    pub fn new(secret_key: Bytes) -> Self {
-        Self {
-            message_index: create_index_bytes(),
-            secret_key,
-        }
-    }
-
-    pub fn read_message_index(&self) -> u64 {
-        unsafe { autograph_read_uint64(self.message_index.as_ptr()) }
-    }
 }
 
 pub type DecryptFunction<'a> = Box<dyn FnMut(&'a Bytes) -> DecryptionResult + 'a>;

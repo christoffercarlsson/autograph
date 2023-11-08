@@ -22,17 +22,23 @@ keywords = [
     "decentralization",
     "diffie-hellman"
   ]
+repository = "https://github.com/christoffercarlsson/autograph"
 
-[dependencies]
+[build-dependencies]
+cmake = "0.1.50"
 
 [lib]
 name = "autograph"
 path = "rust/src/lib.rs"
 
-[[bench]]
-name = "autograph-benchmarks"
-path = "rust/benchmarks/main.rs"
+[[test]]
+name = "key_exchange_test"
+path = "rust/tests/key_exchange.rs"
 
 [[test]]
-name = "autograph-tests"
-path = "rust/tests/main.rs"
+name = "key_pair_test"
+path = "rust/tests/key_pair.rs"
+
+[[test]]
+name = "safety_number_test"
+path = "rust/tests/safety_number.rs"

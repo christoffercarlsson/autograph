@@ -23,6 +23,7 @@ impl Autograph {
     }
 
     pub fn create_initiator<'a>(
+        &'a self,
         sign: &'a SignFunction,
         identity_public_key: &'a Bytes,
     ) -> Party<'a> {
@@ -30,13 +31,14 @@ impl Autograph {
     }
 
     pub fn create_responder<'a>(
+        &'a self,
         sign: &'a SignFunction,
         identity_public_key: &'a Bytes,
     ) -> Party<'a> {
         create_party(false, sign, identity_public_key)
     }
 
-    pub fn create_sign(identity_private_key: &Bytes) -> SignFunction {
+    pub fn create_sign<'a>(&'a self, identity_private_key: &'a Bytes) -> SignFunction {
         Box::new(|subject: &Bytes| {
             let mut signature = create_signature_bytes();
             let success = unsafe {
@@ -51,7 +53,7 @@ impl Autograph {
         })
     }
 
-    pub fn generate_ephemeral_key_pair() -> KeyPairResult {
+    pub fn generate_ephemeral_key_pair(&self) -> KeyPairResult {
         let mut key_pair = KeyPair {
             private_key: create_private_key_bytes(),
             public_key: create_public_key_bytes(),
@@ -65,7 +67,7 @@ impl Autograph {
         KeyPairResult { success, key_pair }
     }
 
-    pub fn generate_identity_key_pair() -> KeyPairResult {
+    pub fn generate_identity_key_pair(&self) -> KeyPairResult {
         let mut key_pair = KeyPair {
             private_key: create_private_key_bytes(),
             public_key: create_public_key_bytes(),

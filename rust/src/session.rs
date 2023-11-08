@@ -3,15 +3,65 @@ use crate::clib::{
     autograph_verify_identity,
 };
 use crate::types::{
-    Bytes, DecryptFunction, DecryptionResult, DecryptionState, EncryptFunction, EncryptionResult,
-    EncryptionState, SignDataFunction, SignFunction, SignIdentityFunction, VerifyDataFunction,
-    VerifyIdentityFunction,
+    Bytes, DecryptFunction, DecryptionResult, EncryptFunction, EncryptionResult, SignDataFunction,
+    SignFunction, SignIdentityFunction, VerifyDataFunction, VerifyIdentityFunction,
 };
 use crate::utils::{
-    create_ciphertext_bytes, create_plaintext_bytes, create_subject_bytes, PUBLIC_KEY_SIZE,
-    SIGNATURE_SIZE,
+    create_ciphertext_bytes, create_index_bytes, create_plaintext_bytes, create_size_bytes,
+    create_skipped_keys_bytes, create_subject_bytes, PUBLIC_KEY_SIZE, SIGNATURE_SIZE,
 };
+use crate::{autograph_read_uint32, autograph_read_uint64};
 use alloc::boxed::Box;
+
+pub struct DecryptionState {
+    pub decrypt_index: Bytes,
+    pub message_index: Bytes,
+    pub plaintext_size: Bytes,
+    pub secret_key: Bytes,
+    pub skipped_keys: Bytes,
+}
+
+impl DecryptionState {
+    pub fn new(secret_key: Bytes) -> Self {
+        Self {
+            decrypt_index: create_index_bytes(),
+            message_index: create_index_bytes(),
+            plaintext_size: create_size_bytes(),
+            secret_key,
+            skipped_keys: create_skipped_keys_bytes(),
+        }
+    }
+
+    pub fn read_message_index(&self) -> u64 {
+        unsafe { autograph_read_uint64(self.message_index.as_ptr()) }
+    }
+
+    fn read_plaintext_size(&self) -> usize {
+        unsafe { autograph_read_uint32(self.plaintext_size.as_ptr()) as usize }
+    }
+
+    pub fn resize_data(&self, plaintext: &mut Bytes) {
+        plaintext.truncate(self.read_plaintext_size());
+    }
+}
+
+pub struct EncryptionState {
+    pub message_index: Bytes,
+    pub secret_key: Bytes,
+}
+
+impl EncryptionState {
+    pub fn new(secret_key: Bytes) -> Self {
+        Self {
+            message_index: create_index_bytes(),
+            secret_key,
+        }
+    }
+
+    pub fn read_message_index(&self) -> u64 {
+        unsafe { autograph_read_uint64(self.message_index.as_ptr()) }
+    }
+}
 
 pub fn create_decrypt<'a>(their_secret_key: Bytes) -> DecryptFunction<'a> {
     let mut state = DecryptionState::new(their_secret_key);
