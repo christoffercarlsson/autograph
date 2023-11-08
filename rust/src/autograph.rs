@@ -36,7 +36,7 @@ impl Autograph {
         create_party(false, sign, identity_public_key)
     }
 
-    pub fn create_sign<'a>(identity_private_key: &'a Bytes) -> SignFunction {
+    pub fn create_sign(identity_private_key: &Bytes) -> SignFunction {
         Box::new(|subject: &Bytes| {
             let mut signature = create_signature_bytes();
             let success = unsafe {

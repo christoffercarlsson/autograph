@@ -87,10 +87,10 @@ fn create_key_exchange_verification<'a>(
         let session = Session {
             decrypt: create_decrypt(their_secret_key),
             encrypt: create_encrypt(our_secret_key),
-            sign_data: create_sign_data(&sign, &their_public_key),
-            sign_identity: create_sign_identity(&sign, &their_public_key),
-            verify_data: create_verify_data(&their_public_key),
-            verify_identity: create_verify_identity(&their_public_key),
+            sign_data: create_sign_data(sign, their_public_key),
+            sign_identity: create_sign_identity(sign, their_public_key),
+            verify_data: create_verify_data(their_public_key),
+            verify_identity: create_verify_identity(their_public_key),
         };
         KeyExchangeVerificationResult { success, session }
     })

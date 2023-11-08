@@ -90,30 +90,24 @@ fn count_certificates(certificates: &Bytes) -> u32 {
     (certificates.len() / (PUBLIC_KEY_SIZE + SIGNATURE_SIZE)) as u32
 }
 
-pub fn create_verify_data<'a>(their_public_key: &'a Bytes) -> VerifyDataFunction {
-    Box::new(|certificates: &Bytes, data: &Bytes| {
-        let verified = unsafe {
-            autograph_verify_data(
-                their_public_key.as_ptr(),
-                certificates.as_ptr(),
-                count_certificates(certificates),
-                data.as_ptr(),
-                data.len() as u32,
-            )
-        } == 0;
-        verified
+pub fn create_verify_data(their_public_key: &Bytes) -> VerifyDataFunction {
+    Box::new(|certificates: &Bytes, data: &Bytes| unsafe {
+        autograph_verify_data(
+            their_public_key.as_ptr(),
+            certificates.as_ptr(),
+            count_certificates(certificates),
+            data.as_ptr(),
+            data.len() as u32,
+        ) == 0
     })
 }
 
-pub fn create_verify_identity<'a>(their_public_key: &'a Bytes) -> VerifyIdentityFunction {
-    Box::new(|certificates: &Bytes| {
-        let verified = unsafe {
-            autograph_verify_identity(
-                their_public_key.as_ptr(),
-                certificates.as_ptr(),
-                count_certificates(certificates),
-            )
-        } == 0;
-        verified
+pub fn create_verify_identity(their_public_key: &Bytes) -> VerifyIdentityFunction {
+    Box::new(|certificates: &Bytes| unsafe {
+        autograph_verify_identity(
+            their_public_key.as_ptr(),
+            certificates.as_ptr(),
+            count_certificates(certificates),
+        ) == 0
     })
 }
