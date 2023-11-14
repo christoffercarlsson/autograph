@@ -1,13 +1,9 @@
-use crate::clib::{
-    autograph_init, autograph_key_pair_ephemeral, autograph_key_pair_identity,
-    autograph_sign_subject,
-};
-use crate::party::create_party;
-use crate::types::{
-    AutographError, Bytes, KeyPair, KeyPairResult, Party, SignFunction, SignResult,
-};
-use crate::utils::{create_private_key_bytes, create_public_key_bytes, create_signature_bytes};
-use alloc::boxed::Box;
+use crate::clib::autograph_init;
+use crate::key_exchange::perform_key_exchange;
+use crate::key_pair::{generate_ephemeral_key_pair, generate_identity_key_pair};
+use crate::safety_number::calculate_safety_number;
+use crate::sign::create_sign;
+use crate::types::{AutographError, Bytes, KeyExchangeVerificationFunction, KeyPair, SignFunction};
 
 #[non_exhaustive]
 #[derive(Clone, Debug)]
@@ -22,62 +18,38 @@ impl Autograph {
         }
     }
 
-    pub fn create_initiator<'a>(
-        &'a self,
-        sign: &'a SignFunction,
-        identity_public_key: &'a Bytes,
-    ) -> Party<'a> {
-        create_party(true, sign, identity_public_key)
-    }
-
-    pub fn create_responder<'a>(
-        &'a self,
-        sign: &'a SignFunction,
-        identity_public_key: &'a Bytes,
-    ) -> Party<'a> {
-        create_party(false, sign, identity_public_key)
+    pub fn calculate_safety_number(&self, a: &Bytes, b: &Bytes) -> Result<Bytes, AutographError> {
+        calculate_safety_number(a, b)
     }
 
     pub fn create_sign<'a>(&'a self, identity_private_key: &'a Bytes) -> SignFunction {
-        Box::new(|subject: &Bytes| {
-            let mut signature = create_signature_bytes();
-            let success = unsafe {
-                autograph_sign_subject(
-                    signature.as_mut_ptr(),
-                    identity_private_key.as_ptr(),
-                    subject.as_ptr(),
-                    subject.len() as u32,
-                )
-            } == 0;
-            SignResult { success, signature }
-        })
+        create_sign(identity_private_key)
     }
 
-    pub fn generate_ephemeral_key_pair(&self) -> KeyPairResult {
-        let mut key_pair = KeyPair {
-            private_key: create_private_key_bytes(),
-            public_key: create_public_key_bytes(),
-        };
-        let success = unsafe {
-            autograph_key_pair_ephemeral(
-                key_pair.private_key.as_mut_ptr(),
-                key_pair.public_key.as_mut_ptr(),
-            )
-        } == 0;
-        KeyPairResult { success, key_pair }
+    pub fn generate_ephemeral_key_pair(&self) -> Result<KeyPair, AutographError> {
+        generate_ephemeral_key_pair()
     }
 
-    pub fn generate_identity_key_pair(&self) -> KeyPairResult {
-        let mut key_pair = KeyPair {
-            private_key: create_private_key_bytes(),
-            public_key: create_public_key_bytes(),
-        };
-        let success = unsafe {
-            autograph_key_pair_identity(
-                key_pair.private_key.as_mut_ptr(),
-                key_pair.public_key.as_mut_ptr(),
-            )
-        } == 0;
-        KeyPairResult { success, key_pair }
+    pub fn generate_identity_key_pair(&self) -> Result<KeyPair, AutographError> {
+        generate_identity_key_pair()
+    }
+
+    pub fn perform_key_exchange<'a>(
+        &'a self,
+        sign: &'a SignFunction,
+        our_identity_key: &'a Bytes,
+        is_initiator: bool,
+        our_ephemeral_key_pair: KeyPair,
+        their_identity_key: &'a Bytes,
+        their_ephemeral_key: Bytes,
+    ) -> Result<(Bytes, KeyExchangeVerificationFunction<'a>), AutographError> {
+        perform_key_exchange(
+            sign,
+            our_identity_key,
+            is_initiator,
+            our_ephemeral_key_pair,
+            their_identity_key,
+            their_ephemeral_key,
+        )
     }
 }

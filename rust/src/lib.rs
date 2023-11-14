@@ -3,14 +3,16 @@
 extern crate alloc;
 
 mod autograph;
+mod channel;
 mod clib;
 mod key_exchange;
-mod party;
+mod key_pair;
 mod safety_number;
-mod session;
+mod sign;
 mod types;
 mod utils;
 
 pub use autograph::Autograph;
+pub use channel::Channel;
 pub use clib::*;
 pub use types::*;
