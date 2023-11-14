@@ -26,6 +26,7 @@ import {
   autograph_verify_data,
   autograph_verify_identity
 } from './clib'
+import { DecryptionError, EncryptionError } from './error'
 
 export const createDecrypt = (theirSecretKey: Uint8Array): DecryptFunction => {
   const messageIndex = createIndexBytes()
@@ -44,11 +45,13 @@ export const createDecrypt = (theirSecretKey: Uint8Array): DecryptFunction => {
       message,
       message.byteLength
     )
-    return {
-      success,
-      index: autograph_read_uint64(messageIndex),
-      data: plaintext.subarray(0, autograph_read_uint32(plaintextSize))
+    if (!success) {
+      throw new DecryptionError()
     }
+    return [
+      autograph_read_uint64(messageIndex),
+      plaintext.subarray(0, autograph_read_uint32(plaintextSize))
+    ]
   }
 }
 
@@ -63,11 +66,10 @@ export const createEncrypt = (ourSecretKey: Uint8Array): EncryptFunction => {
       plaintext,
       plaintext.byteLength
     )
-    return {
-      success,
-      index: autograph_read_uint64(messageIndex),
-      message: ciphertext
+    if (!success) {
+      throw new EncryptionError()
     }
+    return [autograph_read_uint64(messageIndex), ciphertext]
   }
 }
 

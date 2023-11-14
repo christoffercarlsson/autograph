@@ -1,5 +1,4 @@
 import {
-  KeyExchangeFunction,
   KeyExchangeVerificationFunction,
   KeyPair,
   SignFunction
@@ -11,8 +10,7 @@ import {
   createSignIdentity,
   createVerifyData,
   createVerifyIdentity
-} from './session'
-import { createSafeSign } from './sign'
+} from './channel'
 import {
   autograph_key_exchange_signature,
   autograph_key_exchange_transcript,
@@ -23,54 +21,7 @@ import {
   createSecretKeyBytes,
   createTranscriptBytes
 } from './utils'
-
-const createKeyExchange =
-  (
-    isInitiator: boolean,
-    sign: SignFunction,
-    identityPublicKey: Uint8Array
-  ): KeyExchangeFunction =>
-  async (
-    ourEphemeralKeyPair: KeyPair,
-    theirIdentityKey: Uint8Array,
-    theirEphemeralKey: Uint8Array
-  ) => {
-    const safeSign = createSafeSign(sign)
-    const handshake = createHandshakeBytes()
-    const transcript = createTranscriptBytes()
-    const ourSecretKey = createSecretKeyBytes()
-    const theirSecretKey = createSecretKeyBytes()
-    const transcriptSuccess = autograph_key_exchange_transcript(
-      transcript,
-      isInitiator ? 1 : 0,
-      identityPublicKey,
-      ourEphemeralKeyPair.publicKey,
-      theirIdentityKey,
-      theirEphemeralKey
-    )
-    const { success: signSuccess, signature } = await safeSign(transcript)
-    const keyExchangeSuccess = autograph_key_exchange_signature(
-      handshake,
-      ourSecretKey,
-      theirSecretKey,
-      isInitiator ? 1 : 0,
-      signature,
-      ourEphemeralKeyPair.privateKey,
-      theirEphemeralKey
-    )
-    const verify: KeyExchangeVerificationFunction =
-      createKeyExchangeVerification(
-        safeSign,
-        theirIdentityKey,
-        transcript,
-        ourSecretKey,
-        theirSecretKey
-      )
-    return {
-      success: transcriptSuccess && signSuccess && keyExchangeSuccess,
-      keyExchange: { handshake, verify }
-    }
-  }
+import { KeyExchangeError, KeyExchangeVerificationError } from './error'
 
 const createKeyExchangeVerification =
   (
@@ -80,14 +31,17 @@ const createKeyExchangeVerification =
     ourSecretKey: Uint8Array,
     theirSecretKey: Uint8Array
   ): KeyExchangeVerificationFunction =>
-  (handshake: Uint8Array) => {
+  (theirHandshake: Uint8Array) => {
     const success = autograph_key_exchange_verify(
       transcript,
       theirIdentityKey,
       theirSecretKey,
-      handshake
+      theirHandshake
     )
-    const session = {
+    if (!success) {
+      throw new KeyExchangeVerificationError()
+    }
+    return {
       decrypt: createDecrypt(theirSecretKey),
       encrypt: createEncrypt(ourSecretKey),
       signData: createSignData(sign, theirIdentityKey),
@@ -95,7 +49,52 @@ const createKeyExchangeVerification =
       verifyData: createVerifyData(theirIdentityKey),
       verifyIdentity: createVerifyIdentity(theirIdentityKey)
     }
-    return { success, session }
   }
 
-export default createKeyExchange
+const performKeyExchange = async (
+  sign: SignFunction,
+  identityPublicKey: Uint8Array,
+  isInitiator: boolean,
+  ourEphemeralKeyPair: KeyPair,
+  theirIdentityKey: Uint8Array,
+  theirEphemeralKey: Uint8Array
+): Promise<[Uint8Array, KeyExchangeVerificationFunction]> => {
+  const handshake = createHandshakeBytes()
+  const transcript = createTranscriptBytes()
+  const ourSecretKey = createSecretKeyBytes()
+  const theirSecretKey = createSecretKeyBytes()
+  const transcriptSuccess = autograph_key_exchange_transcript(
+    transcript,
+    isInitiator ? 1 : 0,
+    identityPublicKey,
+    ourEphemeralKeyPair.publicKey,
+    theirIdentityKey,
+    theirEphemeralKey
+  )
+  if (!transcriptSuccess) {
+    throw new KeyExchangeError()
+  }
+  const signature = await sign(transcript)
+  const keyExchangeSuccess = autograph_key_exchange_signature(
+    handshake,
+    ourSecretKey,
+    theirSecretKey,
+    isInitiator ? 1 : 0,
+    signature,
+    ourEphemeralKeyPair.privateKey,
+    theirEphemeralKey
+  )
+  if (!keyExchangeSuccess) {
+    throw new KeyExchangeError()
+  }
+  const verify: KeyExchangeVerificationFunction = createKeyExchangeVerification(
+    sign,
+    theirIdentityKey,
+    transcript,
+    ourSecretKey,
+    theirSecretKey
+  )
+  return [handshake, verify]
+}
+
+export default performKeyExchange

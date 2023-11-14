@@ -1,38 +1,12 @@
-export type SafetyNumberResult = {
-  success: boolean
-  safetyNumber: Uint8Array
-}
+export type SignResult = Uint8Array | Promise<Uint8Array>
 
-export type SafetyNumberFunction = (
-  theirIdentityKey: Uint8Array
-) => SafetyNumberResult
+export type SignDataFunction = (data: Uint8Array) => SignResult
 
-export type SignResult = {
-  success: boolean
-  signature: Uint8Array
-}
+export type SignIdentityFunction = () => SignResult
 
-export type DecryptionResult = {
-  success: boolean
-  index: bigint
-  data: Uint8Array
-}
+export type DecryptFunction = (message: Uint8Array) => [bigint, Uint8Array]
 
-export type EncryptionResult = {
-  success: boolean
-  index: bigint
-  message: Uint8Array
-}
-
-export type SignDataFunction = (
-  data: Uint8Array
-) => SignResult | Promise<SignResult>
-
-export type SignIdentityFunction = () => SignResult | Promise<SignResult>
-
-export type DecryptFunction = (message: Uint8Array) => DecryptionResult
-
-export type EncryptFunction = (data: Uint8Array) => EncryptionResult
+export type EncryptFunction = (data: Uint8Array) => [bigint, Uint8Array]
 
 export type VerifyDataFunction = (
   certificates: Uint8Array,
@@ -41,7 +15,7 @@ export type VerifyDataFunction = (
 
 export type VerifyIdentityFunction = (certificates: Uint8Array) => boolean
 
-export type Session = {
+export type Channel = {
   decrypt: DecryptFunction
   encrypt: EncryptFunction
   signData: SignDataFunction
@@ -50,49 +24,16 @@ export type Session = {
   verifyIdentity: VerifyIdentityFunction
 }
 
-export type KeyExchangeVerificationResult = {
-  success: boolean
-  session: Session
-}
-
 export type KeyExchangeVerificationFunction = (
-  handshake: Uint8Array
-) => KeyExchangeVerificationResult
+  theirHandshake: Uint8Array
+) => Channel
 
 export type KeyPair = {
   publicKey: Uint8Array
   privateKey: Uint8Array
 }
 
-export type KeyPairResult = {
-  success: boolean
-  keyPair: KeyPair
-}
-
-export type KeyExchange = {
-  handshake: Uint8Array
-  verify: KeyExchangeVerificationFunction
-}
-
-export type KeyExchangeResult = {
-  success: boolean
-  keyExchange: KeyExchange
-}
-
-export type KeyExchangeFunction = (
-  ourEphemeralKeyPair: KeyPair,
-  theirIdentityKey: Uint8Array,
-  theirEphemeralKey: Uint8Array
-) => Promise<KeyExchangeResult>
-
-export type Party = {
-  calculateSafetyNumber: SafetyNumberFunction
-  performKeyExchange: KeyExchangeFunction
-}
-
-export type SignFunction = (
-  subject: Uint8Array
-) => Promise<SignResult> | SignResult
+export type SignFunction = (subject: Uint8Array) => SignResult
 
 export type EmscriptenModule = {
   _calloc: (size: number, elementSize: number) => number

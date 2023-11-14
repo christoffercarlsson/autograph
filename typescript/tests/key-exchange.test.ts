@@ -1,10 +1,4 @@
-import {
-  createInitiator,
-  createResponder,
-  createSign,
-  init
-} from '../src/autograph'
-import { KeyExchangeResult, Party } from '../types'
+import { createSign, init, performKeyExchange } from '../src/autograph'
 
 describe('Key exchange', () => {
   const handshakes = {
@@ -27,10 +21,8 @@ describe('Key exchange', () => {
       109, 89, 34
     ])
   }
-  let alice: Party
-  let bob: Party
-  let a: KeyExchangeResult
-  let b: KeyExchangeResult
+  let a: Uint8Array
+  let b: Uint8Array
 
   beforeAll(async () => {
     await init()
@@ -91,30 +83,31 @@ describe('Key exchange', () => {
         }
       }
     }
-    alice = createInitiator(
+    const [aliceHandshake] = await performKeyExchange(
       createSign(keyPairs.alice.identity.privateKey),
-      keyPairs.alice.identity.publicKey
-    )
-    bob = createResponder(
-      createSign(keyPairs.bob.identity.privateKey),
-      keyPairs.bob.identity.publicKey
-    )
-    a = await alice.performKeyExchange(
+      keyPairs.alice.identity.publicKey,
+      true,
       keyPairs.alice.ephemeral,
       keyPairs.bob.identity.publicKey,
       keyPairs.bob.ephemeral.publicKey
     )
-    b = await bob.performKeyExchange(
+    const [bobHandshake] = await performKeyExchange(
+      createSign(keyPairs.bob.identity.privateKey),
+      keyPairs.bob.identity.publicKey,
+      false,
       keyPairs.bob.ephemeral,
       keyPairs.alice.identity.publicKey,
       keyPairs.alice.ephemeral.publicKey
     )
+    a = aliceHandshake
+    b = bobHandshake
   })
 
-  it('should allow Alice and Bob to perform a key exchange', () => {
-    expect(a.success).toBe(true)
-    expect(b.success).toBe(true)
-    expect(a.keyExchange.handshake).toEqual(handshakes.alice)
-    expect(b.keyExchange.handshake).toEqual(handshakes.bob)
+  it('should allow Alice to perform a key exchange', () => {
+    expect(a).toEqual(handshakes.alice)
+  })
+
+  it('should allow Bob to perform a key exchange', () => {
+    expect(b).toEqual(handshakes.bob)
   })
 })

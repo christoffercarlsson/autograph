@@ -1,17 +1,14 @@
 import { autograph_safety_number } from './clib'
-import { SafetyNumberFunction } from '../types'
 import { createSafetyNumberBytes } from './utils'
+import { SafetyNumberCalculationError } from './error'
 
-const createSafetyNumber =
-  (ourIdentityKey: Uint8Array): SafetyNumberFunction =>
-  (theirIdentityKey: Uint8Array) => {
-    const safetyNumber = createSafetyNumberBytes()
-    const success = autograph_safety_number(
-      safetyNumber,
-      ourIdentityKey,
-      theirIdentityKey
-    )
-    return { success, safetyNumber }
+const calculateSafetyNumber = (a: Uint8Array, b: Uint8Array): Uint8Array => {
+  const safetyNumber = createSafetyNumberBytes()
+  const success = autograph_safety_number(safetyNumber, a, b)
+  if (!success) {
+    throw new SafetyNumberCalculationError()
   }
+  return safetyNumber
+}
 
-export default createSafetyNumber
+export default calculateSafetyNumber

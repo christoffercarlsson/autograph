@@ -1,7 +1,7 @@
-import { createInitiator, createResponder, init } from '../src/autograph'
-import { KeyExchangeVerificationResult } from '../types'
+import { createSign, init, performKeyExchange } from '../src/autograph'
+import { Channel } from '../types'
 
-describe('Session', () => {
+describe('Channel', () => {
   const messages = {
     alice: Uint8Array.from([
       133, 247, 214, 87, 210, 66, 77, 105, 105, 94, 229, 248, 76, 207, 31, 228,
@@ -89,8 +89,8 @@ describe('Session', () => {
   const data = Uint8Array.from([
     72, 101, 108, 108, 111, 32, 87, 111, 114, 108, 100
   ])
-  let a: KeyExchangeVerificationResult
-  let b: KeyExchangeVerificationResult
+  let a: Channel
+  let b: Channel
 
   beforeAll(async () => {
     await init()
@@ -151,100 +151,77 @@ describe('Session', () => {
         }
       }
     }
-    const alice = createInitiator(keyPairs.alice.identity)
-    const bob = createResponder(keyPairs.bob.identity)
-    const keyExchanges = {
-      alice: await alice.performKeyExchange(
-        keyPairs.alice.ephemeral,
-        keyPairs.bob.identity.publicKey,
-        keyPairs.bob.ephemeral.publicKey
-      ),
-      bob: await bob.performKeyExchange(
-        keyPairs.bob.ephemeral,
-        keyPairs.alice.identity.publicKey,
-        keyPairs.alice.ephemeral.publicKey
-      )
-    }
-    a = keyExchanges.alice.keyExchange.verify(
-      keyExchanges.bob.keyExchange.handshake
+    const [aliceHandshake, aliceVerify] = await performKeyExchange(
+      createSign(keyPairs.alice.identity.privateKey),
+      keyPairs.alice.identity.publicKey,
+      true,
+      keyPairs.alice.ephemeral,
+      keyPairs.bob.identity.publicKey,
+      keyPairs.bob.ephemeral.publicKey
     )
-    b = keyExchanges.bob.keyExchange.verify(
-      keyExchanges.alice.keyExchange.handshake
+    const [bobHandshake, bobVerify] = await performKeyExchange(
+      createSign(keyPairs.bob.identity.privateKey),
+      keyPairs.bob.identity.publicKey,
+      false,
+      keyPairs.bob.ephemeral,
+      keyPairs.alice.identity.publicKey,
+      keyPairs.alice.ephemeral.publicKey
     )
-  })
-
-  it('should verify the key exchange', () => {
-    expect(a.success).toBe(true)
-    expect(b.success).toBe(true)
+    a = aliceVerify(bobHandshake)
+    b = bobVerify(aliceHandshake)
   })
 
   it('should allow Alice to send encrypted data to Bob', () => {
-    const encryptResult = a.session.encrypt(data)
-    const decryptResult = b.session.decrypt(encryptResult.message)
-    expect(encryptResult.success).toBe(true)
-    expect(decryptResult.success).toBe(true)
-    expect(encryptResult.message).toEqual(messages.alice)
-    expect(decryptResult.data).toEqual(data)
+    const [, message] = a.encrypt(data)
+    const [, plaintext] = b.decrypt(message)
+    expect(message).toEqual(messages.alice)
+    expect(plaintext).toEqual(data)
   })
 
   it('should allow Bob to send encrypted data to Alice', () => {
-    const encryptResult = b.session.encrypt(data)
-    const decryptResult = a.session.decrypt(encryptResult.message)
-    expect(encryptResult.success).toBe(true)
-    expect(decryptResult.success).toBe(true)
-    expect(encryptResult.message).toEqual(messages.bob)
-    expect(decryptResult.data).toEqual(data)
+    const [, message] = b.encrypt(data)
+    const [, plaintext] = a.decrypt(message)
+    expect(message).toEqual(messages.bob)
+    expect(plaintext).toEqual(data)
   })
 
   it("should allow Bob to certify Alice's ownership of her identity key and data", async () => {
-    const encryptResult = a.session.encrypt(data)
-    const decryptResult = b.session.decrypt(encryptResult.message)
-    const certifyResult = await b.session.signData(decryptResult.data)
-    expect(encryptResult.success).toBe(true)
-    expect(decryptResult.success).toBe(true)
-    expect(certifyResult.success).toBe(true)
-    expect(certifyResult.signature).toEqual(signatures.bob.data)
+    const signature = await b.signData(data)
+    expect(signature).toEqual(signatures.bob.data)
   })
 
   it("should allow Alice to certify Bob's ownership of his identity key and data", async () => {
-    const encryptResult = b.session.encrypt(data)
-    const decryptResult = a.session.decrypt(encryptResult.message)
-    const certifyResult = await a.session.signData(decryptResult.data)
-    expect(encryptResult.success).toBe(true)
-    expect(decryptResult.success).toBe(true)
-    expect(certifyResult.success).toBe(true)
-    expect(certifyResult.signature).toEqual(signatures.alice.data)
+    const signature = await a.signData(data)
+    expect(signature).toEqual(signatures.alice.data)
   })
 
   it("should allow Bob to certify Alice's ownership of her identity key", async () => {
-    const result = await b.session.signIdentity()
-    expect(result.success).toBe(true)
-    expect(result.signature).toEqual(signatures.bob.identity)
+    const signature = await b.signIdentity()
+    expect(signature).toEqual(signatures.bob.identity)
   })
 
   it("should allow Alice to certify Bob's ownership of his identity key", async () => {
-    const result = await a.session.signIdentity()
-    expect(result.success).toBe(true)
-    expect(result.signature).toEqual(signatures.alice.identity)
+    const signature = await a.signIdentity()
+    expect(signature).toEqual(signatures.alice.identity)
   })
 
   it("should allow Bob to verify Alice's ownership of her identity key and data based on Charlie's public key and signature", () => {
-    const verified = b.session.verifyData(certificates.alice.data, data)
+    const verified = b.verifyData(certificates.alice.data, data)
     expect(verified).toBe(true)
   })
 
   it("should allow Alice to verify Bob's ownership of his identity key and data based on Charlie's public key and signature", () => {
-    const verified = a.session.verifyData(certificates.bob.data, data)
+    const verified = a.verifyData(certificates.bob.data, data)
     expect(verified).toBe(true)
   })
 
   it("should allow Bob to verify Alice's ownership of her identity key based on Charlie's public key and signature", () => {
-    const verified = b.session.verifyIdentity(certificates.alice.identity)
+    const verified = b.verifyIdentity(certificates.alice.identity)
     expect(verified).toBe(true)
   })
 
   it("should allow Alice to verify Bob's ownership of his identity key based on Charlie's public key and signature", () => {
-    const verified = a.session.verifyIdentity(certificates.bob.identity)
+    const verified = a.verifyIdentity(certificates.bob.identity)
     expect(verified).toBe(true)
   })
 })

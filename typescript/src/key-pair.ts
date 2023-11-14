@@ -1,8 +1,9 @@
-import { KeyPairResult } from '../types'
+import { KeyPair } from '../types'
 import {
   autograph_key_pair_ephemeral,
   autograph_key_pair_identity
 } from './clib'
+import { KeyPairGenerationError } from './error'
 import { createPrivateKeyBytes, createPublicKeyBytes } from './utils'
 
 const createKeyPair = () => ({
@@ -10,20 +11,26 @@ const createKeyPair = () => ({
   publicKey: createPublicKeyBytes()
 })
 
-export const generateEphemeralKeyPair = (): KeyPairResult => {
+export const generateEphemeralKeyPair = (): KeyPair => {
   const keyPair = createKeyPair()
   const success = autograph_key_pair_ephemeral(
     keyPair.privateKey,
     keyPair.publicKey
   )
-  return { success, keyPair }
+  if (!success) {
+    throw new KeyPairGenerationError()
+  }
+  return keyPair
 }
 
-export const generateIdentityKeyPair = (): KeyPairResult => {
+export const generateIdentityKeyPair = (): KeyPair => {
   const keyPair = createKeyPair()
   const success = autograph_key_pair_identity(
     keyPair.privateKey,
     keyPair.publicKey
   )
-  return { success, keyPair }
+  if (!success) {
+    throw new KeyPairGenerationError()
+  }
+  return keyPair
 }

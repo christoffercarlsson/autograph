@@ -12,8 +12,7 @@ describe('Key pair', () => {
   })
 
   it('should generate ephemeral key pairs', () => {
-    const { success, keyPair } = generateEphemeralKeyPair()
-    expect(success).toBe(true)
+    const keyPair = generateEphemeralKeyPair()
     expect(keyPair.privateKey).toBeInstanceOf(Uint8Array)
     expect(keyPair.publicKey).toBeInstanceOf(Uint8Array)
     expect(keyPair.privateKey.byteLength).toBe(32)
@@ -23,8 +22,7 @@ describe('Key pair', () => {
   })
 
   it('should generate identity key pairs', () => {
-    const { success, keyPair } = generateIdentityKeyPair()
-    expect(success).toBe(true)
+    const keyPair = generateIdentityKeyPair()
     expect(keyPair.privateKey).toBeInstanceOf(Uint8Array)
     expect(keyPair.publicKey).toBeInstanceOf(Uint8Array)
     expect(keyPair.privateKey.byteLength).toBe(32)
