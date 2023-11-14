@@ -3,7 +3,7 @@ use crate::key_exchange::perform_key_exchange;
 use crate::key_pair::{generate_ephemeral_key_pair, generate_identity_key_pair};
 use crate::safety_number::calculate_safety_number;
 use crate::sign::create_sign;
-use crate::types::{AutographError, Bytes, KeyExchangeVerificationFunction, KeyPair, SignFunction};
+use crate::types::{AutographError, Bytes, KeyExchangeResult, KeyPair, SignFunction};
 
 #[non_exhaustive]
 #[derive(Clone, Debug)]
@@ -42,7 +42,7 @@ impl Autograph {
         our_ephemeral_key_pair: KeyPair,
         their_identity_key: &'a Bytes,
         their_ephemeral_key: Bytes,
-    ) -> Result<(Bytes, KeyExchangeVerificationFunction<'a>), AutographError> {
+    ) -> KeyExchangeResult {
         perform_key_exchange(
             sign,
             our_identity_key,

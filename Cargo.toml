@@ -32,6 +32,10 @@ name = "autograph"
 path = "rust/src/lib.rs"
 
 [[test]]
+name = "channel_test"
+path = "rust/tests/channel.rs"
+
+[[test]]
 name = "key_exchange_test"
 path = "rust/tests/key_exchange.rs"
 
