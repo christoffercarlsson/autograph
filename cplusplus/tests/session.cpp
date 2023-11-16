@@ -214,4 +214,31 @@ TEST_CASE("Session", "[session]") {
     bool verified = a.verifyIdentity(bobCertificateIdentity);
     REQUIRE(verified == true);
   }
+
+  SECTION("should handle out of order messages correctly") {
+    Autograph::Bytes d1 = {1, 2, 3};
+    Autograph::Bytes d2 = {5, 6, 7};
+    Autograph::Bytes d3 = {7, 8, 9};
+    Autograph::Bytes d4 = {10, 11, 12};
+    auto e1 = a.encrypt(d1);
+    auto e2 = a.encrypt(d2);
+    auto e3 = a.encrypt(d3);
+    auto e4 = a.encrypt(d4);
+    auto p4 = b.decrypt(e4.message);
+    auto p2 = b.decrypt(e2.message);
+    auto p3 = b.decrypt(e3.message);
+    auto p1 = b.decrypt(e1.message);
+    REQUIRE(p1.success == true);
+    REQUIRE(p1.success == true);
+    REQUIRE(p2.success == true);
+    REQUIRE(p4.success == true);
+    REQUIRE(p1.index == 1);
+    REQUIRE(p2.index == 2);
+    REQUIRE(p3.index == 3);
+    REQUIRE(p4.index == 4);
+    REQUIRE_THAT(p1.data, Catch::Matchers::Equals(d1));
+    REQUIRE_THAT(p2.data, Catch::Matchers::Equals(d2));
+    REQUIRE_THAT(p3.data, Catch::Matchers::Equals(d3));
+    REQUIRE_THAT(p4.data, Catch::Matchers::Equals(d4));
+  }
 }

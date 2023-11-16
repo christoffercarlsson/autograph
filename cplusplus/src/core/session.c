@@ -38,27 +38,30 @@ unsigned short autograph_skipped_keys_count(const unsigned char *skipped_keys) {
   return ((skipped_keys[0] << 8) | skipped_keys[1]);
 }
 
-unsigned short autograph_skipped_keys_offset(const unsigned short i) {
-  return 2 + i * 40;
+unsigned short autograph_skipped_keys_offset(const unsigned short count) {
+  if (count == 0 || count == 1) {
+    return 2;
+  }
+  return 2 + (count - 1) * 40;
 }
 
 int autograph_update_skipped_keys(unsigned char *skipped_keys,
-                                  unsigned short count) {
-  skipped_keys[0] = (count >> 8) & 0xFF;
-  skipped_keys[1] = count & 0xFF;
-  unsigned short offset = autograph_skipped_keys_offset(count);
+                                  unsigned short new_count) {
+  skipped_keys[0] = (new_count >> 8) & 0xFF;
+  skipped_keys[1] = new_count & 0xFF;
+  unsigned short offset = autograph_skipped_keys_offset(new_count + 1);
   sodium_memzero(skipped_keys + offset, 40002 - offset);
   return 0;
 }
 
 int autograph_delete_skipped_key(unsigned char *skipped_keys,
-                                 const unsigned short i) {
-  unsigned short new_count = autograph_skipped_keys_count(skipped_keys) - 1;
-  if (new_count > 0 && i != new_count) {
-    memmove(skipped_keys + autograph_skipped_keys_offset(i),
-            skipped_keys + autograph_skipped_keys_offset(new_count), 40);
+                                 const unsigned short at_count) {
+  unsigned short current_count = autograph_skipped_keys_count(skipped_keys);
+  if (at_count != current_count) {
+    memmove(skipped_keys + autograph_skipped_keys_offset(at_count),
+            skipped_keys + autograph_skipped_keys_offset(current_count), 40);
   }
-  return autograph_update_skipped_keys(skipped_keys, new_count);
+  return autograph_update_skipped_keys(skipped_keys, current_count - 1);
 }
 
 int autograph_decrypt_skipped(unsigned char *plaintext,
@@ -71,13 +74,13 @@ int autograph_decrypt_skipped(unsigned char *plaintext,
   if (skipped_count == 0) {
     return 1;
   }
-  for (int i = 0; i < skipped_count; i++) {
-    unsigned short offset = autograph_skipped_keys_offset(i);
+  for (int count = 1; count <= skipped_count; count++) {
+    unsigned short offset = autograph_skipped_keys_offset(count);
     if (autograph_crypto_decrypt(plaintext, plaintext_size,
                                  skipped_keys + offset + 8, message,
                                  message_size) == 0) {
       memmove(message_index, skipped_keys + offset, 8);
-      return autograph_delete_skipped_key(skipped_keys, i) != 0 ? -1 : 0;
+      return autograph_delete_skipped_key(skipped_keys, count) != 0 ? -1 : 0;
     }
   }
   return 1;

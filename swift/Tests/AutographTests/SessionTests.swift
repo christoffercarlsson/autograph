@@ -1,80 +1,85 @@
-@testable import Autograph
 import XCTest
 
+@testable import Autograph
+
 final class SessionTests: XCTestCase {
-  let aliceIdentityKeyPair = KeyPair(privateKey: [
-    43,
-    6,
-    246,
-    172,
-    137,
-    170,
-    33,
-    12,
-    118,
-    177,
-    111,
-    60,
-    19,
-    37,
-    65,
-    122,
-    28,
-    34,
-    200,
-    251,
-    96,
-    35,
-    187,
-    52,
-    74,
-    224,
-    143,
-    39,
-    90,
-    51,
-    33,
-    140,
-  ], publicKey: [
-    91,
-    119,
-    85,
-    151,
-    32,
-    20,
-    121,
-    20,
-    19,
-    106,
-    90,
-    56,
-    141,
-    90,
-    16,
-    210,
-    14,
-    244,
-    60,
-    251,
-    140,
-    48,
-    190,
-    65,
-    194,
-    35,
-    166,
-    246,
-    1,
-    209,
-    4,
-    33,
-  ])
+  let aliceIdentityKeyPair = KeyPair(
+    privateKey: [
+      43,
+      6,
+      246,
+      172,
+      137,
+      170,
+      33,
+      12,
+      118,
+      177,
+      111,
+      60,
+      19,
+      37,
+      65,
+      122,
+      28,
+      34,
+      200,
+      251,
+      96,
+      35,
+      187,
+      52,
+      74,
+      224,
+      143,
+      39,
+      90,
+      51,
+      33,
+      140,
+    ],
+    publicKey: [
+      91,
+      119,
+      85,
+      151,
+      32,
+      20,
+      121,
+      20,
+      19,
+      106,
+      90,
+      56,
+      141,
+      90,
+      16,
+      210,
+      14,
+      244,
+      60,
+      251,
+      140,
+      48,
+      190,
+      65,
+      194,
+      35,
+      166,
+      246,
+      1,
+      209,
+      4,
+      33,
+    ])
   let bobIdentityKeyPair = KeyPair(
-    privateKey: [243, 11, 156, 139, 99, 129, 212, 8, 60, 53, 111, 123, 69, 158,
-                 83, 255,
-                 187, 192, 29, 114, 69, 126, 243, 111, 122, 143, 170, 247, 140,
-                 129, 60,
-                 0],
+    privateKey: [
+      243, 11, 156, 139, 99, 129, 212, 8, 60, 53, 111, 123, 69, 158,
+      83, 255,
+      187, 192, 29, 114, 69, 126, 243, 111, 122, 143, 170, 247, 140,
+      129, 60,
+      0,
+    ],
     publicKey: [
       232,
       130,
@@ -112,11 +117,11 @@ final class SessionTests: XCTestCase {
   )
   let aliceMessage: Bytes = [
     133, 247, 214, 87, 210, 66, 77, 105, 105, 94, 229, 248, 76, 207, 31, 228,
-    73, 37, 32, 45, 125, 163, 240, 75, 45, 197, 224, 166, 218, 59, 107, 249
+    73, 37, 32, 45, 125, 163, 240, 75, 45, 197, 224, 166, 218, 59, 107, 249,
   ]
   let bobMessage: Bytes = [
     215, 195, 161, 229, 121, 212, 73, 131, 33, 122, 165, 228, 150, 205, 107,
-    127, 120, 84, 39, 99, 138, 32, 20, 143, 68, 34, 45, 215, 62, 214, 84, 181
+    127, 120, 84, 39, 99, 138, 32, 20, 143, 68, 34, 45, 215, 62, 214, 84, 181,
   ]
   let aliceSignatureData: Bytes = [
     86, 231, 106, 104, 140, 212, 209, 113, 91, 48, 249, 242, 132,
@@ -182,8 +187,10 @@ final class SessionTests: XCTestCase {
     15, 87, 120, 95, 0, 58, 188, 176, 71, 18, 254, 57, 98, 211,
     129, 168, 241, 51, 236, 181, 12, 63, 185, 130, 176, 2,
   ]
-  let data: Bytes = [72, 101, 108, 108, 111, 32,
-                     87, 111, 114, 108, 100]
+  let data: Bytes = [
+    72, 101, 108, 108, 111, 32,
+    87, 111, 114, 108, 100,
+  ]
   var autograph: Autograph!
   var alice: Party!
   var bob: Party!
@@ -201,20 +208,28 @@ final class SessionTests: XCTestCase {
       identityKeyPair: bobIdentityKeyPair
     )
     aliceEphemeralKeyPair = KeyPair(
-      privateKey: [171, 243, 152, 144, 76, 145, 84, 13, 243, 173, 102,
-                   244, 84, 223, 43, 104, 182, 128, 230, 247, 121, 221,
-                   222, 203, 10, 80, 43, 88, 177, 155, 1, 114],
-      publicKey: [16, 9, 47, 109, 23, 19, 165, 137, 95, 186, 203,
-                  186, 154, 179, 116, 3, 160, 119, 225, 180, 226, 19,
-                  172, 45, 113, 125, 124, 86, 94, 159, 161, 119]
+      privateKey: [
+        171, 243, 152, 144, 76, 145, 84, 13, 243, 173, 102,
+        244, 84, 223, 43, 104, 182, 128, 230, 247, 121, 221,
+        222, 203, 10, 80, 43, 88, 177, 155, 1, 114,
+      ],
+      publicKey: [
+        16, 9, 47, 109, 23, 19, 165, 137, 95, 186, 203,
+        186, 154, 179, 116, 3, 160, 119, 225, 180, 226, 19,
+        172, 45, 113, 125, 124, 86, 94, 159, 161, 119,
+      ]
     )
     bobEphemeralKeyPair = KeyPair(
-      privateKey: [252, 67, 175, 250, 230, 100, 145, 82, 139, 125, 242,
-                   5, 40, 8, 155, 104, 37, 224, 5, 96, 105, 46,
-                   42, 202, 158, 63, 177, 43, 112, 184, 207, 85],
-      publicKey: [249, 212, 82, 190, 253, 45, 230, 86, 74, 150, 239,
-                  0, 26, 41, 131, 245, 177, 87, 106, 105, 167, 58,
-                  158, 184, 244, 65, 205, 42, 40, 80, 134, 52]
+      privateKey: [
+        252, 67, 175, 250, 230, 100, 145, 82, 139, 125, 242,
+        5, 40, 8, 155, 104, 37, 224, 5, 96, 105, 46,
+        42, 202, 158, 63, 177, 43, 112, 184, 207, 85,
+      ],
+      publicKey: [
+        249, 212, 82, 190, 253, 45, 230, 86, 74, 150, 239,
+        0, 26, 41, 131, 245, 177, 87, 106, 105, 167, 58,
+        158, 184, 244, 65, 205, 42, 40, 80, 134, 52,
+      ]
     )
     let aliceKeyExchange = alice.performKeyExchange(
       &aliceEphemeralKeyPair,
@@ -312,5 +327,33 @@ final class SessionTests: XCTestCase {
   func testAliceVerifyBobIdentity() {
     let verified = a.verifyIdentity(bobCertificateIdentity)
     XCTAssertTrue(verified)
+  }
+
+  // Should handle out of order messages correctly
+  func testOutOfOrderMessages() {
+    let d1: Bytes = [1, 2, 3]
+    let d2: Bytes = [4, 5, 6]
+    let d3: Bytes = [7, 8, 9]
+    let d4: Bytes = [10, 11, 12]
+    let e1 = a.encrypt(d1)
+    let e2 = a.encrypt(d2)
+    let e3 = a.encrypt(d3)
+    let e4 = a.encrypt(d4)
+    let p4 = b.decrypt(e4.message)
+    let p2 = b.decrypt(e2.message)
+    let p3 = b.decrypt(e3.message)
+    let p1 = b.decrypt(e1.message)
+    XCTAssertTrue(p1.success)
+    XCTAssertTrue(p2.success)
+    XCTAssertTrue(p3.success)
+    XCTAssertTrue(p4.success)
+    XCTAssertEqual(p1.index, 1)
+    XCTAssertEqual(p2.index, 2)
+    XCTAssertEqual(p3.index, 3)
+    XCTAssertEqual(p4.index, 4)
+    XCTAssertEqual(p1.data, d1)
+    XCTAssertEqual(p2.data, d2)
+    XCTAssertEqual(p3.data, d3)
+    XCTAssertEqual(p4.data, d4)
   }
 }
