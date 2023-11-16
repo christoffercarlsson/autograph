@@ -5,6 +5,8 @@ use crate::channel::Channel;
 
 #[derive(Debug)]
 pub enum AutographError {
+    ChannelAlreadyEstablishedError,
+    ChannelUnestablishedError,
     DecryptionError,
     EncryptionError,
     InitializationError,
@@ -21,7 +23,7 @@ pub type KeyExchangeResult<'a> =
     Result<(Bytes, KeyExchangeVerificationFunction<'a>), AutographError>;
 
 pub type KeyExchangeVerificationFunction<'a> =
-    Box<dyn FnOnce(Bytes) -> Result<Channel<'a>, AutographError> + 'a>;
+    Box<dyn FnOnce(Bytes) -> Result<&'a Channel<'a>, AutographError> + 'a>;
 
 #[derive(Clone, Debug)]
 pub struct KeyPair {

@@ -1,5 +1,6 @@
 use autograph::{
-    Autograph, AutographError, Bytes, Channel, KeyExchangeResult, KeyPair, SignFunction,
+    create_sign, init, perform_key_exchange, AutographError, Bytes, Channel, KeyExchangeResult,
+    KeyPair, SignFunction,
 };
 
 struct TestEnv {
@@ -160,48 +161,51 @@ fn create_bob_env() -> TestEnv {
     )
 }
 
-fn perform_key_exchange<'a>(
+fn do_key_exchange<'a>(
     is_initiator: bool,
-    autograph: &'a Autograph,
     sign: &'a SignFunction,
+    channel: &'a mut Channel,
     our_env: &'a TestEnv,
     their_env: &'a TestEnv,
 ) -> KeyExchangeResult<'a> {
-    autograph.perform_key_exchange(
+    perform_key_exchange(
         sign,
+        channel,
         &our_env.identity_key_pair.public_key,
         is_initiator,
         our_env.ephemeral_key_pair.clone(),
-        &their_env.identity_key_pair.public_key,
+        their_env.identity_key_pair.public_key.clone(),
         their_env.ephemeral_key_pair.public_key.clone(),
     )
 }
 
 fn establish_channels<'a>(
-    autograph: &'a Autograph,
     alice_sign: &'a SignFunction,
     bob_sign: &'a SignFunction,
+    alice_channel: &'a mut Channel,
+    bob_channel: &'a mut Channel,
     alice_env: &'a TestEnv,
     bob_env: &'a TestEnv,
-) -> Result<(Channel<'a>, Channel<'a>), AutographError> {
+) -> Result<(), AutographError> {
     let (alice_handshake, alice_verify) =
-        perform_key_exchange(true, autograph, alice_sign, alice_env, bob_env)?;
+        do_key_exchange(true, alice_sign, alice_channel, alice_env, bob_env)?;
     let (bob_handshake, bob_verify) =
-        perform_key_exchange(false, autograph, bob_sign, bob_env, alice_env)?;
-    let alice_channel = alice_verify(bob_handshake)?;
-    let bob_channel = bob_verify(alice_handshake)?;
-    Ok((alice_channel, bob_channel))
+        do_key_exchange(false, bob_sign, bob_channel, bob_env, alice_env)?;
+    alice_verify(bob_handshake)?;
+    bob_verify(alice_handshake)?;
+    Ok(())
 }
 
 #[test]
 fn test_channel() {
-    let autograph = Autograph::new().unwrap();
+    init().unwrap();
     let alice_env = create_alice_env();
     let bob_env = create_bob_env();
-    let alice_sign = autograph.create_sign(&alice_env.identity_key_pair.private_key);
-    let bob_sign = autograph.create_sign(&bob_env.identity_key_pair.private_key);
-    let (mut a, mut b) =
-        establish_channels(&autograph, &alice_sign, &bob_sign, &alice_env, &bob_env).unwrap();
+    let alice_sign = create_sign(&alice_env.identity_key_pair.private_key);
+    let bob_sign = create_sign(&bob_env.identity_key_pair.private_key);
+    let mut a = Channel::new(&alice_sign);
+    let mut b = Channel::new(&bob_sign);
+    establish_channels(&alice_sign, &bob_sign, &mut a, &mut b, &alice_env, &bob_env).unwrap();
     test_alice_message_to_bob(&mut a, &mut b, &alice_env);
     test_bob_message_to_alice(&mut a, &mut b, &bob_env);
     test_bob_certify_alice_data(&mut b, &bob_env);
@@ -212,6 +216,7 @@ fn test_channel() {
     test_alice_verify_bob_data(&mut a, &alice_env);
     test_bob_verify_alice_identity(&mut b, &bob_env);
     test_alice_verify_bob_identity(&mut a, &alice_env);
+    test_out_of_order_messages(&mut a, &mut b);
 }
 
 // Should allow Alice to send encrypted data to Bob
@@ -257,27 +262,53 @@ fn test_alice_certify_bob_identity(a: &mut Channel, env: &TestEnv) {
 // Should allow Bob to verify Alice's ownership of her identity key and data
 // based on Charlie's public key and signature
 fn test_bob_verify_alice_data(b: &mut Channel, env: &TestEnv) {
-    let verified = b.verify_data(&env.certificate_data, &env.data);
+    let verified = b.verify_data(&env.certificate_data, &env.data).unwrap();
     assert!(verified);
 }
 
 // Should allow Alice to verify Bob's ownership of his identity key and ddata
 // based on Charlie's public key and signature
 fn test_alice_verify_bob_data(a: &mut Channel, env: &TestEnv) {
-    let verified = a.verify_data(&env.certificate_data, &env.data);
+    let verified = a.verify_data(&env.certificate_data, &env.data).unwrap();
     assert!(verified);
 }
 
 // Should allow Bob to verify Alice's ownership of her identity key based on
 // Charlie's public key and signature
 fn test_bob_verify_alice_identity(b: &mut Channel, env: &TestEnv) {
-    let verified = b.verify_identity(&env.certificate_identity);
+    let verified = b.verify_identity(&env.certificate_identity).unwrap();
     assert!(verified);
 }
 
 // Should allow Alice to verify Bob's ownership of his identity key based on
 // Charlie's public key and signature
 fn test_alice_verify_bob_identity(a: &mut Channel, env: &TestEnv) {
-    let verified = a.verify_identity(&env.certificate_identity);
+    let verified = a.verify_identity(&env.certificate_identity).unwrap();
     assert!(verified);
+}
+
+// Should handle out of order messages correctly
+fn test_out_of_order_messages(a: &mut Channel, b: &mut Channel) {
+    let d1: Bytes = vec![1, 2, 3];
+    let d2: Bytes = vec![4, 5, 6];
+    let d3: Bytes = vec![7, 8, 9];
+    let d4: Bytes = vec![10, 11, 12];
+    let (_, m1) = a.encrypt(&d1).unwrap();
+    let (_, m2) = a.encrypt(&d2).unwrap();
+    let (_, m3) = a.encrypt(&d3).unwrap();
+    let (_, m4) = a.encrypt(&d4).unwrap();
+    let (i4, p4) = b.decrypt(m4).unwrap();
+    let (i2, p2) = b.decrypt(m2).unwrap();
+    let (i3, p3) = b.decrypt(m3).unwrap();
+    let (i1, p1) = b.decrypt(m1).unwrap();
+    // Index start at 2 since another test (test_alice_message_to_bob) that
+    // uses the same channel ran before this test
+    assert_eq!(i1, 2);
+    assert_eq!(i2, 3);
+    assert_eq!(i3, 4);
+    assert_eq!(i4, 5);
+    assert_eq!(p1, d1);
+    assert_eq!(p2, d2);
+    assert_eq!(p3, d3);
+    assert_eq!(p4, d4);
 }

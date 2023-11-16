@@ -12,8 +12,8 @@ use crate::types::{
 use crate::utils::{create_handshake_bytes, create_secret_key_bytes, create_transcript_bytes};
 
 fn create_key_exchange_verification<'a>(
-    sign: &'a SignFunction,
-    their_identity_key: &'a Bytes,
+    channel: &'a mut Channel,
+    their_identity_key: Bytes,
     transcript: Bytes,
     our_secret_key: Bytes,
     their_secret_key: Bytes,
@@ -28,12 +28,8 @@ fn create_key_exchange_verification<'a>(
             )
         } == 0;
         if success {
-            Ok(Channel::new(
-                sign,
-                their_identity_key,
-                our_secret_key,
-                their_secret_key,
-            ))
+            channel.establish(their_identity_key, our_secret_key, their_secret_key)?;
+            Ok(channel)
         } else {
             Err(AutographError::KeyExchangeVerificationError)
         }
@@ -42,10 +38,11 @@ fn create_key_exchange_verification<'a>(
 
 pub fn perform_key_exchange<'a>(
     sign: &'a SignFunction,
+    channel: &'a mut Channel,
     our_identity_key: &'a Bytes,
     is_initiator: bool,
     mut our_ephemeral_key_pair: KeyPair,
-    their_identity_key: &'a Bytes,
+    their_identity_key: Bytes,
     their_ephemeral_key: Bytes,
 ) -> KeyExchangeResult<'a> {
     let mut handshake = create_handshake_bytes();
@@ -81,7 +78,7 @@ pub fn perform_key_exchange<'a>(
         Ok((
             handshake,
             create_key_exchange_verification(
-                sign,
+                channel,
                 their_identity_key,
                 transcript,
                 our_secret_key,

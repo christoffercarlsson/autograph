@@ -1,4 +1,4 @@
-use autograph::{Autograph, AutographError, Bytes, KeyPair};
+use autograph::{create_sign, init, perform_key_exchange, AutographError, Bytes, Channel, KeyPair};
 
 struct TestEnv {
     pub identity_key_pair: KeyPair,
@@ -77,19 +77,20 @@ fn create_bob_env() -> TestEnv {
     }
 }
 
-fn perform_key_exchange(
+fn do_key_exchange(
     is_initator: bool,
     our_env: TestEnv,
     their_env: TestEnv,
 ) -> Result<(Bytes, Bytes), AutographError> {
-    let autograph = Autograph::new()?;
-    let sign = autograph.create_sign(&our_env.identity_key_pair.private_key);
-    let (handshake, _) = autograph.perform_key_exchange(
+    let sign = create_sign(&our_env.identity_key_pair.private_key);
+    let mut channel = Channel::new(&sign);
+    let (handshake, _) = perform_key_exchange(
         &sign,
+        &mut channel,
         &our_env.identity_key_pair.public_key,
         is_initator,
         our_env.ephemeral_key_pair,
-        &their_env.identity_key_pair.public_key,
+        their_env.identity_key_pair.public_key,
         their_env.ephemeral_key_pair.public_key,
     )?;
     Ok((handshake, our_env.handshake))
@@ -99,14 +100,15 @@ fn calculate_handshake(is_initator: bool) -> Result<(Bytes, Bytes), AutographErr
     let a = create_alice_env();
     let b = create_bob_env();
     if is_initator {
-        perform_key_exchange(true, a, b)
+        do_key_exchange(true, a, b)
     } else {
-        perform_key_exchange(false, b, a)
+        do_key_exchange(false, b, a)
     }
 }
 
 #[test]
 fn test_key_exchange() {
+    init().unwrap();
     let (alice_left, alice_right) = calculate_handshake(true).unwrap();
     let (bob_left, bob_right) = calculate_handshake(false).unwrap();
     assert_eq!(alice_left, alice_right);

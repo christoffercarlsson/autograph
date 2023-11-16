@@ -1,4 +1,4 @@
-use autograph::{Autograph, Bytes};
+use autograph::{calculate_safety_number, init, Bytes};
 
 #[test]
 fn test_calculate_safety_number() {
@@ -15,13 +15,9 @@ fn test_calculate_safety_number() {
         48, 54, 52, 56, 52, 53, 49, 53, 55, 50, 49, 50, 54, 49, 50, 50, 49, 57, 52, 53, 57, 52, 50,
         55, 54, 49, 49, 54, 49, 57, 50, 52, 53, 52, 57, 50, 54,
     ];
-    let autograph = Autograph::new().unwrap();
-    let a = autograph
-        .calculate_safety_number(&alice_public_key, &bob_public_key)
-        .unwrap();
-    let b = autograph
-        .calculate_safety_number(&bob_public_key, &alice_public_key)
-        .unwrap();
+    init().unwrap();
+    let a = calculate_safety_number(&alice_public_key, &bob_public_key).unwrap();
+    let b = calculate_safety_number(&bob_public_key, &alice_public_key).unwrap();
     assert_eq!(a, safety_number);
     assert_eq!(b, safety_number);
 }
