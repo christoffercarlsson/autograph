@@ -6,8 +6,6 @@ TEST_CASE("Data sizes", "[core_sizes]") {
   SECTION("should return the correct ciphertext size") {
     REQUIRE(autograph_ciphertext_size(11) == 32);
     REQUIRE(autograph_ciphertext_size(16) == 48);
-    REQUIRE(Autograph::getCiphertextSize(11) == 32);
-    REQUIRE(Autograph::getCiphertextSize(16) == 48);
   }
 
   SECTION("should return the correct handshake size") {
@@ -23,8 +21,6 @@ TEST_CASE("Data sizes", "[core_sizes]") {
   SECTION("should return the correct plaintext size") {
     REQUIRE(autograph_plaintext_size(32) == 16);
     REQUIRE(autograph_plaintext_size(64) == 48);
-    REQUIRE(Autograph::getPlaintextSize(32) == 16);
-    REQUIRE(Autograph::getPlaintextSize(64) == 48);
   }
 
   SECTION("should return the correct private key size") {
@@ -64,7 +60,6 @@ TEST_CASE("Data sizes", "[core_sizes]") {
 
   SECTION("should return the correct subject size") {
     REQUIRE(autograph_subject_size(3) == 35);
-    REQUIRE(Autograph::getSubjectSize(3) == 35);
   }
 
   SECTION("should return the correct transcript size") {

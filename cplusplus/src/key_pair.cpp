@@ -1,30 +1,42 @@
 #include "key_pair.h"
 
+#include "error.h"
+#include "init.h"
 #include "sizes.h"
 
 namespace Autograph {
 
 KeyPair createKeyPair() {
-  Bytes privateKey(PRIVATE_KEY_SIZE);
-  Bytes publicKey(PUBLIC_KEY_SIZE);
+  std::vector<unsigned char> privateKey(PRIVATE_KEY_SIZE);
+  std::vector<unsigned char> publicKey(PUBLIC_KEY_SIZE);
   KeyPair keyPair = {privateKey, publicKey};
   return keyPair;
 }
 
-KeyPairResult generateEphemeralKeyPair() {
+KeyPair generateEphemeralKeyPair() {
+  if (autograph_init() != 0) {
+    throw Error(Error::InitializationError);
+  }
   auto keyPair = createKeyPair();
   bool success = autograph_key_pair_ephemeral(keyPair.privateKey.data(),
                                               keyPair.publicKey.data()) == 0;
-  KeyPairResult result = {success, keyPair};
-  return result;
+  if (!success) {
+    throw Error(Error::KeyPairGenerationError);
+  }
+  return keyPair;
 }
 
-KeyPairResult generateIdentityKeyPair() {
+KeyPair generateIdentityKeyPair() {
+  if (autograph_init() != 0) {
+    throw Error(Error::InitializationError);
+  }
   auto keyPair = createKeyPair();
   bool success = autograph_key_pair_identity(keyPair.privateKey.data(),
                                              keyPair.publicKey.data()) == 0;
-  KeyPairResult result = {success, keyPair};
-  return result;
+  if (!success) {
+    throw Error(Error::KeyPairGenerationError);
+  }
+  return keyPair;
 }
 
 }  // namespace Autograph

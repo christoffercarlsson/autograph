@@ -1,8 +1,6 @@
-#include "session.h"
-
 #include <string.h>
 
-#include "numbers.h"
+#include "channel.h"
 #include "private.h"
 #include "sodium.h"
 

@@ -56,12 +56,6 @@ const unsigned int SKIPPED_KEYS_SIZE = 40002;
 
 const unsigned int TRANSCRIPT_SIZE = 128;
 
-unsigned int getCiphertextSize(unsigned int plaintextSize);
-
-unsigned int getPlaintextSize(unsigned int ciphertextSize);
-
-unsigned int getSubjectSize(unsigned int size);
-
 }  // namespace Autograph
 #endif
 

@@ -1,9 +1,10 @@
 #include <catch2/catch_test_macros.hpp>
 #include <catch2/matchers/catch_matchers_vector.hpp>
+#include <vector>
 
 #include "autograph.h"
 
-TEST_CASE("Session", "[session]") {
+TEST_CASE("Channel", "[channel]") {
   Autograph::KeyPair aliceIdentityKeyPair = {
       {43, 6,  246, 172, 137, 170, 33,  12, 118, 177, 111, 60, 19, 37, 65, 122,
        28, 34, 200, 251, 96,  35,  187, 52, 74,  224, 143, 39, 90, 51, 33, 140},
@@ -35,45 +36,63 @@ TEST_CASE("Session", "[session]") {
        0,   26,  41,  131, 245, 177, 87,  106, 105, 167, 58,
        158, 184, 244, 65,  205, 42,  40,  80,  134, 52}};
 
-  Autograph::Bytes aliceMessage = {133, 247, 214, 87,  210, 66,  77,  105,
-                                   105, 94,  229, 248, 76,  207, 31,  228,
-                                   73,  37,  32,  45,  125, 163, 240, 75,
-                                   45,  197, 224, 166, 218, 59,  107, 249};
+  std::vector<unsigned char> aliceHandshake = {
+      238, 58,  38,  30,  141, 34,  200, 183, 28,  206, 215, 73,  200, 125,
+      92,  152, 101, 211, 214, 130, 33,  158, 114, 200, 43,  30,  212, 100,
+      176, 149, 15,  111, 170, 186, 36,  10,  90,  136, 46,  170, 120, 191,
+      170, 14,  31,  53,  72,  56,  227, 194, 21,  164, 251, 208, 203, 182,
+      242, 115, 6,   54,  114, 120, 212, 226, 72,  160, 235, 116, 148, 31,
+      19,  62,  52,  116, 28,  172, 227, 191, 95,  152, 15,  140, 105, 200,
+      21,  203, 72,  193, 215, 42,  20,  254, 193, 178, 56,  137};
 
-  Autograph::Bytes bobMessage = {215, 195, 161, 229, 121, 212, 73,  131,
-                                 33,  122, 165, 228, 150, 205, 107, 127,
-                                 120, 84,  39,  99,  138, 32,  20,  143,
-                                 68,  34,  45,  215, 62,  214, 84,  181};
+  std::vector<unsigned char> bobHandshake = {
+      40,  96,  87,  46,  204, 210, 12,  62,  80,  86,  55,  252, 191, 201,
+      183, 188, 150, 80,  124, 92,  248, 44,  173, 8,   66,  54,  229, 117,
+      245, 117, 243, 248, 77,  227, 184, 224, 105, 115, 69,  212, 103, 64,
+      198, 124, 122, 196, 195, 215, 250, 95,  169, 218, 185, 119, 150, 206,
+      130, 255, 243, 124, 48,  52,  32,  211, 77,  244, 171, 54,  222, 115,
+      138, 209, 166, 140, 240, 181, 115, 173, 224, 224, 108, 145, 15,  210,
+      138, 188, 76,  13,  29,  19,  188, 120, 188, 109, 89,  34};
 
-  Autograph::Bytes aliceSignatureData = {
+  std::vector<unsigned char> aliceMessage = {
+      133, 247, 214, 87,  210, 66,  77,  105, 105, 94,  229,
+      248, 76,  207, 31,  228, 73,  37,  32,  45,  125, 163,
+      240, 75,  45,  197, 224, 166, 218, 59,  107, 249};
+
+  std::vector<unsigned char> bobMessage = {
+      215, 195, 161, 229, 121, 212, 73, 131, 33, 122, 165,
+      228, 150, 205, 107, 127, 120, 84, 39,  99, 138, 32,
+      20,  143, 68,  34,  45,  215, 62, 214, 84, 181};
+
+  std::vector<unsigned char> aliceSignatureData = {
       86,  231, 106, 104, 140, 212, 209, 113, 91,  48,  249, 242, 132,
       150, 129, 18,  62,  67,  44,  187, 71,  9,   28,  5,   164, 244,
       165, 222, 124, 11,  197, 55,  123, 174, 9,   14,  186, 118, 86,
       242, 240, 170, 239, 176, 78,  255, 85,  28,  88,  148, 202, 108,
       151, 160, 93,  1,   128, 129, 255, 123, 238, 191, 29,  1};
 
-  Autograph::Bytes aliceSignatureIdentity = {
+  std::vector<unsigned char> aliceSignatureIdentity = {
       183, 19,  9,   47,  241, 207, 111, 69,  199, 68,  135, 48,  131,
       140, 112, 168, 61,  244, 34,  107, 219, 194, 177, 99,  178, 109,
       218, 237, 118, 1,   13,  205, 231, 138, 74,  246, 88,  149, 36,
       65,  219, 62,  154, 70,  185, 35,  251, 98,  186, 16,  56,  79,
       18,  144, 193, 183, 27,  2,   11,  71,  83,  20,  168, 7};
 
-  Autograph::Bytes bobSignatureData = {
+  std::vector<unsigned char> bobSignatureData = {
       188, 36,  195, 130, 177, 84,  21,  74,  125, 139, 109, 135, 207,
       42,  213, 11,  153, 158, 183, 160, 112, 141, 216, 204, 167, 194,
       159, 123, 221, 162, 50,  220, 49,  54,  123, 73,  132, 73,  15,
       144, 65,  252, 249, 192, 145, 159, 22,  224, 143, 25,  226, 32,
       54,  44,  139, 196, 85,  254, 198, 61,  138, 244, 223, 4};
 
-  Autograph::Bytes bobSignatureIdentity = {
+  std::vector<unsigned char> bobSignatureIdentity = {
       173, 114, 114, 160, 51,  91,  40,  39,  223, 144, 168, 53,  94,
       199, 250, 184, 88,  132, 31,  232, 50,  177, 147, 144, 102, 146,
       120, 27,  57,  63,  60,  151, 237, 224, 85,  65,  200, 38,  227,
       34,  88,  131, 168, 236, 107, 4,   200, 54,  232, 176, 16,  44,
       144, 106, 77,  28,  246, 104, 17,  77,  150, 92,  116, 0};
 
-  Autograph::Bytes aliceCertificateData = {
+  std::vector<unsigned char> aliceCertificateData = {
       123, 223, 90,  28,  163, 65,  187, 199, 14,  78,  92,  116, 38,  48,
       178, 123, 72,  213, 94,  252, 250, 127, 184, 0,   187, 249, 157, 102,
       227, 241, 114, 20,  82,  239, 167, 88,  84,  82,  16,  198, 184, 193,
@@ -82,7 +101,7 @@ TEST_CASE("Session", "[session]") {
       188, 251, 194, 157, 166, 7,   134, 203, 32,  253, 65,  90,  40,  91,
       76,  25,  252, 156, 139, 154, 148, 183, 71,  7,   109, 5};
 
-  Autograph::Bytes aliceCertificateIdentity = {
+  std::vector<unsigned char> aliceCertificateIdentity = {
       97,  114, 246, 28,  48,  150, 138, 154, 28,  234, 226, 183, 186, 225,
       166, 166, 43,  109, 145, 194, 105, 51,  155, 138, 48,  180, 100, 51,
       113, 57,  150, 211, 94,  131, 142, 67,  234, 107, 103, 51,  205, 132,
@@ -91,7 +110,7 @@ TEST_CASE("Session", "[session]") {
       107, 31,  26,  153, 30,  132, 207, 177, 67,  160, 231, 198, 207, 32,
       134, 210, 55,  9,   188, 20,  186, 130, 156, 122, 77,  4};
 
-  Autograph::Bytes bobCertificateData = {
+  std::vector<unsigned char> bobCertificateData = {
       251, 196, 170, 200, 183, 119, 18,  130, 9,   255, 140, 77,  56,  104,
       92,  11,  42,  224, 208, 28,  110, 241, 103, 77,  34,  32,  164, 58,
       255, 108, 255, 222, 20,  76,  211, 173, 168, 254, 145, 154, 196, 46,
@@ -100,7 +119,7 @@ TEST_CASE("Session", "[session]") {
       230, 6,   82,  13,  100, 27,  126, 169, 42,  49,  85,  79,  232, 15,
       30,  22,  109, 118, 6,   196, 207, 18,  60,  63,  25,  1};
 
-  Autograph::Bytes bobCertificateIdentity = {
+  std::vector<unsigned char> bobCertificateIdentity = {
       126, 118, 172, 19,  4,   38,  118, 77,  202, 146, 28,  11,  166, 253,
       115, 109, 204, 196, 31,  146, 128, 17,  242, 19,  95,  146, 105, 135,
       38,  36,  178, 138, 141, 196, 191, 87,  226, 187, 57,  49,  19,  119,
@@ -109,82 +128,80 @@ TEST_CASE("Session", "[session]") {
       15,  87,  120, 95,  0,   58,  188, 176, 71,  18,  254, 57,  98,  211,
       129, 168, 241, 51,  236, 181, 12,  63,  185, 130, 176, 2};
 
-  Autograph::Bytes data = {72, 101, 108, 108, 111, 32, 87, 111, 114, 108, 100};
+  std::vector<unsigned char> data = {72, 101, 108, 108, 111, 32,
+                                     87, 111, 114, 108, 100};
 
-  Autograph::init();
+  std::vector<unsigned char> safetyNumber = {
+      52, 52, 57, 52, 50, 50, 53, 55, 54, 50, 48, 53, 51, 51, 49,
+      55, 56, 54, 48, 50, 55, 53, 56, 48, 54, 52, 56, 52, 53, 49,
+      53, 55, 50, 49, 50, 54, 49, 50, 50, 49, 57, 52, 53, 57, 52,
+      50, 55, 54, 49, 49, 54, 49, 57, 50, 52, 53, 52, 57, 50, 54};
 
-  auto alice = Autograph::createInitiator(aliceIdentityKeyPair);
-  auto bob = Autograph::createResponder(bobIdentityKeyPair);
+  auto aliceSign = Autograph::createSign(aliceIdentityKeyPair.privateKey);
+  auto bobSign = Autograph::createSign(bobIdentityKeyPair.privateKey);
 
-  auto aliceKeyExchange = alice
-                              .performKeyExchange(aliceEphemeralKeyPair,
-                                                  bobIdentityKeyPair.publicKey,
-                                                  bobEphemeralKeyPair.publicKey)
-                              .keyExchange;
-  auto bobKeyExchange = bob.performKeyExchange(bobEphemeralKeyPair,
-                                               aliceIdentityKeyPair.publicKey,
-                                               aliceEphemeralKeyPair.publicKey)
-                            .keyExchange;
+  auto a = Autograph::Channel(aliceSign, aliceIdentityKeyPair.publicKey);
+  auto b = Autograph::Channel(bobSign, bobIdentityKeyPair.publicKey);
 
-  auto a = aliceKeyExchange.verify(bobKeyExchange.handshake).session;
-  auto b = bobKeyExchange.verify(aliceKeyExchange.handshake).session;
+  auto ah = a.performKeyExchange(true, aliceEphemeralKeyPair,
+                                 bobIdentityKeyPair.publicKey,
+                                 bobEphemeralKeyPair.publicKey);
+
+  auto bh = b.performKeyExchange(false, bobEphemeralKeyPair,
+                                 aliceIdentityKeyPair.publicKey,
+                                 aliceEphemeralKeyPair.publicKey);
+
+  a.verifyKeyExchange(bh);
+  b.verifyKeyExchange(ah);
+
+  SECTION("should allow Alice and Bob to perform a key exchange") {
+    REQUIRE_THAT(ah, Catch::Matchers::Equals(aliceHandshake));
+    REQUIRE_THAT(bh, Catch::Matchers::Equals(bobHandshake));
+  }
+
+  SECTION("should calculate safety numbers correctly") {
+    REQUIRE_THAT(a.calculateSafetyNumber(),
+                 Catch::Matchers::Equals(safetyNumber));
+    REQUIRE_THAT(b.calculateSafetyNumber(),
+                 Catch::Matchers::Equals(safetyNumber));
+  }
 
   SECTION("should allow Alice to send encrypted data to Bob") {
-    auto encryptResult = a.encrypt(data);
-    auto decryptResult = b.decrypt(encryptResult.message);
-    REQUIRE(encryptResult.success == true);
-    REQUIRE(decryptResult.success == true);
-    REQUIRE_THAT(encryptResult.message, Catch::Matchers::Equals(aliceMessage));
-    REQUIRE_THAT(decryptResult.data, Catch::Matchers::Equals(data));
+    auto [encryptIndex, message] = a.encrypt(data);
+    auto [decryptIndex, plaintext] = b.decrypt(message);
+    REQUIRE_THAT(message, Catch::Matchers::Equals(aliceMessage));
+    REQUIRE_THAT(plaintext, Catch::Matchers::Equals(data));
   }
 
   SECTION("should allow Bob to send encrypted data to Alice") {
-    auto encryptResult = b.encrypt(data);
-    auto decryptResult = a.decrypt(encryptResult.message);
-    REQUIRE(encryptResult.success == true);
-    REQUIRE(decryptResult.success == true);
-    REQUIRE_THAT(encryptResult.message, Catch::Matchers::Equals(bobMessage));
-    REQUIRE_THAT(decryptResult.data, Catch::Matchers::Equals(data));
+    auto [encryptIndex, message] = b.encrypt(data);
+    auto [decryptIndex, plaintext] = a.decrypt(message);
+    REQUIRE_THAT(message, Catch::Matchers::Equals(bobMessage));
+    REQUIRE_THAT(plaintext, Catch::Matchers::Equals(data));
   }
 
   SECTION(
       "should allow Bob to certify Alice's ownership of her identity key and "
       "data") {
-    auto encryptResult = a.encrypt(data);
-    auto decryptResult = b.decrypt(encryptResult.message);
-    auto certifyResult = b.signData(decryptResult.data);
-    REQUIRE(encryptResult.success == true);
-    REQUIRE(decryptResult.success == true);
-    REQUIRE(certifyResult.success == true);
-    REQUIRE_THAT(certifyResult.signature,
-                 Catch::Matchers::Equals(bobSignatureData));
+    auto signature = b.signData(data);
+    REQUIRE_THAT(signature, Catch::Matchers::Equals(bobSignatureData));
   }
 
   SECTION(
       "should allow Alice to certify Bob's ownership of his identity key and "
       "data") {
-    auto encryptResult = b.encrypt(data);
-    auto decryptResult = a.decrypt(encryptResult.message);
-    auto certifyResult = a.signData(decryptResult.data);
-    REQUIRE(encryptResult.success == true);
-    REQUIRE(decryptResult.success == true);
-    REQUIRE(certifyResult.success == true);
-    REQUIRE_THAT(certifyResult.signature,
-                 Catch::Matchers::Equals(aliceSignatureData));
+    auto signature = a.signData(data);
+    REQUIRE_THAT(signature, Catch::Matchers::Equals(aliceSignatureData));
   }
 
   SECTION("should allow Bob to certify Alice's ownership of her identity key") {
-    auto certifyResult = b.signIdentity();
-    REQUIRE(certifyResult.success == true);
-    REQUIRE_THAT(certifyResult.signature,
-                 Catch::Matchers::Equals(bobSignatureIdentity));
+    auto signature = b.signIdentity();
+    REQUIRE_THAT(signature, Catch::Matchers::Equals(bobSignatureIdentity));
   }
 
   SECTION("should allow Alice to certify Bob's ownership of his identity key") {
-    auto certifyResult = a.signIdentity();
-    REQUIRE(certifyResult.success == true);
-    REQUIRE_THAT(certifyResult.signature,
-                 Catch::Matchers::Equals(aliceSignatureIdentity));
+    auto signature = a.signIdentity();
+    REQUIRE_THAT(signature, Catch::Matchers::Equals(aliceSignatureIdentity));
   }
 
   SECTION(
@@ -216,29 +233,25 @@ TEST_CASE("Session", "[session]") {
   }
 
   SECTION("should handle out of order messages correctly") {
-    Autograph::Bytes d1 = {1, 2, 3};
-    Autograph::Bytes d2 = {5, 6, 7};
-    Autograph::Bytes d3 = {7, 8, 9};
-    Autograph::Bytes d4 = {10, 11, 12};
-    auto e1 = a.encrypt(d1);
-    auto e2 = a.encrypt(d2);
-    auto e3 = a.encrypt(d3);
-    auto e4 = a.encrypt(d4);
-    auto p4 = b.decrypt(e4.message);
-    auto p2 = b.decrypt(e2.message);
-    auto p3 = b.decrypt(e3.message);
-    auto p1 = b.decrypt(e1.message);
-    REQUIRE(p1.success == true);
-    REQUIRE(p1.success == true);
-    REQUIRE(p2.success == true);
-    REQUIRE(p4.success == true);
-    REQUIRE(p1.index == 1);
-    REQUIRE(p2.index == 2);
-    REQUIRE(p3.index == 3);
-    REQUIRE(p4.index == 4);
-    REQUIRE_THAT(p1.data, Catch::Matchers::Equals(d1));
-    REQUIRE_THAT(p2.data, Catch::Matchers::Equals(d2));
-    REQUIRE_THAT(p3.data, Catch::Matchers::Equals(d3));
-    REQUIRE_THAT(p4.data, Catch::Matchers::Equals(d4));
+    std::vector<unsigned char> data1 = {1, 2, 3};
+    std::vector<unsigned char> data2 = {5, 6, 7};
+    std::vector<unsigned char> data3 = {7, 8, 9};
+    std::vector<unsigned char> data4 = {10, 11, 12};
+    auto [encryptIndex1, message1] = a.encrypt(data1);
+    auto [encryptIndex2, message2] = a.encrypt(data2);
+    auto [encryptIndex3, message3] = a.encrypt(data3);
+    auto [encryptIndex4, message4] = a.encrypt(data4);
+    auto [decryptIndex4, plaintext4] = b.decrypt(message4);
+    auto [decryptIndex2, plaintext2] = b.decrypt(message2);
+    auto [decryptIndex3, plaintext3] = b.decrypt(message3);
+    auto [decryptIndex1, plaintext1] = b.decrypt(message1);
+    REQUIRE(decryptIndex1 == 1);
+    REQUIRE(decryptIndex2 == 2);
+    REQUIRE(decryptIndex3 == 3);
+    REQUIRE(decryptIndex4 == 4);
+    REQUIRE_THAT(plaintext1, Catch::Matchers::Equals(data1));
+    REQUIRE_THAT(plaintext2, Catch::Matchers::Equals(data2));
+    REQUIRE_THAT(plaintext3, Catch::Matchers::Equals(data3));
+    REQUIRE_THAT(plaintext4, Catch::Matchers::Equals(data4));
   }
 }

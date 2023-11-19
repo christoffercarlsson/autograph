@@ -39,41 +39,6 @@ int autograph_crypto_verify(const unsigned char *public_key,
 
 #ifdef __cplusplus
 }  // extern "C"
-
-#include "types.h"
-
-namespace Autograph {
-
-DecryptFunction createDecrypt(const Bytes theirSecretKey);
-
-EncryptFunction createEncrypt(const Bytes ourSecretKey);
-
-KeyExchangeFunction createKeyExchange(const bool isInitiator,
-                                      const SignFunction sign,
-                                      const Bytes identityPublicKey);
-
-KeyExchangeVerificationFunction createKeyExchangeVerification(
-    const SignFunction sign, const Bytes theirPublicKey, const Bytes transcript,
-    const Bytes ourSecretKey, const Bytes theirSecretKey);
-
-Party createParty(const bool isInitiator, const SignFunction sign,
-                  const Bytes identityPublicKey);
-
-SignFunction createSafeSign(const SignFunction sign);
-
-SafetyNumberFunction createSafetyNumber(const Bytes ourIdentityKey);
-
-SignDataFunction createSignData(const SignFunction sign,
-                                const Bytes theirPublicKey);
-
-SignIdentityFunction createSignIdentity(const SignFunction sign,
-                                        const Bytes theirPublicKey);
-
-VerifyDataFunction createVerifyData(const Bytes theirIdentityKey);
-
-VerifyIdentityFunction createVerifyIdentity(const Bytes theirIdentityKey);
-
-}  // namespace Autograph
 #endif
 
 #endif

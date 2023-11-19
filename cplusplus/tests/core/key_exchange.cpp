@@ -70,14 +70,19 @@ TEST_CASE("Key exchange", "[core_key_exchange]") {
 
   autograph_init();
 
-  int result = autograph_key_exchange(
+  int keyExchangeResult = autograph_key_exchange(
       transcript.data(), handshake.data(), ourSecretKey.data(),
       theirSecretKey.data(), 1, alicePrivateIdentityKey.data(),
       alicePublicIdentityKey.data(), alicePrivateEphemeralKey.data(),
       alicePublicEphemeralKey.data(), bobPublicIdentityKey.data(),
       bobPublicEphemeralKey.data());
 
-  REQUIRE(result == 0);
+  int verificationResult = autograph_key_exchange_verify(
+      transcript.data(), alicePublicIdentityKey.data(), ourSecretKey.data(),
+      handshake.data());
+
+  REQUIRE(keyExchangeResult == 0);
+  REQUIRE(verificationResult == 0);
   REQUIRE_THAT(transcript, Catch::Matchers::Equals(aliceTranscript));
   REQUIRE_THAT(handshake, Catch::Matchers::Equals(aliceHandshake));
   REQUIRE_THAT(ourSecretKey, Catch::Matchers::Equals(aliceSecretKey));

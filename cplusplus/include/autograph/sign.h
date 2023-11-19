@@ -13,11 +13,15 @@ int autograph_sign_subject(unsigned char *signature,
 #ifdef __cplusplus
 }  // extern "C"
 
-#include "types.h"
+#include <functional>
+#include <vector>
 
 namespace Autograph {
 
-SignFunction createSign(const Bytes identityPrivateKey);
+using SignFunction =
+    std::function<std::vector<unsigned char>(const std::vector<unsigned char>)>;
+
+SignFunction createSign(const std::vector<unsigned char> identityPrivateKey);
 
 }  // namespace Autograph
 #endif

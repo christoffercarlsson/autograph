@@ -1,20 +1,23 @@
 #include "safety_number.h"
 
-#include "private.h"
+#include "error.h"
+#include "init.h"
 #include "sizes.h"
 
 namespace Autograph {
 
-SafetyNumberFunction createSafetyNumber(const Bytes ourIdentityKey) {
-  auto safetyNumberFunction = [ourIdentityKey](const Bytes theirIdentityKey) {
-    Bytes safetyNumber(SAFETY_NUMBER_SIZE);
-    bool success =
-        autograph_safety_number(safetyNumber.data(), ourIdentityKey.data(),
-                                theirIdentityKey.data()) == 0;
-    SafetyNumberResult result = {success, safetyNumber};
-    return result;
-  };
-  return safetyNumberFunction;
+std::vector<unsigned char> calculateSafetyNumber(std::vector<unsigned char> a,
+                                                 std::vector<unsigned char> b) {
+  if (autograph_init() != 0) {
+    throw Error(Error::InitializationError);
+  }
+  std::vector<unsigned char> safetyNumber(SAFETY_NUMBER_SIZE);
+  bool success =
+      autograph_safety_number(safetyNumber.data(), a.data(), b.data()) == 0;
+  if (!success) {
+    throw Error(Error::SafetyNumberCalculationError);
+  }
+  return safetyNumber;
 }
 
 }  // namespace Autograph

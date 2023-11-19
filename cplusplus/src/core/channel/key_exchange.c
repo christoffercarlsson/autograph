@@ -1,7 +1,6 @@
-#include "key_exchange.h"
-
 #include <string.h>
 
+#include "channel.h"
 #include "private.h"
 #include "sodium.h"
 
