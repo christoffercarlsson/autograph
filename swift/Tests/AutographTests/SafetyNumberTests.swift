@@ -1,41 +1,9 @@
-@testable import Autograph
 import XCTest
 
+@testable import Autograph
+
 final class SafetyNumberTests: XCTestCase {
-  let aliceIdentityKeyPair = KeyPair(privateKey: [
-    43,
-    6,
-    246,
-    172,
-    137,
-    170,
-    33,
-    12,
-    118,
-    177,
-    111,
-    60,
-    19,
-    37,
-    65,
-    122,
-    28,
-    34,
-    200,
-    251,
-    96,
-    35,
-    187,
-    52,
-    74,
-    224,
-    143,
-    39,
-    90,
-    51,
-    33,
-    140,
-  ], publicKey: [
+  let aliceIdentityKey: [UInt8] = [
     91,
     119,
     85,
@@ -68,49 +36,42 @@ final class SafetyNumberTests: XCTestCase {
     209,
     4,
     33,
-  ])
-  let bobIdentityKeyPair = KeyPair(
-    privateKey: [243, 11, 156, 139, 99, 129, 212, 8, 60, 53, 111, 123, 69, 158,
-                 83, 255,
-                 187, 192, 29, 114, 69, 126, 243, 111, 122, 143, 170, 247, 140,
-                 129, 60,
-                 0],
-    publicKey: [
-      232,
-      130,
-      200,
-      162,
-      218,
-      101,
-      75,
-      210,
-      196,
-      152,
-      235,
-      97,
-      118,
-      3,
-      241,
-      131,
-      200,
-      140,
-      54,
-      155,
-      28,
-      46,
-      158,
-      76,
-      96,
-      4,
-      150,
-      61,
-      34,
-      13,
-      133,
-      138,
-    ]
-  )
-  let safetyNumber: Bytes = [
+  ]
+  let bobIdentityKey: [UInt8] = [
+    232,
+    130,
+    200,
+    162,
+    218,
+    101,
+    75,
+    210,
+    196,
+    152,
+    235,
+    97,
+    118,
+    3,
+    241,
+    131,
+    200,
+    140,
+    54,
+    155,
+    28,
+    46,
+    158,
+    76,
+    96,
+    4,
+    150,
+    61,
+    34,
+    13,
+    133,
+    138,
+  ]
+  let safetyNumber: [UInt8] = [
     52,
     52,
     57,
@@ -172,26 +133,17 @@ final class SafetyNumberTests: XCTestCase {
     50,
     54,
   ]
-  var autograph: Autograph!
-  var alice: Party!
-  var bob: Party!
 
-  override func setUp() {
-    autograph = Autograph()
-    alice = autograph.createInitiator(
-      identityKeyPair: aliceIdentityKeyPair
+  func testCalculateSafetyNumber() throws {
+    let a = try Autograph.calculateSafetyNumber(
+      a: aliceIdentityKey,
+      b: bobIdentityKey
     )
-    bob = autograph.createResponder(
-      identityKeyPair: bobIdentityKeyPair
+    let b = try Autograph.calculateSafetyNumber(
+      a: bobIdentityKey,
+      b: aliceIdentityKey
     )
-  }
-
-  func testCalculateSafetyNumber() {
-    let a = alice.calculateSafetyNumber(bobIdentityKeyPair.publicKey)
-    let b = bob.calculateSafetyNumber(aliceIdentityKeyPair.publicKey)
-    XCTAssertTrue(a.success)
-    XCTAssertTrue(b.success)
-    XCTAssertEqual(a.safetyNumber, safetyNumber)
-    XCTAssertEqual(b.safetyNumber, safetyNumber)
+    XCTAssertEqual(a, safetyNumber)
+    XCTAssertEqual(b, safetyNumber)
   }
 }

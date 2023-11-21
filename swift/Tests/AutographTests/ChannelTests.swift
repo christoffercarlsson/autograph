@@ -2,8 +2,8 @@ import XCTest
 
 @testable import Autograph
 
-final class SessionTests: XCTestCase {
-  let aliceIdentityKeyPair = KeyPair(
+final class ChannelTests: XCTestCase {
+  let aliceIdentityKeyPair = Autograph.KeyPair(
     privateKey: [
       43,
       6,
@@ -71,8 +71,9 @@ final class SessionTests: XCTestCase {
       209,
       4,
       33,
-    ])
-  let bobIdentityKeyPair = KeyPair(
+    ]
+  )
+  let bobIdentityKeyPair = Autograph.KeyPair(
     privateKey: [
       243, 11, 156, 139, 99, 129, 212, 8, 60, 53, 111, 123, 69, 158,
       83, 255,
@@ -115,43 +116,61 @@ final class SessionTests: XCTestCase {
       138,
     ]
   )
-  let aliceMessage: Bytes = [
+  let aliceHandshake: [UInt8] = [
+    238, 58, 38, 30, 141, 34, 200, 183, 28, 206, 215, 73, 200, 125, 92, 152,
+    101, 211, 214, 130, 33, 158, 114, 200, 43, 30, 212, 100, 176, 149, 15,
+    111, 170, 186, 36, 10, 90, 136, 46, 170, 120, 191, 170, 14, 31, 53, 72,
+    56, 227, 194, 21, 164, 251, 208, 203, 182, 242, 115, 6, 54, 114, 120, 212,
+    226, 72, 160, 235, 116, 148, 31, 19, 62, 52, 116, 28, 172, 227, 191, 95,
+    152, 15, 140, 105, 200, 21, 203, 72, 193, 215, 42, 20, 254, 193, 178, 56,
+    137,
+  ]
+  let bobHandshake: [UInt8] = [
+    40, 96, 87, 46, 204, 210, 12, 62, 80, 86, 55, 252, 191, 201, 183, 188,
+    150, 80, 124, 92, 248, 44, 173, 8, 66, 54, 229, 117, 245, 117, 243, 248,
+    77, 227, 184, 224, 105, 115, 69, 212, 103, 64, 198, 124, 122, 196, 195,
+    215, 250, 95, 169, 218, 185, 119, 150, 206, 130, 255, 243, 124, 48, 52,
+    32, 211, 77, 244, 171, 54, 222, 115, 138, 209, 166, 140, 240, 181, 115,
+    173, 224, 224, 108, 145, 15, 210, 138, 188, 76, 13, 29, 19, 188, 120, 188,
+    109, 89, 34,
+  ]
+  let aliceMessage: [UInt8] = [
     133, 247, 214, 87, 210, 66, 77, 105, 105, 94, 229, 248, 76, 207, 31, 228,
     73, 37, 32, 45, 125, 163, 240, 75, 45, 197, 224, 166, 218, 59, 107, 249,
   ]
-  let bobMessage: Bytes = [
+  let bobMessage: [UInt8] = [
     215, 195, 161, 229, 121, 212, 73, 131, 33, 122, 165, 228, 150, 205, 107,
     127, 120, 84, 39, 99, 138, 32, 20, 143, 68, 34, 45, 215, 62, 214, 84, 181,
   ]
-  let aliceSignatureData: Bytes = [
+  let aliceSignatureData: [UInt8] = [
     86, 231, 106, 104, 140, 212, 209, 113, 91, 48, 249, 242, 132,
     150, 129, 18, 62, 67, 44, 187, 71, 9, 28, 5, 164, 244,
     165, 222, 124, 11, 197, 55, 123, 174, 9, 14, 186, 118, 86,
     242, 240, 170, 239, 176, 78, 255, 85, 28, 88, 148, 202, 108,
     151, 160, 93, 1, 128, 129, 255, 123, 238, 191, 29, 1,
   ]
-  let aliceSignatureIdentity: Bytes = [
+  let aliceSignatureIdentity: [UInt8] = [
     183, 19, 9, 47, 241, 207, 111, 69, 199, 68, 135, 48, 131,
     140, 112, 168, 61, 244, 34, 107, 219, 194, 177, 99, 178, 109,
     218, 237, 118, 1, 13, 205, 231, 138, 74, 246, 88, 149, 36,
     65, 219, 62, 154, 70, 185, 35, 251, 98, 186, 16, 56, 79,
     18, 144, 193, 183, 27, 2, 11, 71, 83, 20, 168, 7,
   ]
-  let bobSignatureData: Bytes = [
+  let bobSignatureData: [UInt8] = [
     188, 36, 195, 130, 177, 84, 21, 74, 125, 139, 109, 135, 207,
     42, 213, 11, 153, 158, 183, 160, 112, 141, 216, 204, 167, 194,
     159, 123, 221, 162, 50, 220, 49, 54, 123, 73, 132, 73, 15,
     144, 65, 252, 249, 192, 145, 159, 22, 224, 143, 25, 226, 32,
     54, 44, 139, 196, 85, 254, 198, 61, 138, 244, 223, 4,
   ]
-  let bobSignatureIdentity: Bytes = [
+  let bobSignatureIdentity: [UInt8] = [
     173, 114, 114, 160, 51, 91, 40, 39, 223, 144, 168, 53, 94,
     199, 250, 184, 88, 132, 31, 232, 50, 177, 147, 144, 102, 146,
     120, 27, 57, 63, 60, 151, 237, 224, 85, 65, 200, 38, 227,
     34, 88, 131, 168, 236, 107, 4, 200, 54, 232, 176, 16, 44,
     144, 106, 77, 28, 246, 104, 17, 77, 150, 92, 116, 0,
   ]
-  let aliceCertificateData: Bytes = [
+  let aliceCertificateData: [UInt8] = [
     123, 223, 90, 28, 163, 65, 187, 199, 14, 78, 92, 116, 38, 48,
     178, 123, 72, 213, 94, 252, 250, 127, 184, 0, 187, 249, 157, 102,
     227, 241, 114, 20, 82, 239, 167, 88, 84, 82, 16, 198, 184, 193,
@@ -160,7 +179,7 @@ final class SessionTests: XCTestCase {
     188, 251, 194, 157, 166, 7, 134, 203, 32, 253, 65, 90, 40, 91,
     76, 25, 252, 156, 139, 154, 148, 183, 71, 7, 109, 5,
   ]
-  let aliceCertificateIdentity: Bytes = [
+  let aliceCertificateIdentity: [UInt8] = [
     97, 114, 246, 28, 48, 150, 138, 154, 28, 234, 226, 183, 186, 225,
     166, 166, 43, 109, 145, 194, 105, 51, 155, 138, 48, 180, 100, 51,
     113, 57, 150, 211, 94, 131, 142, 67, 234, 107, 103, 51, 205, 132,
@@ -169,7 +188,7 @@ final class SessionTests: XCTestCase {
     107, 31, 26, 153, 30, 132, 207, 177, 67, 160, 231, 198, 207, 32,
     134, 210, 55, 9, 188, 20, 186, 130, 156, 122, 77, 4,
   ]
-  let bobCertificateData: Bytes = [
+  let bobCertificateData: [UInt8] = [
     251, 196, 170, 200, 183, 119, 18, 130, 9, 255, 140, 77, 56, 104,
     92, 11, 42, 224, 208, 28, 110, 241, 103, 77, 34, 32, 164, 58,
     255, 108, 255, 222, 20, 76, 211, 173, 168, 254, 145, 154, 196, 46,
@@ -178,7 +197,7 @@ final class SessionTests: XCTestCase {
     230, 6, 82, 13, 100, 27, 126, 169, 42, 49, 85, 79, 232, 15,
     30, 22, 109, 118, 6, 196, 207, 18, 60, 63, 25, 1,
   ]
-  let bobCertificateIdentity: Bytes = [
+  let bobCertificateIdentity: [UInt8] = [
     126, 118, 172, 19, 4, 38, 118, 77, 202, 146, 28, 11, 166, 253,
     115, 109, 204, 196, 31, 146, 128, 17, 242, 19, 95, 146, 105, 135,
     38, 36, 178, 138, 141, 196, 191, 87, 226, 187, 57, 49, 19, 119,
@@ -187,27 +206,17 @@ final class SessionTests: XCTestCase {
     15, 87, 120, 95, 0, 58, 188, 176, 71, 18, 254, 57, 98, 211,
     129, 168, 241, 51, 236, 181, 12, 63, 185, 130, 176, 2,
   ]
-  let data: Bytes = [
+  let data: [UInt8] = [
     72, 101, 108, 108, 111, 32,
     87, 111, 114, 108, 100,
   ]
-  var autograph: Autograph!
-  var alice: Party!
-  var bob: Party!
-  var aliceEphemeralKeyPair: KeyPair!
-  var bobEphemeralKeyPair: KeyPair!
-  var a: Session!
-  var b: Session!
+  var aliceEphemeralKeyPair: Autograph.KeyPair!
+  var bobEphemeralKeyPair: Autograph.KeyPair!
+  var a: Autograph.Channel!
+  var b: Autograph.Channel!
 
-  override func setUp() {
-    autograph = Autograph()
-    alice = autograph.createInitiator(
-      identityKeyPair: aliceIdentityKeyPair
-    )
-    bob = autograph.createResponder(
-      identityKeyPair: bobIdentityKeyPair
-    )
-    aliceEphemeralKeyPair = KeyPair(
+  override func setUpWithError() throws {
+    aliceEphemeralKeyPair = Autograph.KeyPair(
       privateKey: [
         171, 243, 152, 144, 76, 145, 84, 13, 243, 173, 102,
         244, 84, 223, 43, 104, 182, 128, 230, 247, 121, 221,
@@ -219,7 +228,7 @@ final class SessionTests: XCTestCase {
         172, 45, 113, 125, 124, 86, 94, 159, 161, 119,
       ]
     )
-    bobEphemeralKeyPair = KeyPair(
+    bobEphemeralKeyPair = Autograph.KeyPair(
       privateKey: [
         252, 67, 175, 250, 230, 100, 145, 82, 139, 125, 242,
         5, 40, 8, 155, 104, 37, 224, 5, 96, 105, 46,
@@ -231,129 +240,132 @@ final class SessionTests: XCTestCase {
         158, 184, 244, 65, 205, 42, 40, 80, 134, 52,
       ]
     )
-    let aliceKeyExchange = alice.performKeyExchange(
-      &aliceEphemeralKeyPair,
-      bobIdentityKeyPair.publicKey,
-      bobEphemeralKeyPair.publicKey
-    ).keyExchange
-    let bobKeyExchange = bob.performKeyExchange(
-      &bobEphemeralKeyPair,
-      aliceIdentityKeyPair.publicKey,
-      aliceEphemeralKeyPair.publicKey
-    ).keyExchange
-    a = aliceKeyExchange.verify(bobKeyExchange.handshake).session
-    b = bobKeyExchange.verify(aliceKeyExchange.handshake).session
+    a = try Autograph.Channel(
+      sign:
+      Autograph
+        .createSign(identityPrivateKey: aliceIdentityKeyPair.privateKey),
+      ourIdentityKey: aliceIdentityKeyPair.publicKey
+    )
+    b = try Autograph.Channel(
+      sign:
+      Autograph
+        .createSign(identityPrivateKey: bobIdentityKeyPair.privateKey),
+      ourIdentityKey: bobIdentityKeyPair.publicKey
+    )
+
+    let ah = try a.performKeyExchange(
+      isInitiator: true,
+      ourEphemeralKeyPair: &aliceEphemeralKeyPair,
+      theirIdentityKey: bobIdentityKeyPair.publicKey,
+      theirEphemeralKey: bobEphemeralKeyPair.publicKey
+    )
+    let bh = try b.performKeyExchange(
+      isInitiator: false,
+      ourEphemeralKeyPair: &bobEphemeralKeyPair,
+      theirIdentityKey: aliceIdentityKeyPair.publicKey,
+      theirEphemeralKey: aliceEphemeralKeyPair.publicKey
+    )
+    XCTAssertEqual(ah, aliceHandshake)
+    XCTAssertEqual(bh, bobHandshake)
+    try a.verifyKeyExchange(theirHandshake: bh)
+    try b.verifyKeyExchange(theirHandshake: ah)
   }
 
   // Should allow Alice to send encrypted data to Bob
-  func testAliceMessageToBob() {
-    let encryptResult = a.encrypt(data)
-    let decryptResult = b.decrypt(encryptResult.message)
-    XCTAssertTrue(encryptResult.success)
-    XCTAssertTrue(decryptResult.success)
-    XCTAssertEqual(encryptResult.message, aliceMessage)
-    XCTAssertEqual(decryptResult.data, data)
+  func testAliceMessageToBob() throws {
+    let (_, message) = try a.encrypt(plaintext: data)
+    let (_, plaintext) = try b.decrypt(message: message)
+    XCTAssertEqual(message, aliceMessage)
+    XCTAssertEqual(plaintext, data)
   }
 
   // Should allow Bob to send encrypted data to Alice
-  func testBobMessageToAlice() {
-    let encryptResult = b.encrypt(data)
-    let decryptResult = a.decrypt(encryptResult.message)
-    XCTAssertTrue(encryptResult.success)
-    XCTAssertTrue(decryptResult.success)
-    XCTAssertEqual(encryptResult.message, bobMessage)
-    XCTAssertEqual(decryptResult.data, data)
+  func testBobMessageToAlice() throws {
+    let (_, message) = try b.encrypt(plaintext: data)
+    let (_, plaintext) = try a.decrypt(message: message)
+    XCTAssertEqual(message, bobMessage)
+    XCTAssertEqual(plaintext, data)
   }
 
   // Should allow Bob to certify Alice's ownership of her identity key and data
-  func testBobCertifyAliceData() {
-    let encryptResult = a.encrypt(data)
-    let decryptResult = b.decrypt(encryptResult.message)
-    let certifyResult = b.signData(decryptResult.data)
-    XCTAssertTrue(encryptResult.success)
-    XCTAssertTrue(decryptResult.success)
-    XCTAssertTrue(certifyResult.success)
-    XCTAssertEqual(certifyResult.signature, bobSignatureData)
+  func testBobCertifyAliceData() throws {
+    let signature = try b.signData(data: data)
+    XCTAssertEqual(signature, bobSignatureData)
   }
 
   // Should allow Alice to certify Bob's ownership of his identity key and data
-  func testAliceCertifyBobData() {
-    let encryptResult = b.encrypt(data)
-    let decryptResult = a.decrypt(encryptResult.message)
-    let certifyResult = a.signData(decryptResult.data)
-    XCTAssertTrue(encryptResult.success)
-    XCTAssertTrue(decryptResult.success)
-    XCTAssertTrue(certifyResult.success)
-    XCTAssertEqual(certifyResult.signature, aliceSignatureData)
+  func testAliceCertifyBobData() throws {
+    let signature = try a.signData(data: data)
+    XCTAssertEqual(signature, aliceSignatureData)
   }
 
   // Should allow Bob to certify Alice's ownership of her identity key
-  func testBobCertifyAliceIdentity() {
-    let certifyResult = b.signIdentity()
-    XCTAssertTrue(certifyResult.success)
-    XCTAssertEqual(certifyResult.signature, bobSignatureIdentity)
+  func testBobCertifyAliceIdentity() throws {
+    let signature = try b.signIdentity()
+    XCTAssertEqual(signature, bobSignatureIdentity)
   }
 
   // Should allow Alice to certify Bob's ownership of his identity key
-  func testAliceCertifyBobIdentity() {
-    let certifyResult = a.signIdentity()
-    XCTAssertTrue(certifyResult.success)
-    XCTAssertEqual(certifyResult.signature, aliceSignatureIdentity)
+  func testAliceCertifyBobIdentity() throws {
+    let signature = try a.signIdentity()
+    XCTAssertEqual(signature, aliceSignatureIdentity)
   }
 
   // Should allow Bob to verify Alice's ownership of her identity key and data
   // based on Charlie's public key and signature
-  func testBobVerifyAliceData() {
-    let verified = b.verifyData(aliceCertificateData, data)
+  func testBobVerifyAliceData() throws {
+    let verified = try b.verifyData(
+      certificates: aliceCertificateData,
+      data: data
+    )
     XCTAssertTrue(verified)
   }
 
   // Should allow Alice to verify Bob's ownership of his identity key and ddata
   // based on Charlie's public key and signature
-  func testAliceVerifyBobData() {
-    let verified = a.verifyData(bobCertificateData, data)
+  func testAliceVerifyBobData() throws {
+    let verified = try a.verifyData(
+      certificates: bobCertificateData,
+      data: data
+    )
     XCTAssertTrue(verified)
   }
 
   // Should allow Bob to verify Alice's ownership of her identity key based on
   // Charlie's public key and signature
-  func testBobVerifyAliceIdentity() {
-    let verified = b.verifyIdentity(aliceCertificateIdentity)
+  func testBobVerifyAliceIdentity() throws {
+    let verified = try b.verifyIdentity(certificates: aliceCertificateIdentity)
     XCTAssertTrue(verified)
   }
 
   // Should allow Alice to verify Bob's ownership of his identity key based on
   // Charlie's public key and signature
-  func testAliceVerifyBobIdentity() {
-    let verified = a.verifyIdentity(bobCertificateIdentity)
+  func testAliceVerifyBobIdentity() throws {
+    let verified = try a.verifyIdentity(certificates: bobCertificateIdentity)
     XCTAssertTrue(verified)
   }
 
   // Should handle out of order messages correctly
-  func testOutOfOrderMessages() {
-    let d1: Bytes = [1, 2, 3]
-    let d2: Bytes = [4, 5, 6]
-    let d3: Bytes = [7, 8, 9]
-    let d4: Bytes = [10, 11, 12]
-    let e1 = a.encrypt(d1)
-    let e2 = a.encrypt(d2)
-    let e3 = a.encrypt(d3)
-    let e4 = a.encrypt(d4)
-    let p4 = b.decrypt(e4.message)
-    let p2 = b.decrypt(e2.message)
-    let p3 = b.decrypt(e3.message)
-    let p1 = b.decrypt(e1.message)
-    XCTAssertTrue(p1.success)
-    XCTAssertTrue(p2.success)
-    XCTAssertTrue(p3.success)
-    XCTAssertTrue(p4.success)
-    XCTAssertEqual(p1.index, 1)
-    XCTAssertEqual(p2.index, 2)
-    XCTAssertEqual(p3.index, 3)
-    XCTAssertEqual(p4.index, 4)
-    XCTAssertEqual(p1.data, d1)
-    XCTAssertEqual(p2.data, d2)
-    XCTAssertEqual(p3.data, d3)
-    XCTAssertEqual(p4.data, d4)
+  func testOutOfOrderMessages() throws {
+    let d1: [UInt8] = [1, 2, 3]
+    let d2: [UInt8] = [4, 5, 6]
+    let d3: [UInt8] = [7, 8, 9]
+    let d4: [UInt8] = [10, 11, 12]
+    let (_, message1) = try a.encrypt(plaintext: d1)
+    let (_, message2) = try a.encrypt(plaintext: d2)
+    let (_, message3) = try a.encrypt(plaintext: d3)
+    let (_, message4) = try a.encrypt(plaintext: d4)
+    let (index4, plaintext4) = try b.decrypt(message: message4)
+    let (index2, plaintext2) = try b.decrypt(message: message2)
+    let (index3, plaintext3) = try b.decrypt(message: message3)
+    let (index1, plaintext1) = try b.decrypt(message: message1)
+    XCTAssertEqual(index1, 1)
+    XCTAssertEqual(index2, 2)
+    XCTAssertEqual(index3, 3)
+    XCTAssertEqual(index4, 4)
+    XCTAssertEqual(plaintext1, d1)
+    XCTAssertEqual(plaintext2, d2)
+    XCTAssertEqual(plaintext3, d3)
+    XCTAssertEqual(plaintext4, d4)
   }
 }

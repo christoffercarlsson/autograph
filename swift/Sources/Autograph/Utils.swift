@@ -1,87 +1,76 @@
 import Clibautograph
 import Foundation
 
-internal let HANDSHAKE_SIZE = autograph_handshake_size()
-internal let INDEX_SIZE = autograph_index_size()
-internal let PRIVATE_KEY_SIZE = autograph_private_key_size()
-internal let PUBLIC_KEY_SIZE = autograph_public_key_size()
-internal let SAFETY_NUMBER_SIZE = autograph_safety_number_size()
-internal let SECRET_KEY_SIZE = autograph_safety_number_size()
-internal let SIGNATURE_SIZE = autograph_signature_size()
-internal let SIZE_SIZE = autograph_size_size()
-internal let SKIPPED_KEYS_SIZE = autograph_skipped_keys_size()
-internal let TRANSCRIPT_SIZE = autograph_transcript_size()
+let HANDSHAKE_SIZE = autograph_handshake_size()
+let INDEX_SIZE = autograph_index_size()
+let PRIVATE_KEY_SIZE = autograph_private_key_size()
+let PUBLIC_KEY_SIZE = autograph_public_key_size()
+let SAFETY_NUMBER_SIZE = autograph_safety_number_size()
+let SECRET_KEY_SIZE = autograph_safety_number_size()
+let SIGNATURE_SIZE = autograph_signature_size()
+let SIZE_SIZE = autograph_size_size()
+let SKIPPED_KEYS_SIZE = autograph_skipped_keys_size()
+let TRANSCRIPT_SIZE = autograph_transcript_size()
 
-internal func createBytes(_ size: Int) -> Bytes {
-  Bytes(repeating: 0, count: size)
+func createBytes(_ size: Int) -> [UInt8] {
+  [UInt8](repeating: 0, count: size)
 }
 
-internal func createBytes(_ size: UInt32) -> Bytes {
+func createBytes(_ size: UInt32) -> [UInt8] {
   createBytes(Int(size))
 }
 
-internal func createCiphertextBytes(_ size: Int) -> Bytes {
+func createCiphertextBytes(_ size: Int) -> [UInt8] {
   let ciphertextSize = autograph_ciphertext_size(UInt32(size))
   return createBytes(ciphertextSize)
 }
 
-internal func createHandshakeBytes() -> Bytes {
+func createHandshakeBytes() -> [UInt8] {
   createBytes(HANDSHAKE_SIZE)
 }
 
-internal func createIndexBytes() -> Bytes {
+func createIndexBytes() -> [UInt8] {
   createBytes(INDEX_SIZE)
 }
 
-internal func createPlaintextBytes(_ size: Int) -> Bytes {
+func createPlaintextBytes(_ size: Int) -> [UInt8] {
   let plaintextSize = autograph_plaintext_size(UInt32(size))
   return createBytes(plaintextSize)
 }
 
-internal func createPrivateKeyBytes() -> Bytes {
+func createPrivateKeyBytes() -> [UInt8] {
   createBytes(PRIVATE_KEY_SIZE)
 }
 
-internal func createPublicKeyBytes() -> Bytes {
+func createPublicKeyBytes() -> [UInt8] {
   createBytes(PUBLIC_KEY_SIZE)
 }
 
-internal func createSafetyNumberBytes() -> Bytes {
+func createSafetyNumberBytes() -> [UInt8] {
   createBytes(SAFETY_NUMBER_SIZE)
 }
 
-internal func createSecretKeyBytes() -> Bytes {
+func createSecretKeyBytes() -> [UInt8] {
   createBytes(SECRET_KEY_SIZE)
 }
 
-internal func createSignatureBytes() -> Bytes {
+func createSignatureBytes() -> [UInt8] {
   createBytes(SIGNATURE_SIZE)
 }
 
-internal func createSizeBytes() -> Bytes {
+func createSizeBytes() -> [UInt8] {
   createBytes(SIZE_SIZE)
 }
 
-internal func createSkippedKeysBytes() -> Bytes {
+func createSkippedKeysBytes() -> [UInt8] {
   createBytes(SKIPPED_KEYS_SIZE)
 }
 
-internal func createSubjectBytes(_ size: Int) -> Bytes {
+func createSubjectBytes(_ size: Int) -> [UInt8] {
   let subjectSize = autograph_subject_size(UInt32(size))
   return createBytes(subjectSize)
 }
 
-internal func createTranscriptBytes() -> Bytes {
+func createTranscriptBytes() -> [UInt8] {
   createBytes(TRANSCRIPT_SIZE)
-}
-
-internal func createSafeSign(sign: @escaping SignFunction) -> SignFunction {
-  let safeSign: SignFunction = { [sign] subject in
-    let result = sign(subject)
-    if result.signature.count != SIGNATURE_SIZE {
-      return SignResult(success: false, signature: createSignatureBytes())
-    }
-    return result
-  }
-  return safeSign
 }
