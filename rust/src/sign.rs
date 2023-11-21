@@ -1,11 +1,14 @@
 use alloc::boxed::Box;
+use alloc::vec::Vec;
 
 use crate::clib::autograph_sign_subject;
-use crate::types::{AutographError, Bytes, SignFunction};
+use crate::error::Error;
 use crate::utils::create_signature_bytes;
 
-pub fn create_sign(identity_private_key: &Bytes) -> SignFunction {
-    Box::new(|subject: &Bytes| {
+pub type SignFunction = Box<dyn Fn(&Vec<u8>) -> Result<Vec<u8>, Error>>;
+
+pub fn create_sign(identity_private_key: Vec<u8>) -> SignFunction {
+    Box::new(move |subject: &Vec<u8>| {
         let mut signature = create_signature_bytes();
         let success = unsafe {
             autograph_sign_subject(
@@ -16,7 +19,7 @@ pub fn create_sign(identity_private_key: &Bytes) -> SignFunction {
             )
         } == 0;
         if !success {
-            Err(AutographError::SigningError)
+            Err(Error::Signing)
         } else {
             Ok(signature)
         }

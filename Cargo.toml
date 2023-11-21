@@ -36,10 +36,6 @@ name = "channel_test"
 path = "rust/tests/channel.rs"
 
 [[test]]
-name = "key_exchange_test"
-path = "rust/tests/key_exchange.rs"
-
-[[test]]
 name = "key_pair_test"
 path = "rust/tests/key_pair.rs"
 
