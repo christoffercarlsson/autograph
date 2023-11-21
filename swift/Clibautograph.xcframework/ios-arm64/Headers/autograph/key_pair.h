@@ -14,13 +14,18 @@ int autograph_key_pair_identity(unsigned char *private_key,
 #ifdef __cplusplus
 }  // extern "C"
 
-#include "types.h"
+#include <vector>
 
 namespace Autograph {
 
-KeyPairResult generateEphemeralKeyPair();
+struct KeyPair {
+  std::vector<unsigned char> privateKey;
+  std::vector<unsigned char> publicKey;
+};
 
-KeyPairResult generateIdentityKeyPair();
+KeyPair generateEphemeralKeyPair();
+
+KeyPair generateIdentityKeyPair();
 
 }  // namespace Autograph
 #endif

@@ -2,7 +2,7 @@ set(CMAKE_SYSTEM_NAME Darwin)
 set(CMAKE_OSX_SYSROOT "appletvsimulator")
 
 set(CMAKE_OSX_DEPLOYMENT_TARGET
-    "11.0"
+    "16.0"
     CACHE STRING "Minimum tvOS deployment target")
 set(CMAKE_C_FLAGS
     "${CMAKE_C_FLAGS} -arch ${CMAKE_OSX_ARCHITECTURES} -mtvos-simulator-version-min=${CMAKE_OSX_DEPLOYMENT_TARGET}"

@@ -11,6 +11,16 @@ int autograph_safety_number(unsigned char *safety_number,
 
 #ifdef __cplusplus
 }  // extern "C"
+
+#include <vector>
+
+namespace Autograph {
+
+std::vector<unsigned char> calculateSafetyNumber(std::vector<unsigned char> a,
+                                                 std::vector<unsigned char> b);
+
+}  // namespace Autograph
+
 #endif
 
 #endif
