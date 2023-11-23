@@ -10,18 +10,18 @@ namespace Autograph {
 class Error : public std::runtime_error {
  public:
   enum Type {
-    ChannelAlreadyEstablishedError,
-    ChannelAlreadyInitializedError,
-    ChannelUnestablishedError,
-    ChannelUninitializedError,
-    DecryptionError,
-    EncryptionError,
-    InitializationError,
-    KeyExchangeError,
-    KeyExchangeVerificationError,
-    KeyPairGenerationError,
-    SafetyNumberCalculationError,
-    SigningError
+    ChannelAlreadyEstablished,
+    ChannelAlreadyInitialized,
+    ChannelUnestablished,
+    ChannelUninitialized,
+    Decryption,
+    Encryption,
+    Initialization,
+    KeyExchange,
+    KeyExchangeVerification,
+    KeyPairGeneration,
+    SafetyNumberCalculation,
+    Signing
   };
 
   Type type;
