@@ -1,7 +1,7 @@
 attacker[active]
 
 principal Alice[
-  knows public salt, ci, cr
+  knows public salt, ci, cr, na, nb
   knows private da
   knows private ika
   knows private eka
@@ -10,7 +10,7 @@ principal Alice[
 ]
 
 principal Bob[
-  knows public salt, ci, cr
+  knows public salt, ci, cr, na, nb
   knows private db
   knows private ikb
   knows private ekb
@@ -47,20 +47,24 @@ Alice -> Bob: ha
 principal Bob[
   sab = AEAD_DEC(skab, ha, nil)?
   _ = SIGNVERIF(pika, tb, sab)?
-  mb = AEAD_ENC(skbb, db, nil)
+  skbb1 = HKDF(salt, skbb, nb)
+  mb = AEAD_ENC(skbb1, db, nil)
 ]
 
 Bob -> Alice: mb
 
 principal Alice[
-  _ = AEAD_DEC(skba, cb, nil)?
-  ma = AEAD_ENC(skaa, da, nil)
+  skba1 = HKDF(salt, skba, nb)
+  _ = AEAD_DEC(skba1, mb, nil)?
+  skaa1 = HKDF(salt, skaa, na)
+  ma = AEAD_ENC(skaa1, da, nil)
 ]
 
 Alice -> Bob: ma
 
 principal Bob[
-  _ = AEAD_DEC(skab, ma, nil)?
+  skab1 = HKDF(salt, skab, na)
+  _ = AEAD_DEC(skab1, ma, nil)?
 ]
 
 queries[
