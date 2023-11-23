@@ -6,29 +6,29 @@ Error::Error(Type type) : std::runtime_error("Autograph error"), type(type) {}
 
 const char* Error::what() const noexcept {
   switch (type) {
-    case ChannelAlreadyEstablishedError:
+    case ChannelAlreadyEstablished:
       return "Channel already established";
-    case ChannelAlreadyInitializedError:
+    case ChannelAlreadyInitialized:
       return "Channel already initialized";
-    case ChannelUnestablishedError:
+    case ChannelUnestablished:
       return "Channel unestablished";
-    case ChannelUninitializedError:
+    case ChannelUninitialized:
       return "Channel uninitialized";
-    case DecryptionError:
+    case Decryption:
       return "Decryption failed";
-    case EncryptionError:
+    case Encryption:
       return "Encryption failed";
-    case InitializationError:
+    case Initialization:
       return "Initialization failed";
-    case KeyExchangeError:
+    case KeyExchange:
       return "Key exchange failed";
-    case KeyExchangeVerificationError:
+    case KeyExchangeVerification:
       return "Key exchange verification failed";
-    case KeyPairGenerationError:
+    case KeyPairGeneration:
       return "Key pair generation failed";
-    case SafetyNumberCalculationError:
+    case SafetyNumberCalculation:
       return "Safety number calculation failed";
-    case SigningError:
+    case Signing:
       return "Signing failed";
     default:
       return std::runtime_error::what();

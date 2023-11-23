@@ -12,7 +12,7 @@ SignFunction createSign(const std::vector<unsigned char> identityPrivateKey) {
         autograph_sign_subject(signature.data(), identityPrivateKey.data(),
                                subject.data(), subject.size()) == 0;
     if (!success) {
-      throw Error(Error::SigningError);
+      throw Error(Error::Signing);
     }
     return signature;
   };

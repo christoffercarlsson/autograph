@@ -15,26 +15,26 @@ KeyPair createKeyPair() {
 
 KeyPair generateEphemeralKeyPair() {
   if (autograph_init() != 0) {
-    throw Error(Error::InitializationError);
+    throw Error(Error::Initialization);
   }
   auto keyPair = createKeyPair();
   bool success = autograph_key_pair_ephemeral(keyPair.privateKey.data(),
                                               keyPair.publicKey.data()) == 0;
   if (!success) {
-    throw Error(Error::KeyPairGenerationError);
+    throw Error(Error::KeyPairGeneration);
   }
   return keyPair;
 }
 
 KeyPair generateIdentityKeyPair() {
   if (autograph_init() != 0) {
-    throw Error(Error::InitializationError);
+    throw Error(Error::Initialization);
   }
   auto keyPair = createKeyPair();
   bool success = autograph_key_pair_identity(keyPair.privateKey.data(),
                                              keyPair.publicKey.data()) == 0;
   if (!success) {
-    throw Error(Error::KeyPairGenerationError);
+    throw Error(Error::KeyPairGeneration);
   }
   return keyPair;
 }

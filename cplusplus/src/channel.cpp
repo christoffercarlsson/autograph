@@ -66,20 +66,20 @@ Channel::Channel(const SignFunction sign,
       transcript(std::nullopt),
       verified(false) {
   if (autograph_init() != 0) {
-    throw Error(Error::InitializationError);
+    throw Error(Error::Initialization);
   }
 }
 
 std::vector<unsigned char> Channel::calculateSafetyNumber() const {
   if (!isEstablished()) {
-    throw Error(Error::ChannelUnestablishedError);
+    throw Error(Error::ChannelUnestablished);
   }
   return getSafetyNumber(ourIdentityKey, theirPublicKey.value());
 }
 
 void Channel::close() {
   if (!isEstablished()) {
-    throw Error(Error::ChannelUnestablishedError);
+    throw Error(Error::ChannelUnestablished);
   }
   decryptState.reset();
   encryptState.reset();
@@ -91,7 +91,7 @@ void Channel::close() {
 std::tuple<unsigned long long, std::vector<unsigned char>> Channel::decrypt(
     const std::vector<unsigned char> message) {
   if (!isEstablished()) {
-    throw Error(Error::ChannelUnestablishedError);
+    throw Error(Error::ChannelUnestablished);
   }
   std::vector<unsigned char> plaintext(getPlaintextSize(message.size()));
   DecryptionState &state = decryptState.value();
@@ -101,7 +101,7 @@ std::tuple<unsigned long long, std::vector<unsigned char>> Channel::decrypt(
                         state.skippedKeys.data(), state.secretKey.data(),
                         message.data(), message.size()) == 0;
   if (!success) {
-    throw Error(Error::DecryptionError);
+    throw Error(Error::Decryption);
   }
   state.resizeData(plaintext);
   return std::make_tuple(state.readMessageIndex(), plaintext);
@@ -110,7 +110,7 @@ std::tuple<unsigned long long, std::vector<unsigned char>> Channel::decrypt(
 std::tuple<unsigned long long, std::vector<unsigned char>> Channel::encrypt(
     const std::vector<unsigned char> &plaintext) {
   if (!isEstablished()) {
-    throw Error(Error::ChannelUnestablishedError);
+    throw Error(Error::ChannelUnestablished);
   }
   std::vector<unsigned char> ciphertext(getCiphertextSize(plaintext.size()));
   EncryptionState &state = encryptState.value();
@@ -118,7 +118,7 @@ std::tuple<unsigned long long, std::vector<unsigned char>> Channel::encrypt(
                                    state.secretKey.data(), plaintext.data(),
                                    plaintext.size()) == 0;
   if (!success) {
-    throw Error(Error::EncryptionError);
+    throw Error(Error::Encryption);
   }
   return std::make_tuple(state.readMessageIndex(), ciphertext);
 }
@@ -142,10 +142,10 @@ std::vector<unsigned char> Channel::performKeyExchange(
     const std::vector<unsigned char> theirIdentityKey,
     const std::vector<unsigned char> theirEphemeralKey) {
   if (isEstablished()) {
-    throw Error(Error::ChannelAlreadyEstablishedError);
+    throw Error(Error::ChannelAlreadyEstablished);
   }
   if (isInitialized()) {
-    throw Error(Error::ChannelAlreadyInitializedError);
+    throw Error(Error::ChannelAlreadyInitialized);
   }
   std::vector<unsigned char> ourTranscript(TRANSCRIPT_SIZE);
   std::vector<unsigned char> ourSecretKey(SECRET_KEY_SIZE);
@@ -163,7 +163,7 @@ std::vector<unsigned char> Channel::performKeyExchange(
           isInitiator ? 1 : 0, signature.data(),
           ourEphemeralKeyPair.privateKey.data(), theirEphemeralKey.data()) == 0;
   if (!keyExchangeSuccess) {
-    throw Error(Error::KeyExchangeError);
+    throw Error(Error::KeyExchange);
   }
   decryptState = DecryptionState(theirSecretKey);
   encryptState = EncryptionState(ourSecretKey);
@@ -176,7 +176,7 @@ std::vector<unsigned char> Channel::performKeyExchange(
 std::vector<unsigned char> Channel::signData(
     const std::vector<unsigned char> &data) const {
   if (!isEstablished()) {
-    throw Error(Error::ChannelUnestablishedError);
+    throw Error(Error::ChannelUnestablished);
   }
   std::vector<unsigned char> subject(getSubjectSize(data.size()));
   autograph_subject(subject.data(), theirPublicKey.value().data(), data.data(),
@@ -187,7 +187,7 @@ std::vector<unsigned char> Channel::signData(
 
 std::vector<unsigned char> Channel::signIdentity() const {
   if (!isEstablished()) {
-    throw Error(Error::ChannelUnestablishedError);
+    throw Error(Error::ChannelUnestablished);
   }
   auto signature = sign(theirPublicKey.value());
   return signature;
@@ -196,7 +196,7 @@ std::vector<unsigned char> Channel::signIdentity() const {
 bool Channel::verifyData(const std::vector<unsigned char> &certificates,
                          const std::vector<unsigned char> &data) const {
   if (!isEstablished()) {
-    throw Error(Error::ChannelUnestablishedError);
+    throw Error(Error::ChannelUnestablished);
   }
   return autograph_verify_data(
              theirPublicKey.value().data(), certificates.data(),
@@ -206,7 +206,7 @@ bool Channel::verifyData(const std::vector<unsigned char> &certificates,
 bool Channel::verifyIdentity(
     const std::vector<unsigned char> &certificates) const {
   if (!isEstablished()) {
-    throw Error(Error::ChannelUnestablishedError);
+    throw Error(Error::ChannelUnestablished);
   }
   return autograph_verify_identity(theirPublicKey.value().data(),
                                    certificates.data(),
@@ -216,10 +216,10 @@ bool Channel::verifyIdentity(
 void Channel::verifyKeyExchange(
     const std::vector<unsigned char> theirHandshake) {
   if (isEstablished()) {
-    throw Error(Error::ChannelAlreadyEstablishedError);
+    throw Error(Error::ChannelAlreadyEstablished);
   }
   if (!isInitialized()) {
-    throw Error(Error::ChannelUninitializedError);
+    throw Error(Error::ChannelUninitialized);
   }
   verified =
       autograph_key_exchange_verify(
@@ -227,7 +227,7 @@ void Channel::verifyKeyExchange(
           decryptState.value().secretKey.data(), theirHandshake.data()) == 0;
   transcript.reset();
   if (!verified) {
-    throw Error(Error::KeyExchangeVerificationError);
+    throw Error(Error::KeyExchangeVerification);
   }
 }
 
