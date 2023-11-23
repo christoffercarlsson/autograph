@@ -1,5 +1,4 @@
-import { createSign, init, performKeyExchange } from '../src/autograph'
-import { Channel } from '../types'
+import { createSign, Channel } from '../src/autograph'
 
 describe('Channel', () => {
   const messages = {
@@ -86,15 +85,33 @@ describe('Channel', () => {
       ])
     }
   }
+  const handshakes = {
+    alice: Uint8Array.from([
+      238, 58, 38, 30, 141, 34, 200, 183, 28, 206, 215, 73, 200, 125, 92, 152,
+      101, 211, 214, 130, 33, 158, 114, 200, 43, 30, 212, 100, 176, 149, 15,
+      111, 170, 186, 36, 10, 90, 136, 46, 170, 120, 191, 170, 14, 31, 53, 72,
+      56, 227, 194, 21, 164, 251, 208, 203, 182, 242, 115, 6, 54, 114, 120, 212,
+      226, 72, 160, 235, 116, 148, 31, 19, 62, 52, 116, 28, 172, 227, 191, 95,
+      152, 15, 140, 105, 200, 21, 203, 72, 193, 215, 42, 20, 254, 193, 178, 56,
+      137
+    ]),
+    bob: Uint8Array.from([
+      40, 96, 87, 46, 204, 210, 12, 62, 80, 86, 55, 252, 191, 201, 183, 188,
+      150, 80, 124, 92, 248, 44, 173, 8, 66, 54, 229, 117, 245, 117, 243, 248,
+      77, 227, 184, 224, 105, 115, 69, 212, 103, 64, 198, 124, 122, 196, 195,
+      215, 250, 95, 169, 218, 185, 119, 150, 206, 130, 255, 243, 124, 48, 52,
+      32, 211, 77, 244, 171, 54, 222, 115, 138, 209, 166, 140, 240, 181, 115,
+      173, 224, 224, 108, 145, 15, 210, 138, 188, 76, 13, 29, 19, 188, 120, 188,
+      109, 89, 34
+    ])
+  }
   const data = Uint8Array.from([
     72, 101, 108, 108, 111, 32, 87, 111, 114, 108, 100
   ])
   let a: Channel
   let b: Channel
-
-  beforeAll(async () => {
-    await init()
-  })
+  let aliceHandshake: Uint8Array
+  let bobHandshake: Uint8Array
 
   beforeEach(async () => {
     const keyPairs = {
@@ -151,24 +168,36 @@ describe('Channel', () => {
         }
       }
     }
-    const [aliceHandshake, aliceVerify] = await performKeyExchange(
+    a = await Channel.create(
       createSign(keyPairs.alice.identity.privateKey),
-      keyPairs.alice.identity.publicKey,
+      keyPairs.alice.identity.publicKey
+    )
+    b = await Channel.create(
+      createSign(keyPairs.bob.identity.privateKey),
+      keyPairs.bob.identity.publicKey
+    )
+    aliceHandshake = await a.performKeyExchange(
       true,
       keyPairs.alice.ephemeral,
       keyPairs.bob.identity.publicKey,
       keyPairs.bob.ephemeral.publicKey
     )
-    const [bobHandshake, bobVerify] = await performKeyExchange(
-      createSign(keyPairs.bob.identity.privateKey),
-      keyPairs.bob.identity.publicKey,
+    bobHandshake = await b.performKeyExchange(
       false,
       keyPairs.bob.ephemeral,
       keyPairs.alice.identity.publicKey,
       keyPairs.alice.ephemeral.publicKey
     )
-    a = aliceVerify(bobHandshake)
-    b = bobVerify(aliceHandshake)
+    a.verifyKeyExchange(bobHandshake)
+    b.verifyKeyExchange(aliceHandshake)
+  })
+
+  it('should allow Alice to perform a key exchange', () => {
+    expect(aliceHandshake).toEqual(handshakes.alice)
+  })
+
+  it('should allow Bob to perform a key exchange', () => {
+    expect(bobHandshake).toEqual(handshakes.bob)
   })
 
   it('should allow Alice to send encrypted data to Bob', () => {

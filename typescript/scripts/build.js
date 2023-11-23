@@ -7,23 +7,26 @@ import { copyFile } from 'node:fs/promises'
 const run = async () => {
   const sharedOptions = {
     format: 'esm',
-    outbase: '.',
-    outdir: 'dist',
+    outbase: 'typescript',
+    outdir: 'typescript/dist',
     platform: 'node',
     plugins: [sourceMapPlugin],
     sourcemap: true
   }
   await build({
     ...sharedOptions,
-    entryPoints: ['src/autograph.ts'],
+    entryPoints: ['typescript/src/autograph.ts'],
     bundle: true,
     splitting: true
   })
   await build({
     ...sharedOptions,
-    entryPoints: await globby('tests/**/*.test.ts')
+    entryPoints: await globby('typescript/tests/**/*.test.ts')
   })
-  await copyFile('wasm/autograph.wasm', 'dist/src/autograph.wasm')
+  await copyFile(
+    'typescript/wasm/autograph.wasm',
+    'typescript/dist/src/autograph.wasm'
+  )
 }
 
 run().catch((error) => {

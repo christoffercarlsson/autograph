@@ -13,5 +13,10 @@
     "sourceMap": true,
     "target": "ES2020"
   },
-  "include": ["./scripts/**/*", "./src/**/*", "./tests/**/*", "./types.d.ts"]
+  "include": [
+    "./typescript/scripts/**/*",
+    "./typescript/src/**/*",
+    "./typescript/tests/**/*",
+    "./types.d.ts"
+  ]
 }

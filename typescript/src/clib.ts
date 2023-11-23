@@ -3,7 +3,7 @@ import {
   EmscriptenAddressPool,
   EmscriptenValue,
   EmscriptenModule
-} from '../types'
+} from '../../types'
 
 let Module: EmscriptenModule = null
 
@@ -65,7 +65,7 @@ export const autograph_decrypt = (
     key,
     message,
     message_size
-  ) === 0
+  )
 
 export const autograph_encrypt = (
   message: Uint8Array,
@@ -82,7 +82,7 @@ export const autograph_encrypt = (
     key,
     plaintext,
     plaintext_size
-  ) === 0
+  )
 
 export const autograph_handshake_size = () =>
   call('autograph_handshake_size', 'number') as number
@@ -94,7 +94,7 @@ export const autograph_init = async () => {
   if (!Module) {
     Module = (await wasmModule()) as EmscriptenModule
   }
-  return call('autograph_init', 'number') === 0
+  return call('autograph_init', 'number')
 }
 
 export const autograph_key_exchange = (
@@ -124,7 +124,7 @@ export const autograph_key_exchange = (
     our_public_ephemeral_key,
     their_public_identity_key,
     their_public_ephemeral_key
-  ) === 0
+  )
 
 export const autograph_key_exchange_signature = (
   handshake: Uint8Array,
@@ -145,7 +145,7 @@ export const autograph_key_exchange_signature = (
     our_signature,
     our_private_ephemeral_key,
     their_public_ephemeral_key
-  ) === 0
+  )
 
 export const autograph_key_exchange_transcript = (
   transcript: Uint8Array,
@@ -164,7 +164,7 @@ export const autograph_key_exchange_transcript = (
     our_ephemeral_key,
     their_identity_key,
     their_ephemeral_key
-  ) === 0
+  )
 
 export const autograph_key_exchange_verify = (
   transcript: Uint8Array,
@@ -179,19 +179,17 @@ export const autograph_key_exchange_verify = (
     their_identity_key,
     their_secret_key,
     ciphertext
-  ) === 0
+  )
 
 export const autograph_key_pair_ephemeral = (
   private_key: Uint8Array,
   public_key: Uint8Array
-) =>
-  call('autograph_key_pair_ephemeral', 'number', private_key, public_key) === 0
+) => call('autograph_key_pair_ephemeral', 'number', private_key, public_key)
 
 export const autograph_key_pair_identity = (
   private_key: Uint8Array,
   public_key: Uint8Array
-) =>
-  call('autograph_key_pair_identity', 'number', private_key, public_key) === 0
+) => call('autograph_key_pair_identity', 'number', private_key, public_key)
 
 export const autograph_plaintext_size = (ciphertext_size: number) =>
   call('autograph_plaintext_size', 'number', ciphertext_size) as number
@@ -219,7 +217,7 @@ export const autograph_safety_number = (
     safety_number,
     our_identity_key,
     their_identity_key
-  ) === 0
+  )
 
 export const autograph_safety_number_size = () =>
   call('autograph_safety_number_size', 'number') as number
@@ -245,7 +243,7 @@ export const autograph_sign_data = (
     their_public_key,
     data,
     data_size
-  ) === 0
+  )
 
 export const autograph_sign_identity = (
   signature: Uint8Array,
@@ -258,7 +256,7 @@ export const autograph_sign_identity = (
     signature,
     our_private_key,
     their_public_key
-  ) === 0
+  )
 
 export const autograph_sign_subject = (
   signature: Uint8Array,
@@ -273,7 +271,7 @@ export const autograph_sign_subject = (
     private_key,
     subject,
     subject_size
-  ) === 0
+  )
 
 export const autograph_size_size = () =>
   call('autograph_size_size', 'number') as number
@@ -294,7 +292,7 @@ export const autograph_subject = (
     their_public_key,
     data,
     data_size
-  ) === 0
+  )
 
 export const autograph_subject_size = (size: number) =>
   call('autograph_subject_size', 'number', size) as number
@@ -317,7 +315,7 @@ export const autograph_verify_data = (
     certificate_count,
     data,
     data_size
-  ) === 0
+  )
 
 export const autograph_verify_identity = (
   their_public_key: Uint8Array,
@@ -330,4 +328,4 @@ export const autograph_verify_identity = (
     their_public_key,
     certificates,
     certificate_count
-  ) === 0
+  )

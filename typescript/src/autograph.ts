@@ -1,3 +1,4 @@
+import Channel from './channel'
 import {
   autograph_ciphertext_size,
   autograph_decrypt,
@@ -31,12 +32,39 @@ import {
   autograph_verify_data,
   autograph_verify_identity
 } from './clib'
-import performKeyExchange from './key-exchange'
+import {
+  AutographError,
+  ChannelUnestablishedError,
+  ChannelAlreadyEstablishedError,
+  ChannelUninitializedError,
+  ChannelAlreadyInitializedError,
+  DecryptionError,
+  EncryptionError,
+  InitializationError,
+  KeyExchangeError,
+  KeyExchangeVerificationError,
+  KeyPairGenerationError,
+  SafetyNumberCalculationError,
+  SigningError
+} from './error'
 import { generateIdentityKeyPair, generateEphemeralKeyPair } from './key-pair'
 import calculateSafetyNumber from './safety-number'
 import createSign from './sign'
 
 export {
+  AutographError,
+  ChannelUnestablishedError,
+  ChannelAlreadyEstablishedError,
+  ChannelUninitializedError,
+  ChannelAlreadyInitializedError,
+  DecryptionError,
+  EncryptionError,
+  InitializationError,
+  KeyExchangeError,
+  KeyExchangeVerificationError,
+  KeyPairGenerationError,
+  SafetyNumberCalculationError,
+  SigningError,
   autograph_ciphertext_size,
   autograph_decrypt,
   autograph_encrypt,
@@ -69,9 +97,8 @@ export {
   autograph_verify_data,
   autograph_verify_identity,
   calculateSafetyNumber,
+  Channel,
   createSign,
   generateIdentityKeyPair,
-  generateEphemeralKeyPair,
-  autograph_init as init,
-  performKeyExchange
+  generateEphemeralKeyPair
 }

@@ -1,11 +1,11 @@
-import { calculateSafetyNumber, init } from '../src/autograph'
+import { calculateSafetyNumber } from '../src/autograph'
 
 describe('Safety number', () => {
-  const alicePublicKey = Uint8Array.from([
+  const aliceIdentityKey = Uint8Array.from([
     91, 119, 85, 151, 32, 20, 121, 20, 19, 106, 90, 56, 141, 90, 16, 210, 14,
     244, 60, 251, 140, 48, 190, 65, 194, 35, 166, 246, 1, 209, 4, 33
   ])
-  const bobPublicKey = Uint8Array.from([
+  const bobIdentityKey = Uint8Array.from([
     232, 130, 200, 162, 218, 101, 75, 210, 196, 152, 235, 97, 118, 3, 241, 131,
     200, 140, 54, 155, 28, 46, 158, 76, 96, 4, 150, 61, 34, 13, 133, 138
   ])
@@ -16,13 +16,9 @@ describe('Safety number', () => {
     57, 50, 54
   ])
 
-  beforeAll(async () => {
-    await init()
-  })
-
-  it('should allow Alice and Bob to calculate safety numbers', () => {
-    const a = calculateSafetyNumber(alicePublicKey, bobPublicKey)
-    const b = calculateSafetyNumber(bobPublicKey, alicePublicKey)
+  it('should allow Alice and Bob to calculate safety numbers', async () => {
+    const a = await calculateSafetyNumber(aliceIdentityKey, bobIdentityKey)
+    const b = await calculateSafetyNumber(bobIdentityKey, aliceIdentityKey)
     expect(a).toEqual(safetyNumber)
     expect(b).toEqual(safetyNumber)
   })

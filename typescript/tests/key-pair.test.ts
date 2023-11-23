@@ -1,18 +1,13 @@
 import {
   generateEphemeralKeyPair,
-  generateIdentityKeyPair,
-  init
+  generateIdentityKeyPair
 } from '../src/autograph'
 
 describe('Key pair', () => {
   const emptyKey = new Uint8Array(32)
 
-  beforeAll(async () => {
-    await init()
-  })
-
-  it('should generate ephemeral key pairs', () => {
-    const keyPair = generateEphemeralKeyPair()
+  it('should generate ephemeral key pairs', async () => {
+    const keyPair = await generateEphemeralKeyPair()
     expect(keyPair.privateKey).toBeInstanceOf(Uint8Array)
     expect(keyPair.publicKey).toBeInstanceOf(Uint8Array)
     expect(keyPair.privateKey.byteLength).toBe(32)
@@ -21,8 +16,8 @@ describe('Key pair', () => {
     expect(keyPair.publicKey).not.toEqual(emptyKey)
   })
 
-  it('should generate identity key pairs', () => {
-    const keyPair = generateIdentityKeyPair()
+  it('should generate identity key pairs', async () => {
+    const keyPair = await generateIdentityKeyPair()
     expect(keyPair.privateKey).toBeInstanceOf(Uint8Array)
     expect(keyPair.publicKey).toBeInstanceOf(Uint8Array)
     expect(keyPair.privateKey.byteLength).toBe(32)

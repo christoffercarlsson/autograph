@@ -4,6 +4,30 @@ export class AutographError extends Error {
   }
 }
 
+export class ChannelAlreadyEstablishedError extends AutographError {
+  constructor() {
+    super('Channel already established')
+  }
+}
+
+export class ChannelAlreadyInitializedError extends AutographError {
+  constructor() {
+    super('Channel already initialized')
+  }
+}
+
+export class ChannelUnestablishedError extends AutographError {
+  constructor() {
+    super('Channel unestablished')
+  }
+}
+
+export class ChannelUninitializedError extends AutographError {
+  constructor() {
+    super('Channel uninitialized')
+  }
+}
+
 export class DecryptionError extends AutographError {
   constructor() {
     super('Decryption failed')
