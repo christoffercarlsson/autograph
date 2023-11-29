@@ -16,8 +16,6 @@
       "-std=c++17",
       "-DCONFIGURED",
       "-DDEV_MODE=0",
-      "-DHAVE_WEAK_SYMBOLS",
-      "-DNATIVE_LITTLE_ENDIAN",
       "-DRANDOMBYTES_DEFAULT_IMPLEMENTATION",
       "-D__STDC_CONSTANT_MACROS",
       "-D__STDC_LIMIT_MACROS",
@@ -36,7 +34,7 @@
     "srcDir": ".",
     "srcFilter": "-<*> +<cplusplus/src> +<cplusplus/libsodium/src/libsodium> -<cplusplus/libsodium/src/libsodium/include>"
   },
-  "frameworks": "espidf",
+  "frameworks": ["arduino", "espidf", "zephyr"],
   "keywords": [
     "security",
     "identity",
@@ -55,7 +53,7 @@
     "diffie-hellman"
   ],
   "license": "Unlicense",
-  "platforms": "espressif32",
+  "platforms": ["espressif32", "nordicnrf52"],
   "repository": {
     "type": "git",
     "url": "https://github.com/christoffercarlsson/autograph.git"
