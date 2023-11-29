@@ -1,5 +1,11 @@
 cmake_minimum_required(VERSION 3.5)
 
+if(DEFINED AUTOGRAPH_TOOLCHAIN AND NOT AUTOGRAPH_TOOLCHAIN STREQUAL "")
+  set(CMAKE_TOOLCHAIN_FILE
+      ${CMAKE_CURRENT_SOURCE_DIR}/cplusplus/cmake/toolchains/${AUTOGRAPH_TOOLCHAIN}.toolchain.cmake
+  )
+endif()
+
 include(cplusplus/cmake/project.cmake)
 
 if(NOT DEFINED PROJECT_NAME)

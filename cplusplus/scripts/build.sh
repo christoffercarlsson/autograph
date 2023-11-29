@@ -9,6 +9,7 @@ AUTOGRAPH_BENCHMARKS=0
 AUTOGRAPH_DEBUG=0
 AUTOGRAPH_INSTALL=0
 AUTOGRAPH_TESTS=0
+AUTOGRAPH_TOOLCHAIN=""
 AUTOGRAPH_WASM=0
 
 while [ $# -gt 0 ]; do
@@ -16,6 +17,11 @@ while [ $# -gt 0 ]; do
         -b | --benchmarks | --with-benchmarks)
             AUTOGRAPH_BENCHMARKS=1
             AUTOGRAPH_INSTALL=1
+            shift
+            ;;
+        -c | --toolchain)
+            AUTOGRAPH_TOOLCHAIN="$2"
+            shift
             shift
             ;;
         -d | --debug)
@@ -77,6 +83,7 @@ generate_cmake() {
         -DCMAKE_BUILD_TYPE=${AUTOGRAPH_BUILD_TYPE} \
         -DAUTOGRAPH_BENCHMARKS=${AUTOGRAPH_BENCHMARKS} \
         -DAUTOGRAPH_INSTALL=${AUTOGRAPH_INSTALL} \
+        -DAUTOGRAPH_TOOLCHAIN=${AUTOGRAPH_TOOLCHAIN} \
         -DAUTOGRAPH_TESTS=${AUTOGRAPH_TESTS} \
         -B "${BUILD_DIR}" "${SOURCE_DIR}/.."
 }
