@@ -56,19 +56,11 @@ private func resizePlaintext(_ plaintext: Bytes, _ size: Bytes) -> Bytes {
     Array(plaintext[0 ..< readSize(size)])
 }
 
-public class State {
-    public var bytes: Bytes
-
-    init() {
-        bytes = createStateBytes()
-    }
-}
-
 public class Channel {
-    var state: State
+    var state: Bytes
 
-    init(state: State) {
-        self.state = state
+    public init() {
+        state = createStateBytes()
     }
 
     public func useKeyPairs(
@@ -78,7 +70,7 @@ public class Channel {
         var publicKeys = createHello()
         let success = autograph_use_key_pairs(
             &publicKeys,
-            &state.bytes,
+            &state,
             identityKeyPair,
             ephemeralKeyPair
         )
@@ -89,12 +81,12 @@ public class Channel {
     }
 
     public func usePublicKeys(publicKeys: Bytes) {
-        autograph_use_public_keys(&state.bytes, publicKeys)
+        autograph_use_public_keys(&state, publicKeys)
     }
 
     public func authenticate() throws -> Bytes {
         var safetyNumber = createSafetyNumber()
-        let success = autograph_authenticate(&safetyNumber, &state.bytes)
+        let success = autograph_authenticate(&safetyNumber, &state)
         if !success {
             throw Error.authentication
         }
@@ -105,7 +97,7 @@ public class Channel {
         var signature = createSignature()
         let success = autograph_key_exchange(
             &signature,
-            &state.bytes,
+            &state,
             isInitiator
         )
         if !success {
@@ -115,7 +107,7 @@ public class Channel {
     }
 
     public func verifyKeyExchange(signature: Bytes) throws {
-        let success = autograph_verify_key_exchange(&state.bytes, signature)
+        let success = autograph_verify_key_exchange(&state, signature)
         if !success {
             throw Error.keyExchange
         }
@@ -127,7 +119,7 @@ public class Channel {
         let success = autograph_encrypt_message(
             &ciphertext,
             &index,
-            &state.bytes,
+            &state,
             plaintext,
             plaintext.count
         )
@@ -145,7 +137,7 @@ public class Channel {
             &plaintext,
             &size,
             &index,
-            &state.bytes,
+            &state,
             message,
             message.count
         )
@@ -159,7 +151,7 @@ public class Channel {
         var signature = createSignature()
         let success = autograph_certify_data(
             &signature,
-            &state.bytes,
+            &state,
             data,
             data.count
         )
@@ -173,7 +165,7 @@ public class Channel {
         var signature = createSignature()
         let success = autograph_certify_identity(
             &signature,
-            &state.bytes
+            &state
         )
         if !success {
             throw Error.certification
@@ -187,7 +179,7 @@ public class Channel {
         signature: Bytes
     ) -> Bool {
         autograph_verify_data(
-            &state.bytes,
+            &state,
             data,
             data.count,
             publicKey,
@@ -200,7 +192,7 @@ public class Channel {
         signature: Bytes
     ) -> Bool {
         autograph_verify_identity(
-            &state.bytes,
+            &state,
             publicKey,
             signature
         )
@@ -208,8 +200,8 @@ public class Channel {
 
     public func close() throws -> (Bytes, Bytes) {
         var key = createSecretKey()
-        var ciphertext = createSessionCiphertext(state.bytes)
-        let success = autograph_close_session(&key, &ciphertext, &state.bytes)
+        var ciphertext = createSessionCiphertext(state)
+        let success = autograph_close_session(&key, &ciphertext, &state)
         if !success {
             throw Error.session
         }
@@ -218,7 +210,7 @@ public class Channel {
 
     public func open(key: inout Bytes, ciphertext: Bytes) throws {
         let success = autograph_open_session(
-            &state.bytes,
+            &state,
             &key,
             ciphertext,
             ciphertext.count
