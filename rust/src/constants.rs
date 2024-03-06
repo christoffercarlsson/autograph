@@ -13,7 +13,7 @@ pub const SECRET_KEY_SIZE: usize = 32;
 pub const SHARED_SECRET_SIZE: usize = 32;
 pub const SIGNATURE_SIZE: usize = 64;
 pub const SIZE_SIZE: usize = 8;
-pub const STATE_SIZE: usize = 2048;
+pub const STATE_SIZE: usize = 512;
 pub const TAG_SIZE: usize = 16;
 
 pub const HELLO_SIZE: usize = PUBLIC_KEY_SIZE * 2;
