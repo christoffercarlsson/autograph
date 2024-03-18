@@ -3,10 +3,10 @@ package cert
 import (
 	"math"
 
-	c "github.com/christoffercarlsson/autograph/constants"
-	"github.com/christoffercarlsson/autograph/external"
-	s "github.com/christoffercarlsson/autograph/state"
-	t "github.com/christoffercarlsson/autograph/types"
+	c "github.com/christoffercarlsson/autograph/go/constants"
+	"github.com/christoffercarlsson/autograph/go/external"
+	s "github.com/christoffercarlsson/autograph/go/state"
+	t "github.com/christoffercarlsson/autograph/go/types"
 )
 
 func CreateSubject(data *[]byte) []byte {

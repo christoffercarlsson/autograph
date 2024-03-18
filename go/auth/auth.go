@@ -3,11 +3,11 @@ package auth
 import (
 	"bytes"
 
-	c "github.com/christoffercarlsson/autograph/constants"
-	"github.com/christoffercarlsson/autograph/external"
-	"github.com/christoffercarlsson/autograph/numbers"
-	s "github.com/christoffercarlsson/autograph/state"
-	t "github.com/christoffercarlsson/autograph/types"
+	c "github.com/christoffercarlsson/autograph/go/constants"
+	"github.com/christoffercarlsson/autograph/go/external"
+	"github.com/christoffercarlsson/autograph/go/numbers"
+	s "github.com/christoffercarlsson/autograph/go/state"
+	t "github.com/christoffercarlsson/autograph/go/types"
 )
 
 func EncodeFingerprint(fingerprint *t.Fingerprint, digest *t.Digest) {

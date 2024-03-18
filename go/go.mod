@@ -1,4 +1,4 @@
-module github.com/christoffercarlsson/autograph
+module github.com/christoffercarlsson/autograph/go
 
 go 1.22.0
 

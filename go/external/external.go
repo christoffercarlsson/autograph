@@ -6,8 +6,8 @@ import (
 	"crypto/sha512"
 	"io"
 
-	c "github.com/christoffercarlsson/autograph/constants"
-	t "github.com/christoffercarlsson/autograph/types"
+	c "github.com/christoffercarlsson/autograph/go/constants"
+	t "github.com/christoffercarlsson/autograph/go/types"
 
 	"golang.org/x/crypto/chacha20poly1305"
 	"golang.org/x/crypto/curve25519"

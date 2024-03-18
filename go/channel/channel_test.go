@@ -4,8 +4,8 @@ import (
 	"fmt"
 	"testing"
 
-	c "github.com/christoffercarlsson/autograph/constants"
-	t "github.com/christoffercarlsson/autograph/types"
+	c "github.com/christoffercarlsson/autograph/go/constants"
+	t "github.com/christoffercarlsson/autograph/go/types"
 )
 
 var aliceHandshake t.Signature = [c.SIGNATURE_SIZE]byte{

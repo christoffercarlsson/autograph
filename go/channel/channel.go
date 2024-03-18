@@ -3,15 +3,15 @@ package channel
 import (
 	"fmt"
 
-	"github.com/christoffercarlsson/autograph/auth"
-	"github.com/christoffercarlsson/autograph/cert"
-	c "github.com/christoffercarlsson/autograph/constants"
-	e "github.com/christoffercarlsson/autograph/external"
-	"github.com/christoffercarlsson/autograph/kdf"
-	"github.com/christoffercarlsson/autograph/keyexchange"
-	"github.com/christoffercarlsson/autograph/numbers"
-	s "github.com/christoffercarlsson/autograph/state"
-	t "github.com/christoffercarlsson/autograph/types"
+	"github.com/christoffercarlsson/autograph/go/auth"
+	"github.com/christoffercarlsson/autograph/go/cert"
+	c "github.com/christoffercarlsson/autograph/go/constants"
+	e "github.com/christoffercarlsson/autograph/go/external"
+	"github.com/christoffercarlsson/autograph/go/kdf"
+	"github.com/christoffercarlsson/autograph/go/keyexchange"
+	"github.com/christoffercarlsson/autograph/go/numbers"
+	s "github.com/christoffercarlsson/autograph/go/state"
+	t "github.com/christoffercarlsson/autograph/go/types"
 )
 
 func UseKeyPairs(

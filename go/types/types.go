@@ -1,7 +1,7 @@
 package types
 
 import (
-	c "github.com/christoffercarlsson/autograph/constants"
+	c "github.com/christoffercarlsson/autograph/go/constants"
 )
 
 type Bytes = []byte

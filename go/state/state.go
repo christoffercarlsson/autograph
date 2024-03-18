@@ -3,10 +3,10 @@ package state
 import (
 	"math"
 
-	c "github.com/christoffercarlsson/autograph/constants"
-	e "github.com/christoffercarlsson/autograph/external"
-	"github.com/christoffercarlsson/autograph/numbers"
-	t "github.com/christoffercarlsson/autograph/types"
+	c "github.com/christoffercarlsson/autograph/go/constants"
+	e "github.com/christoffercarlsson/autograph/go/external"
+	"github.com/christoffercarlsson/autograph/go/numbers"
+	t "github.com/christoffercarlsson/autograph/go/types"
 )
 
 func SetIdentityKeyPair(state *t.State, keyPair *t.KeyPair) {
