@@ -1,6 +1,6 @@
 import Foundation
 
-public enum Error: Swift.Error {
+public enum AutographError: Swift.Error {
     case authentication
     case certification
     case decryption

@@ -9,7 +9,7 @@ public func generateIdentityKeyPair() throws -> Bytes {
     var keyPair = createKeyPair()
     let success = autograph_identity_key_pair(&keyPair)
     if !success {
-        throw Error.keyPair
+        throw AutographError.keyPair
     }
     return keyPair
 }
@@ -18,7 +18,7 @@ public func generateKeyPair() throws -> Bytes {
     var keyPair = createKeyPair()
     let success = autograph_ephemeral_key_pair(&keyPair)
     if !success {
-        throw Error.keyPair
+        throw AutographError.keyPair
     }
     return keyPair
 }

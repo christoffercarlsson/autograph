@@ -75,7 +75,7 @@ public class Channel {
             ephemeralKeyPair
         )
         if !success {
-            throw Error.initialization
+            throw AutographError.initialization
         }
         return publicKeys
     }
@@ -88,7 +88,7 @@ public class Channel {
         var safetyNumber = createSafetyNumber()
         let success = autograph_authenticate(&safetyNumber, &state)
         if !success {
-            throw Error.authentication
+            throw AutographError.authentication
         }
         return safetyNumber
     }
@@ -101,7 +101,7 @@ public class Channel {
             isInitiator
         )
         if !success {
-            throw Error.keyExchange
+            throw AutographError.keyExchange
         }
         return signature
     }
@@ -109,7 +109,7 @@ public class Channel {
     public func verifyKeyExchange(signature: Bytes) throws {
         let success = autograph_verify_key_exchange(&state, signature)
         if !success {
-            throw Error.keyExchange
+            throw AutographError.keyExchange
         }
     }
 
@@ -124,7 +124,7 @@ public class Channel {
             plaintext.count
         )
         if !success {
-            throw Error.encryption
+            throw AutographError.encryption
         }
         return (readIndex(index), ciphertext)
     }
@@ -142,7 +142,7 @@ public class Channel {
             message.count
         )
         if !success {
-            throw Error.decryption
+            throw AutographError.decryption
         }
         return (readIndex(index), resizePlaintext(plaintext, size))
     }
@@ -156,7 +156,7 @@ public class Channel {
             data.count
         )
         if !success {
-            throw Error.certification
+            throw AutographError.certification
         }
         return signature
     }
@@ -168,7 +168,7 @@ public class Channel {
             &state
         )
         if !success {
-            throw Error.certification
+            throw AutographError.certification
         }
         return signature
     }
@@ -203,7 +203,7 @@ public class Channel {
         var ciphertext = createSessionCiphertext(state)
         let success = autograph_close_session(&key, &ciphertext, &state)
         if !success {
-            throw Error.session
+            throw AutographError.session
         }
         return (key, ciphertext)
     }
@@ -216,7 +216,7 @@ public class Channel {
             ciphertext.count
         )
         if !success {
-            throw Error.session
+            throw AutographError.session
         }
     }
 }
