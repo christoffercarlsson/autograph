@@ -1,16 +1,23 @@
+#include <string.h>
+
 #include "autograph.h"
+#include "constants.h"
 #include "external.h"
 
 bool autograph_identity_key_pair(uint8_t *key_pair) {
-  if (!init()) {
+  if (!ready()) {
     return false;
   }
   return key_pair_identity(key_pair);
 }
 
-bool autograph_ephemeral_key_pair(uint8_t *key_pair) {
-  if (!init()) {
+bool autograph_session_key_pair(uint8_t *key_pair) {
+  if (!ready()) {
     return false;
   }
-  return key_pair_ephemeral(key_pair);
+  return key_pair_session(key_pair);
+}
+
+void autograph_get_public_key(uint8_t *public_key, const uint8_t *key_pair) {
+  memmove(public_key, key_pair + PRIVATE_KEY_SIZE, PUBLIC_KEY_SIZE);
 }
