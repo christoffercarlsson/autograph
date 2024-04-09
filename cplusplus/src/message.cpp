@@ -8,7 +8,7 @@ Bytes createCiphertext(const Bytes plaintext) {
   return ciphertext;
 }
 
-tuple<bool, uint32_t, Bytes> encrypt(const SecretKey &key, Nonce &nonce,
+tuple<bool, uint32_t, Bytes> encrypt(SecretKey &key, Nonce &nonce,
                                      const Bytes &plaintext) {
   uint32_t index;
   Bytes ciphertext = createCiphertext(plaintext);
@@ -24,7 +24,7 @@ Bytes createPlaintext(const Bytes ciphertext) {
   return plaintext;
 }
 
-tuple<bool, uint32_t, Bytes> decrypt(const SecretKey &key, Nonce &nonce,
+tuple<bool, uint32_t, Bytes> decrypt(SecretKey &key, Nonce &nonce,
                                      Bytes &skippedIndexes,
                                      const Bytes &ciphertext) {
   uint32_t index;

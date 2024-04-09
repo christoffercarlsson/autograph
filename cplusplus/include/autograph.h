@@ -41,13 +41,13 @@ bool autograph_verify_key_exchange(const uint8_t *transcript,
                                    const uint8_t *their_identity_key,
                                    const uint8_t *their_signature);
 
-bool autograph_encrypt(uint32_t *index, uint8_t *ciphertext, const uint8_t *key,
+bool autograph_encrypt(uint32_t *index, uint8_t *ciphertext, uint8_t *key,
                        uint8_t *nonce, const uint8_t *plaintext,
                        const size_t plaintext_size);
 
 bool autograph_decrypt(uint32_t *index, uint8_t *plaintext,
-                       size_t *plaintext_size, const uint8_t *key,
-                       uint8_t *nonce, uint8_t *skipped_indexes,
+                       size_t *plaintext_size, uint8_t *key, uint8_t *nonce,
+                       uint8_t *skipped_indexes,
                        const size_t skipped_indexes_size,
                        const uint8_t *ciphertext, const size_t ciphertext_size);
 
@@ -136,10 +136,10 @@ bool verifyKeyExchange(const Transcript &transcript,
                        const PublicKey &theirIdentityKey,
                        const Signature &theirSignature);
 
-tuple<bool, uint32_t, Bytes> encrypt(const SecretKey &key, Nonce &nonce,
+tuple<bool, uint32_t, Bytes> encrypt(SecretKey &key, Nonce &nonce,
                                      const Bytes &plaintext);
 
-tuple<bool, uint32_t, Bytes> decrypt(const SecretKey &key, Nonce &nonce,
+tuple<bool, uint32_t, Bytes> decrypt(SecretKey &key, Nonce &nonce,
                                      Bytes &skippedIndexes,
                                      const Bytes &ciphertext);
 

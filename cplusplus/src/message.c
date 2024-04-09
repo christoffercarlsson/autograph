@@ -43,14 +43,23 @@ bool increment_nonce(uint8_t *nonce) {
   return true;
 }
 
-bool autograph_encrypt(uint32_t *index, uint8_t *ciphertext, const uint8_t *key,
+bool encrypt_fail(uint8_t *key, uint8_t *nonce) {
+  zeroize(key, SECRET_KEY_SIZE);
+  zeroize(nonce, NONCE_SIZE);
+  return false;
+}
+
+bool autograph_encrypt(uint32_t *index, uint8_t *ciphertext, uint8_t *key,
                        uint8_t *nonce, const uint8_t *plaintext,
                        const size_t plaintext_size) {
   if (!increment_nonce(nonce)) {
-    return false;
+    return encrypt_fail(key, nonce);
   }
   *index = get_uint32(nonce, NONCE_SIZE - 4);
-  return encrypt_plaintext(ciphertext, key, nonce, plaintext, plaintext_size);
+  if (!encrypt_plaintext(ciphertext, key, nonce, plaintext, plaintext_size)) {
+    return encrypt_fail(key, nonce);
+  }
+  return true;
 }
 
 size_t calculate_unpadded_size(const uint8_t *padded,
@@ -165,9 +174,17 @@ bool decrypt_skipped(uint32_t *index, uint8_t *plaintext,
   return false;
 }
 
+bool decrypt_fail(uint8_t *key, uint8_t *nonce, uint8_t *skipped_indexes,
+                  const size_t skipped_indexes_size) {
+  zeroize(key, SECRET_KEY_SIZE);
+  zeroize(nonce, NONCE_SIZE);
+  zeroize(skipped_indexes, skipped_indexes_size);
+  return false;
+}
+
 bool autograph_decrypt(uint32_t *index, uint8_t *plaintext,
-                       size_t *plaintext_size, const uint8_t *key,
-                       uint8_t *nonce, uint8_t *skipped_indexes,
+                       size_t *plaintext_size, uint8_t *key, uint8_t *nonce,
+                       uint8_t *skipped_indexes,
                        const size_t skipped_indexes_size,
                        const uint8_t *ciphertext,
                        const size_t ciphertext_size) {
@@ -176,13 +193,13 @@ bool autograph_decrypt(uint32_t *index, uint8_t *plaintext,
                       skipped_indexes_size, ciphertext, ciphertext_size);
   while (!success) {
     if (!increment_nonce(nonce)) {
-      return false;
+      return decrypt_fail(key, nonce, skipped_indexes, skipped_indexes_size);
     }
     *index = get_uint32(nonce, NONCE_SIZE - 4);
     success = decrypt_ciphertext(plaintext, plaintext_size, key, nonce,
                                  ciphertext, ciphertext_size);
     if (!skip_index(nonce, skipped_indexes, skipped_indexes_size)) {
-      return false;
+      return decrypt_fail(key, nonce, skipped_indexes, skipped_indexes_size);
     }
   }
   return true;
