@@ -2,10 +2,13 @@
 pub enum Error {
     Authentication,
     Certification,
+    ChannelUnestablished,
     Decryption,
     Encryption,
-    Initialization,
+    SkipIndex,
     KeyExchange,
+    KeyExchangeVerification,
     KeyPair,
-    Session,
+    Nonce,
+    Padding,
 }

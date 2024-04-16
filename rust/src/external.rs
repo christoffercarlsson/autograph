@@ -14,10 +14,6 @@ use crate::{
     types::{Digest, KeyPair, Nonce, PrivateKey, PublicKey, SecretKey, SharedSecret, Signature},
 };
 
-pub fn init() -> bool {
-    true
-}
-
 pub fn encrypt(ciphertext: &mut [u8], key: &SecretKey, nonce: &Nonce, plaintext: &[u8]) -> bool {
     let cipher = ChaCha20Poly1305::new(GenericArray::from_slice(key));
     let result = cipher.encrypt(GenericArray::from_slice(nonce), plaintext.as_ref());
@@ -40,10 +36,12 @@ pub fn decrypt(plaintext: &mut [u8], key: &SecretKey, nonce: &Nonce, ciphertext:
 
 pub fn diffie_hellman(
     shared_secret: &mut SharedSecret,
-    our_private_key: &PrivateKey,
+    our_key_pair: &KeyPair,
     their_public_key: &PublicKey,
 ) -> bool {
-    let mut static_secret = StaticSecret::from(*our_private_key);
+    let mut our_private_key = [0; PRIVATE_KEY_SIZE];
+    our_private_key.copy_from_slice(&our_key_pair[..PRIVATE_KEY_SIZE]);
+    let mut static_secret = StaticSecret::from(our_private_key);
     let public_key = DalekPublicKey::from(*their_public_key);
     shared_secret.copy_from_slice(
         static_secret
@@ -51,6 +49,7 @@ pub fn diffie_hellman(
             .to_bytes()
             .as_slice(),
     );
+    our_private_key.zeroize();
     static_secret.zeroize();
     true
 }
@@ -61,7 +60,7 @@ fn create_key_pair(key_pair: &mut KeyPair, mut private_key: PrivateKey, public_k
     private_key.zeroize();
 }
 
-pub fn key_pair_ephemeral<T: RngCore + CryptoRng>(csprng: T, key_pair: &mut KeyPair) -> bool {
+pub fn key_pair_session<T: RngCore + CryptoRng>(csprng: T, key_pair: &mut KeyPair) -> bool {
     let mut secret = StaticSecret::random_from_rng(csprng);
     let public_key = DalekPublicKey::from(&secret);
     create_key_pair(key_pair, secret.to_bytes(), public_key.to_bytes());
@@ -120,4 +119,26 @@ pub fn hkdf(okm: &mut [u8], ikm: &[u8], salt: &[u8], info: &[u8]) -> bool {
 
 pub fn zeroize(bytes: &mut [u8]) {
     bytes.zeroize();
+}
+
+pub fn is_zero(bytes: &[u8]) -> bool {
+    for &byte in bytes {
+        if byte != 0 {
+            return false;
+        }
+    }
+    true
+}
+
+pub fn get_uint32(bytes: &[u8], offset: usize) -> u32 {
+    u32::from_be_bytes([
+        bytes[offset],
+        bytes[offset + 1],
+        bytes[offset + 2],
+        bytes[offset + 3],
+    ])
+}
+
+pub fn set_uint32(bytes: &mut [u8], offset: usize, number: u32) {
+    bytes[offset..offset + 4].copy_from_slice(number.to_be_bytes().as_slice());
 }

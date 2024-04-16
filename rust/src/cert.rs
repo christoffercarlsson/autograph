@@ -1,10 +1,10 @@
 use alloc::{vec, vec::Vec};
 
 use crate::{
-    constants::PUBLIC_KEY_SIZE,
-    external::{sign, verify},
-    state::get_identity_key_pair,
-    types::{PublicKey, Signature, State},
+    constants::{PUBLIC_KEY_SIZE, SIGNATURE_SIZE},
+    error::Error,
+    external::{sign, verify as verify_signature},
+    types::{KeyPair, PublicKey, Signature},
 };
 
 fn create_subject(data: &[u8]) -> Vec<u8> {
@@ -25,42 +25,26 @@ fn calculate_subject(public_key: &PublicKey, data: &[u8]) -> Vec<u8> {
     subject
 }
 
-fn sign_subject(signature: &mut Signature, state: &State, subject: &[u8]) -> bool {
-    sign(signature, get_identity_key_pair(state), subject)
+pub fn certify(
+    our_identity_key_pair: &KeyPair,
+    their_identity_key: &PublicKey,
+    data: Option<&[u8]>,
+) -> Result<Signature, Error> {
+    let mut signature = [0; SIGNATURE_SIZE];
+    let subject = calculate_subject(their_identity_key, data.unwrap_or_default());
+    if !sign(&mut signature, our_identity_key_pair, &subject) {
+        Err(Error::Certification)
+    } else {
+        Ok(signature)
+    }
 }
 
-pub fn certify_data_ownership(
-    signature: &mut Signature,
-    state: &State,
-    owner_public_key: &PublicKey,
-    data: &[u8],
-) -> bool {
-    let subject = calculate_subject(owner_public_key, data);
-    sign_subject(signature, state, &subject)
-}
-
-pub fn certify_identity_ownership(
-    signature: &mut Signature,
-    state: &State,
-    owner_public_key: &PublicKey,
-) -> bool {
-    sign_subject(signature, state, owner_public_key)
-}
-
-pub fn verify_data_ownership(
-    owner_public_key: &PublicKey,
-    data: &[u8],
-    certifier_public_key: &PublicKey,
+pub fn verify(
+    owner_identity_key: &PublicKey,
+    certifier_identity_key: &PublicKey,
     signature: &Signature,
+    data: Option<&[u8]>,
 ) -> bool {
-    let subject = calculate_subject(owner_public_key, data);
-    verify(certifier_public_key, signature, &subject)
-}
-
-pub fn verify_identity_ownership(
-    owner_public_key: &PublicKey,
-    certifier_public_key: &PublicKey,
-    signature: &Signature,
-) -> bool {
-    verify(certifier_public_key, signature, owner_public_key)
+    let subject = calculate_subject(owner_identity_key, data.unwrap_or_default());
+    verify_signature(certifier_identity_key, signature, &subject)
 }

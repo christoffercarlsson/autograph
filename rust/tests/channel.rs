@@ -1,6 +1,4 @@
-use autograph_protocol::{
-    Bytes, Channel, KeyPair, PublicKey, SafetyNumber, Signature, SECRET_KEY_SIZE,
-};
+use autograph_protocol::{Channel, KeyPair, PublicKey, SafetyNumber, Signature};
 
 #[test]
 fn test_channel() {
@@ -125,8 +123,8 @@ fn test_channel() {
         232, 80, 6, 232, 93,
     ];
 
-    let mut a = Channel::new();
-    let mut b = Channel::new();
+    let mut a = Channel::new(Some(5));
+    let mut b = Channel::new(Some(5));
     test_key_exchange(
         &mut a,
         &mut b,
@@ -154,7 +152,6 @@ fn test_channel() {
     test_bob_verify_alice_identity(&b, &charlie_identity_key, charlie_signature_alice_identity);
     test_alice_verify_bob_identity(&a, &charlie_identity_key, charlie_signature_bob_identity);
     test_out_of_order_messages(&mut a, &mut b);
-    test_channel_open_close(&mut a, &mut b, alice_signature_bob_identity);
 }
 
 // Should allow Alice and Bob to perform a key exchange
@@ -163,24 +160,24 @@ fn test_key_exchange(
     a: &mut Channel,
     b: &mut Channel,
     alice_identity_key_pair: KeyPair,
-    alice_ephemeral_key_pair: KeyPair,
+    mut alice_ephemeral_key_pair: KeyPair,
     bob_identity_key_pair: KeyPair,
-    bob_ephemeral_key_pair: KeyPair,
+    mut bob_ephemeral_key_pair: KeyPair,
     alice_handshake: Signature,
     bob_handshake: Signature,
 ) {
-    let alice_hello = a
-        .use_key_pairs(alice_identity_key_pair, alice_ephemeral_key_pair)
+    let (alice_identity_key, alice_ephemeral_key) = a
+        .use_key_pairs(&alice_identity_key_pair, &mut alice_ephemeral_key_pair)
         .unwrap();
-    let bob_hello = b
-        .use_key_pairs(bob_identity_key_pair, bob_ephemeral_key_pair)
+    let (bob_identity_key, bob_ephemeral_key) = b
+        .use_key_pairs(&bob_identity_key_pair, &mut bob_ephemeral_key_pair)
         .unwrap();
-    a.use_public_keys(bob_hello);
-    b.use_public_keys(alice_hello);
+    a.use_public_keys(&bob_identity_key, &bob_ephemeral_key);
+    b.use_public_keys(&alice_identity_key, &alice_ephemeral_key);
     let handshake_alice = a.key_exchange(true).unwrap();
     let handshake_bob = b.key_exchange(false).unwrap();
-    a.verify_key_exchange(handshake_bob).unwrap();
-    b.verify_key_exchange(handshake_alice).unwrap();
+    a.verify_key_exchange(&handshake_bob).unwrap();
+    b.verify_key_exchange(&handshake_alice).unwrap();
     assert_eq!(handshake_alice, alice_handshake);
     assert_eq!(handshake_bob, bob_handshake);
 }
@@ -194,7 +191,12 @@ fn test_authenticate(a: &Channel, b: &Channel, safety_number: SafetyNumber) {
 }
 
 // Should allow Alice to send encrypted data to Bob
-fn test_alice_message_to_bob(a: &mut Channel, b: &mut Channel, data: &[u8], alice_message: Bytes) {
+fn test_alice_message_to_bob(
+    a: &mut Channel,
+    b: &mut Channel,
+    data: &[u8],
+    alice_message: Vec<u8>,
+) {
     let (encrypt_index, message) = a.encrypt(data).unwrap();
     let (decrypt_index, plaintext) = b.decrypt(&message).unwrap();
     assert_eq!(encrypt_index, 1);
@@ -204,7 +206,7 @@ fn test_alice_message_to_bob(a: &mut Channel, b: &mut Channel, data: &[u8], alic
 }
 
 // Should allow Bob to send encrypted data to Alice
-fn test_bob_message_to_alice(a: &mut Channel, b: &mut Channel, data: &[u8], bob_message: Bytes) {
+fn test_bob_message_to_alice(a: &mut Channel, b: &mut Channel, data: &[u8], bob_message: Vec<u8>) {
     let (_, message) = b.encrypt(data).unwrap();
     let (_, plaintext) = a.decrypt(&message).unwrap();
     assert_eq!(plaintext, data);
@@ -213,25 +215,25 @@ fn test_bob_message_to_alice(a: &mut Channel, b: &mut Channel, data: &[u8], bob_
 
 // Should allow Bob to certify Alice's ownership of her identity key and data
 fn test_bob_certify_alice_data(b: &Channel, data: &[u8], bob_signature_alice_data: Signature) {
-    let signature = b.certify_data(data).unwrap();
+    let signature = b.certify(Some(data)).unwrap();
     assert_eq!(signature, bob_signature_alice_data);
 }
 
 // Should allow Alice to certify Bob's ownership of his identity key and data
 fn test_alice_certify_bob_data(a: &Channel, data: &[u8], alice_signature_bob_data: Signature) {
-    let signature = a.certify_data(data).unwrap();
+    let signature = a.certify(Some(data)).unwrap();
     assert_eq!(signature, alice_signature_bob_data);
 }
 
 // Should allow Bob to certify Alice's ownership of her identity key
 fn test_bob_certify_alice_identity(b: &Channel, bob_signature_alice_identity: Signature) {
-    let signature = b.certify_identity().unwrap();
+    let signature = b.certify(None).unwrap();
     assert_eq!(signature, bob_signature_alice_identity);
 }
 
 // Should allow Alice to certify Bob's ownership of his identity key
 fn test_alice_certify_bob_identity(a: &Channel, alice_signature_bob_identity: Signature) {
-    let signature = a.certify_identity().unwrap();
+    let signature = a.certify(None).unwrap();
     assert_eq!(signature, alice_signature_bob_identity);
 }
 
@@ -243,7 +245,11 @@ fn test_bob_verify_alice_data(
     charlie_identity_key: &PublicKey,
     charlie_signature_alice_data: Signature,
 ) {
-    let verified = b.verify_data(data, charlie_identity_key, &charlie_signature_alice_data);
+    let verified = b.verify(
+        charlie_identity_key,
+        &charlie_signature_alice_data,
+        Some(data),
+    );
     assert!(verified);
 }
 
@@ -255,7 +261,11 @@ fn test_alice_verify_bob_data(
     charlie_identity_key: &PublicKey,
     charlie_signature_bob_data: Signature,
 ) {
-    let verified = a.verify_data(data, charlie_identity_key, &charlie_signature_bob_data);
+    let verified = a.verify(
+        charlie_identity_key,
+        &charlie_signature_bob_data,
+        Some(data),
+    );
     assert!(verified);
 }
 
@@ -266,7 +276,11 @@ fn test_bob_verify_alice_identity(
     charlie_identity_key: &PublicKey,
     charlie_signature_alice_identity: Signature,
 ) {
-    let verified = b.verify_identity(charlie_identity_key, &charlie_signature_alice_identity);
+    let verified = b.verify(
+        charlie_identity_key,
+        &charlie_signature_alice_identity,
+        None,
+    );
     assert!(verified);
 }
 
@@ -277,7 +291,7 @@ fn test_alice_verify_bob_identity(
     charlie_identity_key: &PublicKey,
     charlie_signature_bob_identity: Signature,
 ) {
-    let verified = a.verify_identity(charlie_identity_key, &charlie_signature_bob_identity);
+    let verified = a.verify(charlie_identity_key, &charlie_signature_bob_identity, None);
     assert!(verified);
 }
 
@@ -305,17 +319,4 @@ fn test_out_of_order_messages(a: &mut Channel, b: &mut Channel) {
     assert_eq!(plaintext2, data2);
     assert_eq!(plaintext3, data3);
     assert_eq!(plaintext4, data4);
-}
-
-// Should correctly open and close channels
-fn test_channel_open_close(
-    a: &mut Channel,
-    b: &mut Channel,
-    alice_signature_bob_identity: Signature,
-) {
-    let (mut key, ciphertext) = a.close().unwrap();
-    b.open(&mut key, &ciphertext).unwrap();
-    assert_eq!(key, [0; SECRET_KEY_SIZE]);
-    let signature = b.certify_identity().unwrap();
-    assert_eq!(signature, alice_signature_bob_identity);
 }
