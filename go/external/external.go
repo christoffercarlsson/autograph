@@ -4,6 +4,7 @@ import (
 	"crypto/ed25519"
 	"crypto/rand"
 	"crypto/sha512"
+	"encoding/binary"
 	"io"
 
 	c "github.com/christoffercarlsson/autograph/go/constants"
@@ -45,14 +46,18 @@ func Decrypt(plainText *[]byte, key *t.SecretKey, nonce *t.Nonce, cipherText *[]
 
 func DiffieHellman(
 	sharedSecretRef *t.SharedSecret,
-	ourPrivateKey *t.PrivateKey,
+	ourKeypair *t.KeyPair,
 	theirPublicKey *t.PublicKey,
 ) bool {
+	ourPrivateKey := ourKeypair[:c.PRIVATE_KEY_SIZE]
 	sharedSecret, err := curve25519.X25519(ourPrivateKey[:], theirPublicKey[:])
 	if err != nil {
+		Zeroize(&ourPrivateKey)
+		Zeroize(&sharedSecret)
 		return false
 	}
 	copy((*sharedSecretRef)[:], sharedSecret)
+	Zeroize(&ourPrivateKey)
 	Zeroize(&sharedSecret)
 	return true
 }
@@ -133,4 +138,21 @@ func Zeroize64(arr *[64]byte) {
 func Zeroize32(arr *[32]byte) {
 	slice := arr[:]
 	Zeroize(&slice)
+}
+
+func Zeroize12(arr *[12]byte) {
+	slice := arr[:]
+	Zeroize(&slice)
+}
+
+func GetUint32(bytes *[]byte, offset int) uint32 {
+	return binary.BigEndian.Uint32((*bytes)[offset : offset+4])
+}
+
+func SetUint32(bytes *[]byte, offset int, number uint32) {
+	newBytes := make([]byte, 4)
+	binary.BigEndian.PutUint32(newBytes, number)
+	for i := 0; i < 4; i += 1 {
+		(*bytes)[i+int(offset)] = newBytes[i]
+	}
 }

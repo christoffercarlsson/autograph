@@ -1,11 +1,11 @@
 package cert
 
 import (
+	"fmt"
 	"math"
 
 	c "github.com/christoffercarlsson/autograph/go/constants"
 	"github.com/christoffercarlsson/autograph/go/external"
-	s "github.com/christoffercarlsson/autograph/go/state"
 	t "github.com/christoffercarlsson/autograph/go/types"
 )
 
@@ -30,44 +30,26 @@ func CalculateSubject(publicKey *t.PublicKey, data *[]byte) []byte {
 	return subject
 }
 
-func SignSubject(signature *t.Signature, state *t.State, subject *[]byte) bool {
-	return external.Sign(signature, s.GetIdentityKeyPair(state), subject)
+func Certify(
+	ourIdentityKeyPair *t.KeyPair,
+	theirIdentityKey *t.PublicKey,
+	data *[]byte,
+) (t.Signature, error) {
+	signature := t.Signature{}
+	subject := CalculateSubject(theirIdentityKey, data)
+	success := external.Sign(&signature, (*[64]byte)(ourIdentityKeyPair), &subject)
+	if !success {
+		return signature, fmt.Errorf("sign failure")
+	}
+	return signature, nil
 }
 
-func CertifyDataOwnership(
+func Verify(
+	ownerIdentityKey *t.PublicKey,
+	certifierIdentityKey *t.PublicKey,
 	signature *t.Signature,
-	state *t.State,
-	ownerPublicKey *t.PublicKey,
 	data *[]byte,
 ) bool {
-	subject := CalculateSubject(ownerPublicKey, data)
-	return SignSubject(signature, state, &subject)
-}
-
-func CertifyIdentityOwnership(
-	signature *t.Signature,
-	state *t.State,
-	ownerPublicKey *t.PublicKey,
-) bool {
-	ownerPublicKeySlice := ownerPublicKey[:]
-	return SignSubject(signature, state, &ownerPublicKeySlice)
-}
-
-func VerifyDataOwnership(
-	ownerPublicKey *t.PublicKey,
-	data *[]byte,
-	certifierPublicKey *t.PublicKey,
-	signature *t.Signature,
-) bool {
-	subject := CalculateSubject(ownerPublicKey, data)
-	return external.Verify(certifierPublicKey, signature, &subject)
-}
-
-func VerifyIdentityOwnership(
-	ownerPublicKey *t.PublicKey,
-	certifierPublicKey *t.PublicKey,
-	signature *t.Signature,
-) bool {
-	ownerPublicKeySlice := ownerPublicKey[:]
-	return external.Verify(certifierPublicKey, signature, &ownerPublicKeySlice)
+	subject := CalculateSubject(ownerIdentityKey, data)
+	return external.Verify(certifierIdentityKey, signature, &subject)
 }

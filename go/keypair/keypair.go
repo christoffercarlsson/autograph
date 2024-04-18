@@ -39,3 +39,7 @@ func GenerateIdentityKeyPair() (t.KeyPair, error) {
 	}
 	return keyPair, nil
 }
+
+func GetPublicKey(keyPair *t.KeyPair) t.PublicKey {
+	return [c.PUBLIC_KEY_SIZE]byte(keyPair[c.PRIVATE_KEY_SIZE:])
+}
