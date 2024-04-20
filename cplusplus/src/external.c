@@ -19,10 +19,9 @@ bool decrypt(uint8_t *plaintext, const uint8_t *key, const uint8_t *nonce,
                                                    NULL, 0, nonce, key) == 0;
 }
 
-bool diffie_hellman(uint8_t *shared_secret, const uint8_t *our_private_key,
+bool diffie_hellman(uint8_t *shared_secret, const uint8_t *our_key_pair,
                     const uint8_t *their_public_key) {
-  return crypto_scalarmult(shared_secret, our_private_key, their_public_key) ==
-         0;
+  return crypto_scalarmult(shared_secret, our_key_pair, their_public_key) == 0;
 }
 
 bool key_pair_identity(uint8_t *key_pair) {
@@ -66,15 +65,15 @@ void zeroize(uint8_t *data, const size_t data_size) {
   sodium_memzero(data, data_size);
 }
 
+bool is_zero(const uint8_t *data, const size_t data_size) {
+  return sodium_is_zero(data, data_size) == 1;
+}
+
 uint32_t get_uint32(const uint8_t *bytes, const size_t offset) {
   uint32_t number = ((uint32_t)bytes[offset] << 24) |
                     ((uint32_t)bytes[offset + 1] << 16) |
                     ((uint32_t)bytes[offset + 2] << 8) | bytes[offset + 3];
   return number;
-}
-
-bool is_zero(const uint8_t *data, const size_t data_size) {
-  return sodium_is_zero(data, data_size) == 1;
 }
 
 void set_uint32(uint8_t *bytes, const size_t offset, const uint32_t number) {

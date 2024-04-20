@@ -15,7 +15,7 @@ tuple<bool, Signature> certify(const KeyPair &ourIdentityKeyPair,
     success = autograph_certify(signature.data(), ourIdentityKeyPair.data(),
                                 theirIdentityKey.data(), nullptr, 0);
   }
-  return make_tuple(success, signature);
+  return {success, signature};
 }
 
 bool verify(const PublicKey &ownerIdentityKey,

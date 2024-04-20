@@ -47,7 +47,7 @@ bool autograph_encrypt(uint32_t *index, uint8_t *ciphertext, uint8_t *key,
 
 bool autograph_decrypt(uint32_t *index, uint8_t *plaintext,
                        size_t *plaintext_size, uint8_t *key, uint8_t *nonce,
-                       uint8_t *skipped_indexes,
+                       uint32_t *skipped_indexes,
                        const size_t skipped_indexes_size,
                        const uint8_t *ciphertext, const size_t ciphertext_size);
 
@@ -80,6 +80,10 @@ bool autograph_use_key_pairs(uint8_t *identity_public_key,
                              const uint8_t *our_identity_key_pair,
                              uint8_t *our_session_key_pair);
 
+void autograph_use_public_keys(uint8_t *identity_key, uint8_t *session_key,
+                               const uint8_t *their_identity_key,
+                               const uint8_t *their_session_key);
+
 #ifdef __cplusplus
 }  // extern "C"
 
@@ -104,6 +108,7 @@ using PublicKey = std::array<uint8_t, PUBLIC_KEY_SIZE>;
 using SafetyNumber = std::array<uint8_t, SAFETY_NUMBER_SIZE>;
 using SecretKey = std::array<uint8_t, SECRET_KEY_SIZE>;
 using Signature = std::array<uint8_t, SIGNATURE_SIZE>;
+using SkippedIndexes = std::vector<uint32_t>;
 using Transcript = std::array<uint8_t, TRANSCRIPT_SIZE>;
 
 using std::optional;
@@ -140,7 +145,7 @@ tuple<bool, uint32_t, Bytes> encrypt(SecretKey &key, Nonce &nonce,
                                      const Bytes &plaintext);
 
 tuple<bool, uint32_t, Bytes> decrypt(SecretKey &key, Nonce &nonce,
-                                     Bytes &skippedIndexes,
+                                     SkippedIndexes &skippedIndexes,
                                      const Bytes &ciphertext);
 
 class Channel {
@@ -182,7 +187,7 @@ class Channel {
   SecretKey receivingKey;
   Nonce sendingNonce;
   Nonce receivingNonce;
-  Bytes skippedIndexes;
+  SkippedIndexes skippedIndexes;
   bool established;
 };
 

@@ -27,9 +27,17 @@ bool calculate_fingerprint(uint8_t *fingerprint, const uint8_t *public_key) {
   return true;
 }
 
-void set_safety_number(uint8_t *safety_number, uint8_t *a, uint8_t *b) {
-  memmove(safety_number, a, FINGERPRINT_SIZE);
-  memmove(safety_number + FINGERPRINT_SIZE, b, FINGERPRINT_SIZE);
+void calculate_safety_number(uint8_t *safety_number, uint8_t *our_fingerprint,
+                             uint8_t *their_fingerprint) {
+  if (memcmp(their_fingerprint, our_fingerprint, FINGERPRINT_SIZE) > 0) {
+    memmove(safety_number, their_fingerprint, FINGERPRINT_SIZE);
+    memmove(safety_number + FINGERPRINT_SIZE, our_fingerprint,
+            FINGERPRINT_SIZE);
+  } else {
+    memmove(safety_number, our_fingerprint, FINGERPRINT_SIZE);
+    memmove(safety_number + FINGERPRINT_SIZE, their_fingerprint,
+            FINGERPRINT_SIZE);
+  }
 }
 
 bool autograph_authenticate(uint8_t *safety_number,
@@ -45,10 +53,6 @@ bool autograph_authenticate(uint8_t *safety_number,
   if (!calculate_fingerprint(their_fingerprint, their_identity_key)) {
     return false;
   }
-  if (memcmp(their_fingerprint, our_fingerprint, FINGERPRINT_SIZE) > 0) {
-    set_safety_number(safety_number, their_fingerprint, our_fingerprint);
-  } else {
-    set_safety_number(safety_number, our_fingerprint, their_fingerprint);
-  }
+  calculate_safety_number(safety_number, our_fingerprint, their_fingerprint);
   return true;
 }

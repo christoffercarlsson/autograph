@@ -15,7 +15,7 @@ tuple<bool, uint32_t, Bytes> encrypt(SecretKey &key, Nonce &nonce,
   bool success =
       autograph_encrypt(&index, ciphertext.data(), key.data(), nonce.data(),
                         plaintext.data(), plaintext.size());
-  return make_tuple(success, index, ciphertext);
+  return {success, index, ciphertext};
 }
 
 Bytes createPlaintext(const Bytes ciphertext) {
@@ -25,7 +25,7 @@ Bytes createPlaintext(const Bytes ciphertext) {
 }
 
 tuple<bool, uint32_t, Bytes> decrypt(SecretKey &key, Nonce &nonce,
-                                     Bytes &skippedIndexes,
+                                     SkippedIndexes &skippedIndexes,
                                      const Bytes &ciphertext) {
   uint32_t index;
   Bytes plaintext = createPlaintext(ciphertext);
@@ -37,7 +37,7 @@ tuple<bool, uint32_t, Bytes> decrypt(SecretKey &key, Nonce &nonce,
   if (success) {
     plaintext.resize(plaintextSize);
   }
-  return make_tuple(success, index, plaintext);
+  return {success, index, plaintext};
 }
 
 }  // namespace Autograph

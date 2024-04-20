@@ -15,8 +15,7 @@ tuple<bool, Transcript, Signature, SecretKey, SecretKey> keyExchange(
       receivingKey.data(), isInitiator, ourIdentityKeyPair.data(),
       ourSessionKeyPair.data(), theirIdentityKey.data(),
       theirSessionKey.data());
-  return make_tuple(success, transcript, ourSignature, sendingKey,
-                    receivingKey);
+  return {success, transcript, ourSignature, sendingKey, receivingKey};
 }
 
 bool verifyKeyExchange(const Transcript &transcript,

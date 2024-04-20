@@ -3,18 +3,24 @@
 #include "external.h"
 
 extern "C" {
-bool autograph_use_key_pairs(uint8_t *identity_public_key,
-                             uint8_t *session_public_key,
+bool autograph_use_key_pairs(uint8_t *identity_key, uint8_t *session_key,
                              uint8_t *identity_key_pair,
                              uint8_t *session_key_pair,
                              const uint8_t *our_identity_key_pair,
                              uint8_t *our_session_key_pair) {
-  autograph_get_public_key(identity_public_key, our_identity_key_pair);
-  autograph_get_public_key(session_public_key, our_session_key_pair);
+  autograph_get_public_key(identity_key, our_identity_key_pair);
+  autograph_get_public_key(session_key, our_session_key_pair);
   memmove(identity_key_pair, our_identity_key_pair, KEY_PAIR_SIZE);
   memmove(session_key_pair, our_session_key_pair, KEY_PAIR_SIZE);
-  zeroize(our_session_key_pair, PRIVATE_KEY_SIZE);
+  zeroize(our_session_key_pair, KEY_PAIR_SIZE);
   return ready();
+}
+
+void autograph_use_public_keys(uint8_t *identity_key, uint8_t *session_key,
+                               const uint8_t *their_identity_key,
+                               const uint8_t *their_session_key) {
+  memmove(identity_key, their_identity_key, PUBLIC_KEY_SIZE);
+  memmove(session_key, their_session_key, PUBLIC_KEY_SIZE);
 }
 }
 
@@ -22,9 +28,8 @@ namespace Autograph {
 
 size_t calculateSkippedIndexesSize(
     const optional<uint16_t> skippedIndexesCount) {
-  uint16_t count = skippedIndexesCount ? *skippedIndexesCount
-                                       : DEFAULT_SKIPPED_INDEXES_COUNT;
-  return count * 4;
+  return skippedIndexesCount ? *skippedIndexesCount
+                             : DEFAULT_SKIPPED_INDEXES_COUNT;
 }
 
 Channel::Channel(const optional<uint16_t> skippedIndexesCount)
@@ -49,8 +54,9 @@ tuple<bool, PublicKey, PublicKey> Channel::useKeyPairs(
 void Channel::usePublicKeys(const PublicKey &theirIdentityKey,
                             const PublicKey &theirSessionKey) {
   established = false;
-  this->theirIdentityKey = theirIdentityKey;
-  this->theirSessionKey = theirSessionKey;
+  autograph_use_public_keys(this->theirIdentityKey.data(),
+                            this->theirSessionKey.data(),
+                            theirIdentityKey.data(), theirSessionKey.data());
 }
 
 tuple<bool, SafetyNumber> Channel::authenticate() const {
@@ -84,7 +90,7 @@ bool Channel::verifyKeyExchange(const Signature &theirSignature) {
                                              theirIdentityKey, theirSignature);
   Autograph::zeroize(sendingNonce);
   Autograph::zeroize(receivingNonce);
-  Autograph::zeroize(skippedIndexes);
+  skippedIndexes = {0};
   return established;
 }
 
@@ -102,13 +108,13 @@ tuple<bool, uint32_t, Bytes> Channel::decrypt(const Bytes &ciphertext) {
 
 void Channel::close() {
   established = false;
+  skippedIndexes = {0};
   Autograph::zeroize(ourIdentityKeyPair);
   Autograph::zeroize(ourSessionKeyPair);
   Autograph::zeroize(sendingKey);
   Autograph::zeroize(receivingKey);
   Autograph::zeroize(sendingNonce);
   Autograph::zeroize(receivingNonce);
-  Autograph::zeroize(skippedIndexes);
 }
 
 }  // namespace Autograph

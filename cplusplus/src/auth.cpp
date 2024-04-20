@@ -7,7 +7,7 @@ tuple<bool, SafetyNumber> authenticate(const KeyPair &ourIdentityKeyPair,
   SafetyNumber safetyNumber;
   bool success = autograph_authenticate(
       safetyNumber.data(), ourIdentityKeyPair.data(), theirIdentityKey.data());
-  return make_tuple(success, safetyNumber);
+  return {success, safetyNumber};
 }
 
 }  // namespace Autograph

@@ -5,13 +5,13 @@ namespace Autograph {
 tuple<bool, KeyPair> generateIdentityKeyPair() {
   KeyPair keyPair;
   bool success = autograph_identity_key_pair(keyPair.data());
-  return make_tuple(success, keyPair);
+  return {success, keyPair};
 }
 
 tuple<bool, KeyPair> generateSessionKeyPair() {
   KeyPair keyPair;
   bool success = autograph_session_key_pair(keyPair.data());
-  return make_tuple(success, keyPair);
+  return {success, keyPair};
 }
 
 PublicKey getPublicKey(const KeyPair &keyPair) {

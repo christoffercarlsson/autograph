@@ -17,7 +17,7 @@ bool encrypt(uint8_t *ciphertext, const uint8_t *key, const uint8_t *nonce,
 bool decrypt(uint8_t *plaintext, const uint8_t *key, const uint8_t *nonce,
              const uint8_t *ciphertext, const size_t ciphertext_size);
 
-bool diffie_hellman(uint8_t *shared_secret, const uint8_t *our_private_key,
+bool diffie_hellman(uint8_t *shared_secret, const uint8_t *our_key_pair,
                     const uint8_t *their_public_key);
 
 bool key_pair_identity(uint8_t *key_pair);

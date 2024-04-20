@@ -4,6 +4,17 @@
 #include "constants.h"
 #include "external.h"
 
+void calculate_secret_keys(uint8_t *sending_key, uint8_t *receiving_key,
+                           const bool is_initiator, const uint8_t *okm) {
+  if (is_initiator) {
+    memmove(sending_key, okm, SECRET_KEY_SIZE);
+    memmove(receiving_key, okm + SECRET_KEY_SIZE, SECRET_KEY_SIZE);
+  } else {
+    memmove(receiving_key, okm, SECRET_KEY_SIZE);
+    memmove(sending_key, okm + SECRET_KEY_SIZE, SECRET_KEY_SIZE);
+  }
+}
+
 bool derive_secret_keys(uint8_t *sending_key, uint8_t *receiving_key,
                         const bool is_initiator, uint8_t *our_session_key_pair,
                         const uint8_t *their_session_key) {
@@ -16,21 +27,15 @@ bool derive_secret_keys(uint8_t *sending_key, uint8_t *receiving_key,
       diffie_hellman(shared_secret, our_session_key_pair, their_session_key);
   bool kdf_success = hkdf(okm, OKM_SIZE, shared_secret, SHARED_SECRET_SIZE,
                           salt, SALT_SIZE, info, INFO_SIZE);
-  if (is_initiator) {
-    memmove(sending_key, okm, SECRET_KEY_SIZE);
-    memmove(receiving_key, okm + SECRET_KEY_SIZE, SECRET_KEY_SIZE);
-  } else {
-    memmove(receiving_key, okm, SECRET_KEY_SIZE);
-    memmove(sending_key, okm + SECRET_KEY_SIZE, SECRET_KEY_SIZE);
-  }
+  calculate_secret_keys(sending_key, receiving_key, is_initiator, okm);
   zeroize(shared_secret, SHARED_SECRET_SIZE);
   zeroize(okm, OKM_SIZE);
   return dh_success && kdf_success;
 }
 
-void set_transcript(uint8_t *transcript, const bool is_initiator,
-                    const uint8_t *our_session_key_pair,
-                    const uint8_t *their_session_key) {
+void calculate_transcript(uint8_t *transcript, const bool is_initiator,
+                          const uint8_t *our_session_key_pair,
+                          const uint8_t *their_session_key) {
   uint8_t our_session_key[PUBLIC_KEY_SIZE];
   autograph_get_public_key(our_session_key, our_session_key_pair);
   if (is_initiator) {
@@ -49,8 +54,8 @@ bool autograph_key_exchange(uint8_t *transcript, uint8_t *our_signature,
                             uint8_t *our_session_key_pair,
                             const uint8_t *their_identity_key,
                             const uint8_t *their_session_key) {
-  set_transcript(transcript, is_initiator, our_session_key_pair,
-                 their_session_key);
+  calculate_transcript(transcript, is_initiator, our_session_key_pair,
+                       their_session_key);
   bool key_success =
       derive_secret_keys(sending_key, receiving_key, is_initiator,
                          our_session_key_pair, their_session_key);
