@@ -29,12 +29,17 @@ name = "autograph_protocol"
 path = "rust/src/lib.rs"
 
 [[test]]
-name = "channel_test"
+name = "channel"
 path = "rust/tests/channel.rs"
 
 [[test]]
-name = "key_pair_test"
+name = "key_pair"
 path = "rust/tests/key_pair.rs"
+
+[[bench]]
+name = "main"
+path = "rust/benchmarks/main.rs"
+harness = false
 
 [dependencies]
 chacha20poly1305 = { version = "0.10.1", default-features = false, features = ["rand_core", "alloc"] }
@@ -46,4 +51,5 @@ x25519-dalek = { version = "2.0.0", default-features = false, features = ["stati
 zeroize = "1.7.0"
 
 [dev-dependencies]
+criterion = "0.5.1"
 rand = "0.8.5"
