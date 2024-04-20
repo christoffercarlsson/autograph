@@ -4,7 +4,7 @@ use alloc::vec::Vec;
 use crate::{
     constants::{NONCE_SIZE, PADDING_BLOCK_SIZE, PADDING_BYTE, TAG_SIZE},
     error::Error,
-    external::{decrypt as decrypt_external, encrypt as encrypt_external, get_uint32, set_uint32},
+    external::{decrypt as external_decrypt, encrypt as external_encrypt, get_uint32, set_uint32},
     types::{Nonce, SecretKey},
 };
 
@@ -40,7 +40,7 @@ fn calculate_unpadded_size(padded: &[u8]) -> usize {
 fn unpad(plaintext: &mut Vec<u8>) -> Result<(), Error> {
     let size = calculate_unpadded_size(plaintext);
     if size == 0 {
-        return Err(Error::Padding);
+        return Err(Error::Decryption);
     }
     plaintext.resize(size, 0);
     Ok(())
@@ -67,6 +67,10 @@ fn create_ciphertext(plaintext: &[u8]) -> Vec<u8> {
     vec![0; calculate_padded_size(plaintext) + TAG_SIZE]
 }
 
+fn create_plaintext(ciphertext: &[u8]) -> Vec<u8> {
+    vec![0; ciphertext.len() - TAG_SIZE]
+}
+
 pub fn encrypt(
     key: &SecretKey,
     nonce: &mut Nonce,
@@ -75,15 +79,11 @@ pub fn encrypt(
     increment_nonce(nonce, Error::Encryption)?;
     let mut ciphertext = create_ciphertext(plaintext);
     let padded = pad(plaintext);
-    if encrypt_external(&mut ciphertext, key, nonce, &padded) {
+    if external_encrypt(&mut ciphertext, key, nonce, &padded) {
         Ok((get_index(nonce), ciphertext))
     } else {
         Err(Error::Encryption)
     }
-}
-
-fn create_plaintext(ciphertext: &[u8]) -> Vec<u8> {
-    vec![0; ciphertext.len() - TAG_SIZE]
 }
 
 fn decrypt_ciphertext(
@@ -92,7 +92,7 @@ fn decrypt_ciphertext(
     ciphertext: &[u8],
 ) -> Result<(u32, Vec<u8>), Error> {
     let mut plaintext = create_plaintext(ciphertext);
-    if decrypt_external(&mut plaintext, key, nonce, ciphertext) {
+    if external_decrypt(&mut plaintext, key, nonce, ciphertext) {
         unpad(&mut plaintext)?;
         Ok((get_index(nonce), plaintext))
     } else {

@@ -24,11 +24,12 @@ pub use auth::authenticate;
 pub use cert::{certify, verify};
 pub use channel::Channel;
 pub use constants::{
-    KEY_PAIR_SIZE, PUBLIC_KEY_SIZE, SAFETY_NUMBER_SIZE, SECRET_KEY_SIZE, SIGNATURE_SIZE,
+    KEY_PAIR_SIZE, NONCE_SIZE, PUBLIC_KEY_SIZE, SAFETY_NUMBER_SIZE, SECRET_KEY_SIZE,
+    SIGNATURE_SIZE, TRANSCRIPT_SIZE,
 };
 pub use error::Error;
 pub use external::{is_zero, zeroize};
 pub use key_exchange::{key_exchange, verify_key_exchange};
 pub use key_pair::{generate_identity_key_pair, generate_session_key_pair, get_public_key};
 pub use message::{decrypt, encrypt};
-pub use types::{KeyPair, PublicKey, SafetyNumber, SecretKey, Signature};
+pub use types::{KeyPair, Nonce, PublicKey, SafetyNumber, SecretKey, Signature, Transcript};

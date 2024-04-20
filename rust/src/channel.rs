@@ -58,7 +58,7 @@ impl Channel {
         &mut self,
         our_identity_key_pair: &KeyPair,
         our_session_key_pair: &mut KeyPair,
-    ) -> Result<(PublicKey, PublicKey), Error> {
+    ) -> (PublicKey, PublicKey) {
         self.established = false;
         let identity_key = get_public_key(our_identity_key_pair);
         let session_key = get_public_key(our_session_key_pair);
@@ -67,7 +67,7 @@ impl Channel {
         self.our_session_key_pair
             .copy_from_slice(our_session_key_pair);
         zeroize(our_session_key_pair);
-        Ok((identity_key, session_key))
+        (identity_key, session_key)
     }
 
     pub fn use_public_keys(

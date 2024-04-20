@@ -44,7 +44,7 @@ fn derive_secret_keys(
     }
 }
 
-fn set_transcript(
+fn calculate_transcript(
     is_initiator: bool,
     our_session_key_pair: &KeyPair,
     their_session_key: &PublicKey,
@@ -68,7 +68,7 @@ pub fn key_exchange(
     their_identity_key: &PublicKey,
     their_session_key: &PublicKey,
 ) -> Result<(Transcript, Signature, SecretKey, SecretKey), Error> {
-    let transcript = set_transcript(is_initiator, our_session_key_pair, their_session_key);
+    let transcript = calculate_transcript(is_initiator, our_session_key_pair, their_session_key);
     let signature = certify(our_identity_key_pair, their_identity_key, Some(&transcript))?;
     let (sending_key, receiving_key) =
         derive_secret_keys(is_initiator, our_session_key_pair, their_session_key)?;
