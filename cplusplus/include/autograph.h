@@ -88,6 +88,7 @@ void autograph_use_public_keys(uint8_t *identity_key, uint8_t *session_key,
 }  // extern "C"
 
 #include <array>
+#include <optional>
 #include <tuple>
 #include <vector>
 

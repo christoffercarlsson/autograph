@@ -4,33 +4,27 @@ target_compile_options(${AUTOGRAPH_TARGET} PRIVATE -Os)
 
 set(AUTOGRAPH_EXPORTED_FUNCTIONS
     autograph_identity_key_pair
-    autograph_ephemeral_key_pair
-    autograph_use_key_pairs
-    autograph_use_public_keys
+    autograph_session_key_pair
     autograph_authenticate
+    autograph_certify
+    autograph_verify
     autograph_key_exchange
     autograph_verify_key_exchange
-    autograph_encrypt_message
-    autograph_decrypt_message
-    autograph_certify_data
-    autograph_certify_identity
-    autograph_verify_data
-    autograph_verify_identity
-    autograph_close_session
-    autograph_open_session
-    autograph_hello_size
+    autograph_encrypt
+    autograph_decrypt
+    autograph_zeroize
+    autograph_is_zero
     autograph_key_pair_size
+    autograph_nonce_size
+    autograph_public_key_size
     autograph_safety_number_size
     autograph_secret_key_size
     autograph_signature_size
-    autograph_state_size
-    autograph_index_size
-    autograph_size_size
-    autograph_session_size
+    autograph_transcript_size
     autograph_ciphertext_size
     autograph_plaintext_size
-    autograph_read_index
-    autograph_read_size
+    autograph_use_key_pairs
+    autograph_use_public_keys
     calloc
     free)
 

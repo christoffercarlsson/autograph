@@ -12,9 +12,9 @@ type EmscriptenModule = {
   HEAPU8: Uint8Array
 }
 
-type EmscriptenValue = number | boolean | Uint8Array
+type EmscriptenValue = number | boolean | Uint8Array | Uint32Array
 
-type EmscriptenAddressPool = Map<number, Uint8Array>
+type EmscriptenAddressPool = Map<number, Uint8Array | Uint32Array>
 
 let Module: EmscriptenModule = null
 
@@ -24,11 +24,14 @@ const allocate = (
 ) => {
   const types: string[] = []
   const values = args.map((value) => {
-    if (value instanceof Uint8Array) {
+    if (ArrayBuffer.isView(value)) {
       types.push('number')
-      const address = Module._calloc(value.byteLength, 1)
+      const address = Module._calloc(value.length, value.BYTES_PER_ELEMENT)
       addresses.set(address, value)
-      Module.HEAPU8.set(value, address)
+      Module.HEAPU8.set(
+        new Uint8Array(value.buffer, value.byteOffset, value.byteLength),
+        address
+      )
       return address
     }
     types.push(typeof value)
@@ -39,7 +42,11 @@ const allocate = (
 
 const deallocate = (addresses: EmscriptenAddressPool) => {
   addresses.forEach((value, address) => {
-    value.set(Module.HEAPU8.subarray(address, address + value.byteLength))
+    if (value instanceof Uint32Array) {
+      value.set(new Uint32Array(Module.HEAPU8.buffer, address, value.length))
+    } else {
+      value.set(new Uint8Array(Module.HEAPU8.buffer, address, value.length))
+    }
     Module._free(address)
   })
 }
@@ -65,171 +72,159 @@ export const ready = async () => {
 export const autograph_identity_key_pair = (key_pair: Uint8Array) =>
   call('autograph_identity_key_pair', 'boolean', key_pair) as boolean
 
-export const autograph_ephemeral_key_pair = (key_pair: Uint8Array) =>
-  call('autograph_ephemeral_key_pair', 'boolean', key_pair) as boolean
+export const autograph_session_key_pair = (key_pair: Uint8Array) =>
+  call('autograph_session_key_pair', 'boolean', key_pair) as boolean
 
-export const autograph_use_key_pairs = (
-  public_keys: Uint8Array,
-  state: Uint8Array,
-  identity_key_pair: Uint8Array,
-  ephemeral_key_pair: Uint8Array
-) =>
-  call(
-    'autograph_use_key_pairs',
-    'boolean',
-    public_keys,
-    state,
-    identity_key_pair,
-    ephemeral_key_pair
-  ) as boolean
-
-export const autograph_use_public_keys = (
-  state: Uint8Array,
-  public_keys: Uint8Array
-) => call('autograph_use_public_keys', null, state, public_keys)
+export const autograph_get_public_key = (
+  public_key: Uint8Array,
+  key_pair: Uint8Array
+) => call('autograph_get_public_key', null, public_key, key_pair)
 
 export const autograph_authenticate = (
   safety_number: Uint8Array,
-  state: Uint8Array
-) => call('autograph_authenticate', 'boolean', safety_number, state) as boolean
+  our_identity_key_pair: Uint8Array,
+  their_identity_key: Uint8Array
+) =>
+  call(
+    'autograph_authenticate',
+    'boolean',
+    safety_number,
+    our_identity_key_pair,
+    their_identity_key
+  ) as boolean
+
+export const autograph_certify = (
+  signature: Uint8Array,
+  our_identity_key_pair: Uint8Array,
+  their_identity_key: Uint8Array,
+  data: Uint8Array,
+  data_size: number
+) =>
+  call(
+    'autograph_certify',
+    'boolean',
+    signature,
+    our_identity_key_pair,
+    their_identity_key,
+    data,
+    data_size
+  ) as boolean
+
+export const autograph_verify = (
+  owner_identity_key: Uint8Array,
+  certifier_identity_key: Uint8Array,
+  signature: Uint8Array,
+  data: Uint8Array,
+  data_size: number
+) =>
+  call(
+    'autograph_verify',
+    'boolean',
+    owner_identity_key,
+    certifier_identity_key,
+    signature,
+    data,
+    data_size
+  ) as boolean
 
 export const autograph_key_exchange = (
+  transcript: Uint8Array,
   our_signature: Uint8Array,
-  state: Uint8Array,
-  is_initiator: boolean
+  sending_key: Uint8Array,
+  receiving_key: Uint8Array,
+  is_initiator: boolean,
+  our_identity_key_pair: Uint8Array,
+  our_session_key_pair: Uint8Array,
+  their_identity_key: Uint8Array,
+  their_session_key: Uint8Array
 ) =>
   call(
     'autograph_key_exchange',
     'boolean',
+    transcript,
     our_signature,
-    state,
-    is_initiator
+    sending_key,
+    receiving_key,
+    is_initiator,
+    our_identity_key_pair,
+    our_session_key_pair,
+    their_identity_key,
+    their_session_key
   ) as boolean
 
 export const autograph_verify_key_exchange = (
-  state: Uint8Array,
+  transcript: Uint8Array,
+  our_identity_key_pair: Uint8Array,
+  their_identity_key: Uint8Array,
   their_signature: Uint8Array
 ) =>
   call(
     'autograph_verify_key_exchange',
     'boolean',
-    state,
+    transcript,
+    our_identity_key_pair,
+    their_identity_key,
     their_signature
   ) as boolean
 
-export const autograph_encrypt_message = (
+export const autograph_encrypt = (
+  index: Uint32Array,
   ciphertext: Uint8Array,
-  index: Uint8Array,
-  state: Uint8Array,
+  key: Uint8Array,
+  nonce: Uint8Array,
   plaintext: Uint8Array,
   plaintext_size: number
 ) =>
   call(
-    'autograph_encrypt_message',
+    'autograph_encrypt',
     'boolean',
-    ciphertext,
     index,
-    state,
+    ciphertext,
+    key,
+    nonce,
     plaintext,
     plaintext_size
   ) as boolean
 
-export const autograph_decrypt_message = (
+export const autograph_decrypt = (
+  index: Uint32Array,
   plaintext: Uint8Array,
-  plaintext_size: Uint8Array,
-  index: Uint8Array,
-  state: Uint8Array,
+  plaintext_size: Uint32Array,
+  key: Uint8Array,
+  nonce: Uint8Array,
+  skipped_indexes: Uint32Array,
+  skipped_indexes_size: number,
   ciphertext: Uint8Array,
   ciphertext_size: number
 ) =>
   call(
-    'autograph_decrypt_message',
+    'autograph_decrypt',
     'boolean',
+    index,
     plaintext,
     plaintext_size,
-    index,
-    state,
-    ciphertext,
-    ciphertext_size
-  ) as boolean
-
-export const autograph_certify_data = (
-  signature: Uint8Array,
-  state: Uint8Array,
-  data: Uint8Array,
-  data_size: number
-) =>
-  call(
-    'autograph_certify_data',
-    'boolean',
-    signature,
-    state,
-    data,
-    data_size
-  ) as boolean
-
-export const autograph_certify_identity = (
-  signature: Uint8Array,
-  state: Uint8Array
-) => call('autograph_certify_identity', 'boolean', signature, state) as boolean
-
-export const autograph_verify_data = (
-  state: Uint8Array,
-  data: Uint8Array,
-  data_size: number,
-  public_key: Uint8Array,
-  signature: Uint8Array
-) =>
-  call(
-    'autograph_verify_data',
-    'boolean',
-    state,
-    data,
-    data_size,
-    public_key,
-    signature
-  ) as boolean
-
-export const autograph_verify_identity = (
-  state: Uint8Array,
-  public_key: Uint8Array,
-  signature: Uint8Array
-) =>
-  call(
-    'autograph_verify_identity',
-    'boolean',
-    state,
-    public_key,
-    signature
-  ) as boolean
-
-export const autograph_close_session = (
-  key: Uint8Array,
-  ciphertext: Uint8Array,
-  state: Uint8Array
-) =>
-  call('autograph_close_session', 'boolean', key, ciphertext, state) as boolean
-
-export const autograph_open_session = (
-  state: Uint8Array,
-  key: Uint8Array,
-  ciphertext: Uint8Array,
-  ciphertext_size: number
-) =>
-  call(
-    'autograph_open_session',
-    'boolean',
-    state,
     key,
+    nonce,
+    skipped_indexes,
+    skipped_indexes_size,
     ciphertext,
     ciphertext_size
   ) as boolean
 
-export const autograph_hello_size = () =>
-  call('autograph_hello_size', 'number') as number
+export const autograph_zeroize = (data: Uint8Array, data_size: number) =>
+  call('autograph_zeroize', null, data, data_size) as number
+
+export const autograph_is_zero = (data: Uint8Array, data_size: number) =>
+  call('autograph_is_zero', 'boolean', data, data_size) as boolean
 
 export const autograph_key_pair_size = () =>
   call('autograph_key_pair_size', 'number') as number
+
+export const autograph_nonce_size = () =>
+  call('autograph_nonce_size', 'number') as number
+
+export const autograph_public_key_size = () =>
+  call('autograph_public_key_size', 'number') as number
 
 export const autograph_safety_number_size = () =>
   call('autograph_safety_number_size', 'number') as number
@@ -240,17 +235,8 @@ export const autograph_secret_key_size = () =>
 export const autograph_signature_size = () =>
   call('autograph_signature_size', 'number') as number
 
-export const autograph_state_size = () =>
-  call('autograph_state_size', 'number') as number
-
-export const autograph_index_size = () =>
-  call('autograph_index_size', 'number') as number
-
-export const autograph_size_size = () =>
-  call('autograph_size_size', 'number') as number
-
-export const autograph_session_size = (state: Uint8Array) =>
-  call('autograph_session_size', 'number', state) as number
+export const autograph_transcript_size = () =>
+  call('autograph_transcript_size', 'number') as number
 
 export const autograph_ciphertext_size = (plaintext_size: number) =>
   call('autograph_ciphertext_size', 'number', plaintext_size) as number
@@ -258,8 +244,36 @@ export const autograph_ciphertext_size = (plaintext_size: number) =>
 export const autograph_plaintext_size = (ciphertext_size: number) =>
   call('autograph_plaintext_size', 'number', ciphertext_size) as number
 
-export const autograph_read_index = (bytes: Uint8Array) =>
-  call('autograph_read_index', 'number', bytes) as number
+export const autograph_use_key_pairs = (
+  identity_public_key: Uint8Array,
+  session_public_key: Uint8Array,
+  identity_key_pair: Uint8Array,
+  session_key_pair: Uint8Array,
+  our_identity_key_pair: Uint8Array,
+  our_session_key_pair: Uint8Array
+) =>
+  call(
+    'autograph_use_key_pairs',
+    'boolean',
+    identity_public_key,
+    session_public_key,
+    identity_key_pair,
+    session_key_pair,
+    our_identity_key_pair,
+    our_session_key_pair
+  ) as boolean
 
-export const autograph_read_size = (bytes: Uint8Array) =>
-  call('autograph_read_size', 'number', bytes) as number
+export const autograph_use_public_keys = (
+  identity_key: Uint8Array,
+  session_key: Uint8Array,
+  their_identity_key: Uint8Array,
+  their_session_key: Uint8Array
+) =>
+  call(
+    'autograph_use_public_keys',
+    null,
+    identity_key,
+    session_key,
+    their_identity_key,
+    their_session_key
+  )

@@ -123,8 +123,8 @@ fn test_channel() {
         232, 80, 6, 232, 93,
     ];
 
-    let mut a = Channel::new(Some(4));
-    let mut b = Channel::new(Some(4));
+    let mut a = Channel::new(Some(3));
+    let mut b = Channel::new(Some(3));
     test_key_exchange(
         &mut a,
         &mut b,

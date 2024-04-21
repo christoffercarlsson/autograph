@@ -1,4 +1,4 @@
-import { Channel, createState, ready } from '../src/autograph'
+import { Channel, ready } from '../src/autograph'
 
 describe('Channel', () => {
   const aliceHandshake = Uint8Array.from([
@@ -113,8 +113,6 @@ describe('Channel', () => {
     103
   ])
 
-  let aliceState: Uint8Array
-  let bobState: Uint8Array
   let a: Channel
   let b: Channel
   let handshakeAlice: Uint8Array
@@ -140,21 +138,21 @@ describe('Channel', () => {
       93
     ])
 
-    aliceState = createState()
-    bobState = createState()
+    a = new Channel(3)
+    b = new Channel(3)
 
-    a = new Channel(aliceState)
-    b = new Channel(bobState)
-
-    const aliceHello = a.useKeyPairs(
+    const [aliceIdentityKey, aliceSessionKey] = a.useKeyPairs(
       aliceIdentityKeyPair,
       aliceEphemeralKeyPair
     )
 
-    const bobHello = b.useKeyPairs(bobIdentityKeyPair, bobEphemeralKeyPair)
+    const [bobIdentityKey, bobSessionKey] = b.useKeyPairs(
+      bobIdentityKeyPair,
+      bobEphemeralKeyPair
+    )
 
-    a.usePublicKeys(bobHello)
-    b.usePublicKeys(aliceHello)
+    a.usePublicKeys(bobIdentityKey, bobSessionKey)
+    b.usePublicKeys(aliceIdentityKey, aliceSessionKey)
 
     handshakeAlice = a.keyExchange(true)
     handshakeBob = b.keyExchange(false)
@@ -192,47 +190,45 @@ describe('Channel', () => {
   })
 
   it("should allow Bob to certify Alice's ownership of her identity key and data", () => {
-    const signature = b.certifyData(data)
+    const signature = b.certify(data)
     expect(signature).toEqual(bobSignatureAliceData)
   })
 
   it("should allow Alice to certify Bob's ownership of his identity key and data", () => {
-    const signature = a.certifyData(data)
+    const signature = a.certify(data)
     expect(signature).toEqual(aliceSignatureBobData)
   })
 
   it("should allow Bob to certify Alice's ownership of her identity key", () => {
-    const signature = b.certifyIdentity()
+    const signature = b.certify()
     expect(signature).toEqual(bobSignatureAliceIdentity)
   })
 
   it("should allow Alice to certify Bob's ownership of his identity key", () => {
-    const signature = a.certifyIdentity()
+    const signature = a.certify()
     expect(signature).toEqual(aliceSignatureBobIdentity)
   })
 
   it("should allow Bob to verify Alice's ownership of her identity key and data based on Charlie's public key and signature", () => {
-    expect(
-      b.verifyData(data, charlieIdentityKey, charlieSignatureAliceData)
-    ).toBe(true)
+    expect(b.verify(charlieIdentityKey, charlieSignatureAliceData, data)).toBe(
+      true
+    )
   })
 
   it("should allow Alice to verify Bob's ownership of his identity key and data based on Charlie's public key and signature", () => {
-    expect(
-      a.verifyData(data, charlieIdentityKey, charlieSignatureBobData)
-    ).toBe(true)
+    expect(a.verify(charlieIdentityKey, charlieSignatureBobData, data)).toBe(
+      true
+    )
   })
 
   it("should allow Bob to verify Alice's ownership of her identity key based on Charlie's public key and signature", () => {
-    expect(
-      b.verifyIdentity(charlieIdentityKey, charlieSignatureAliceIdentity)
-    ).toBe(true)
+    expect(b.verify(charlieIdentityKey, charlieSignatureAliceIdentity)).toBe(
+      true
+    )
   })
 
   it("should allow Alice to verify Bob's ownership of his identity key based on Charlie's public key and signature", () => {
-    expect(
-      a.verifyIdentity(charlieIdentityKey, charlieSignatureBobIdentity)
-    ).toBe(true)
+    expect(a.verify(charlieIdentityKey, charlieSignatureBobIdentity)).toBe(true)
   })
 
   it('should handle out of order messages correctly', () => {
@@ -256,12 +252,5 @@ describe('Channel', () => {
     expect(plaintext2).toEqual(data2)
     expect(plaintext3).toEqual(data3)
     expect(plaintext4).toEqual(data4)
-  })
-
-  it('should handle sessions correctly', () => {
-    const [key, ciphertext] = a.close()
-    b.open(key, ciphertext)
-    const signature = b.certifyIdentity()
-    expect(signature).toEqual(aliceSignatureBobIdentity)
   })
 })

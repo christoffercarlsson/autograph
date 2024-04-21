@@ -1,5 +1,5 @@
 import {
-  generateKeyPair,
+  generateSessionKeyPair,
   generateIdentityKeyPair,
   ready
 } from '../src/autograph'
@@ -18,7 +18,7 @@ describe('Key pair', () => {
   })
 
   it('should generate ephemeral key pairs', () => {
-    const keyPair = generateKeyPair()
+    const keyPair = generateSessionKeyPair()
     expect(keyPair.byteLength).toBe(64)
     expect(keyPair).not.toEqual(emptyKeyPair)
   })

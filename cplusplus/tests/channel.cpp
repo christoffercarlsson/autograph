@@ -126,8 +126,8 @@ TEST_CASE("Channel", "[channel]") {
       21,  10,  39,  204, 215, 158, 210, 177, 243, 28,  138, 52,  91,
       236, 55,  30,  117, 10,  125, 87,  232, 80,  6,   232, 93};
 
-  Autograph::Channel a(4);
-  Autograph::Channel b(4);
+  Autograph::Channel a(3);
+  Autograph::Channel b(3);
 
   auto [aliceInit, aliceIdentityKey, aliceSessionKey] =
       a.useKeyPairs(aliceIdentityKeyPair, aliceEphemeralKeyPair);
