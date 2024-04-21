@@ -70,7 +70,7 @@ size_t autograph_ciphertext_size(const size_t plaintext_size) {
   return calculate_padded_size(plaintext_size) + TAG_SIZE;
 }
 
-bool autograph_encrypt(uint32_t *index, uint8_t *ciphertext, uint8_t *key,
+bool autograph_encrypt(uint32_t *index, uint8_t *ciphertext, const uint8_t *key,
                        uint8_t *nonce, const uint8_t *plaintext,
                        const size_t plaintext_size) {
   if (!increment_nonce(nonce)) {
@@ -132,8 +132,8 @@ bool skip_index(uint32_t *skipped_indexes, const size_t skipped_indexes_size,
 }
 
 bool autograph_decrypt(uint32_t *index, uint8_t *plaintext,
-                       size_t *plaintext_size, uint8_t *key, uint8_t *nonce,
-                       uint32_t *skipped_indexes,
+                       size_t *plaintext_size, const uint8_t *key,
+                       uint8_t *nonce, uint32_t *skipped_indexes,
                        const size_t skipped_indexes_size,
                        const uint8_t *ciphertext,
                        const size_t ciphertext_size) {

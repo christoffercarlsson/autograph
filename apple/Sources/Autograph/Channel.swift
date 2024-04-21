@@ -1,222 +1,150 @@
 import Clibautograph
 import Foundation
 
-private func createHello() -> Bytes {
-    createBytes(autograph_hello_size())
-}
-
-private func createIndex() -> Bytes {
-    createBytes(autograph_index_size())
-}
-
-private func createSafetyNumber() -> Bytes {
-    createBytes(autograph_safety_number_size())
-}
-
-private func createSecretKey() -> Bytes {
-    createBytes(autograph_secret_key_size())
-}
-
-private func createSignature() -> Bytes {
-    createBytes(autograph_signature_size())
-}
-
-private func createSize() -> Bytes {
-    createBytes(autograph_size_size())
-}
-
-private func createStateBytes() -> Bytes {
-    createBytes(autograph_state_size())
-}
-
-private func createCiphertext(_ plaintext: Bytes) -> Bytes {
-    let size = autograph_ciphertext_size(plaintext.count)
-    return createBytes(size)
-}
-
-private func createPlaintext(_ ciphertext: Bytes) -> Bytes {
-    let size = autograph_plaintext_size(ciphertext.count)
-    return createBytes(size)
-}
-
-private func createSessionCiphertext(_ state: Bytes) -> Bytes {
-    let size = autograph_ciphertext_size(autograph_session_size(state))
-    return createBytes(size)
-}
-
-private func readIndex(_ bytes: Bytes) -> UInt32 {
-    autograph_read_index(bytes)
-}
-
-private func readSize(_ bytes: Bytes) -> Int {
-    Int(autograph_read_size(bytes))
-}
-
-private func resizePlaintext(_ plaintext: Bytes, _ size: Bytes) -> Bytes {
-    Array(plaintext[0 ..< readSize(size)])
+private func createSkippedIndexes(_ count: UInt16?) -> [UInt32] {
+    [UInt32](repeating: 0, count: Int(count ?? 100))
 }
 
 public class Channel {
-    var state: Bytes
+    var ourIdentityKeyPair: Bytes
+    var ourSessionKeyPair: Bytes
+    var theirIdentityKey: Bytes
+    var theirSessionKey: Bytes
+    var transcript: Bytes
+    var sendingKey: Bytes
+    var receivingKey: Bytes
+    var sendingNonce: Bytes
+    var receivingNonce: Bytes
+    var skippedIndexes: [UInt32]
+    var established: Bool
 
-    public init() {
-        state = createStateBytes()
+    public init(skippedIndexesCount: UInt16?) {
+        ourIdentityKeyPair = createKeyPair()
+        ourSessionKeyPair = createKeyPair()
+        theirIdentityKey = createPublicKey()
+        theirSessionKey = createPublicKey()
+        transcript = createTranscript()
+        sendingKey = createSecretKey()
+        receivingKey = createSecretKey()
+        sendingNonce = createNonce()
+        receivingNonce = createNonce()
+        skippedIndexes = createSkippedIndexes(skippedIndexesCount)
+        established = false
+    }
+
+    public func isEstablished() -> Bool {
+        established
     }
 
     public func useKeyPairs(
-        identityKeyPair: Bytes,
-        ephemeralKeyPair: Bytes
-    ) throws -> Bytes {
-        var publicKeys = createHello()
-        let success = autograph_use_key_pairs(
-            &publicKeys,
-            &state,
-            identityKeyPair,
-            ephemeralKeyPair
+        ourIdentityKeyPair: Bytes,
+        ourSessionKeyPair: inout Bytes
+    ) throws -> (Bytes, Bytes) {
+        established = false
+        var identityKey = createPublicKey()
+        var sessionKey = createPublicKey()
+        let ready = autograph_use_key_pairs(
+            &identityKey,
+            &sessionKey,
+            &self.ourIdentityKeyPair,
+            &self.ourSessionKeyPair,
+            ourIdentityKeyPair,
+            &ourSessionKeyPair
         )
-        if !success {
+        if !ready {
             throw AutographError.initialization
         }
-        return publicKeys
+        return (identityKey, sessionKey)
     }
 
-    public func usePublicKeys(publicKeys: Bytes) {
-        autograph_use_public_keys(&state, publicKeys)
+    public func usePublicKeys(theirIdentityKey: Bytes, theirSessionKey: Bytes) {
+        established = false
+        autograph_use_public_keys(
+            &self.theirIdentityKey,
+            &self.theirSessionKey,
+            theirIdentityKey,
+            theirSessionKey
+        )
     }
 
     public func authenticate() throws -> Bytes {
-        var safetyNumber = createSafetyNumber()
-        let success = autograph_authenticate(&safetyNumber, &state)
-        if !success {
-            throw AutographError.authentication
-        }
-        return safetyNumber
+        try Autograph.authenticate(ourIdentityKeyPair: ourIdentityKeyPair, theirIdentityKey: theirIdentityKey)
+    }
+
+    public func certify(data: Bytes?) throws -> Bytes {
+        try Autograph.certify(ourIdentityKeyPair: ourIdentityKeyPair, theirIdentityKey: theirIdentityKey, data: data)
+    }
+
+    public func verify(
+        certifierIdentityKey: Bytes,
+        signature: Bytes,
+        data: Bytes?
+    ) -> Bool {
+        Autograph.verify(ownerIdentityKey: theirIdentityKey, certifierIdentityKey: certifierIdentityKey, signature: signature, data: data)
     }
 
     public func keyExchange(isInitiator: Bool) throws -> Bytes {
-        var signature = createSignature()
-        let success = autograph_key_exchange(
-            &signature,
-            &state,
-            isInitiator
+        established = false
+        let (
+            transcript,
+            ourSignature,
+            sendingKey,
+            receivingKey
+        ) = try Autograph.keyExchange(
+            isInitiator: isInitiator,
+            ourIdentityKeyPair: ourIdentityKeyPair,
+            ourSessionKeyPair: &ourSessionKeyPair,
+            theirIdentityKey: theirIdentityKey,
+            theirSessionKey: theirSessionKey
         )
-        if !success {
-            throw AutographError.keyExchange
-        }
-        return signature
+        self.transcript = transcript
+        self.sendingKey = sendingKey
+        self.receivingKey = receivingKey
+        return ourSignature
     }
 
-    public func verifyKeyExchange(signature: Bytes) throws {
-        let success = autograph_verify_key_exchange(&state, signature)
-        if !success {
-            throw AutographError.keyExchange
-        }
+    public func verifyKeyExchange(theirSignature: Bytes) throws {
+        try Autograph.verifyKeyExchange(
+            transcript: transcript,
+            ourIdentityKeyPair: ourIdentityKeyPair,
+            theirIdentityKey: theirIdentityKey,
+            theirSignature: theirSignature
+        )
+        established = true
+        zeroize(data: &sendingNonce)
+        zeroize(data: &receivingNonce)
+        skippedIndexes = Array(repeating: 0, count: skippedIndexes.count)
     }
 
     public func encrypt(plaintext: Bytes) throws -> (UInt32, Bytes) {
-        var ciphertext = createCiphertext(plaintext)
-        var index = createIndex()
-        let success = autograph_encrypt_message(
-            &ciphertext,
-            &index,
-            &state,
-            plaintext,
-            plaintext.count
-        )
-        if !success {
+        if established {
+            return try Autograph.encrypt(key: sendingKey, nonce: &sendingNonce, plaintext: plaintext)
+        } else {
             throw AutographError.encryption
         }
-        return (readIndex(index), ciphertext)
     }
 
-    public func decrypt(message: Bytes) throws -> (UInt32, Bytes) {
-        var plaintext = createPlaintext(message)
-        var index = createIndex()
-        var size = createSize()
-        let success = autograph_decrypt_message(
-            &plaintext,
-            &size,
-            &index,
-            &state,
-            message,
-            message.count
-        )
-        if !success {
+    public func decrypt(ciphertext: Bytes) throws -> (UInt32, Bytes) {
+        if established {
+            return try Autograph.decrypt(
+                key: receivingKey,
+                nonce: &receivingNonce,
+                skippedIndexes: &skippedIndexes,
+                ciphertext: ciphertext
+            )
+        } else {
             throw AutographError.decryption
         }
-        return (readIndex(index), resizePlaintext(plaintext, size))
     }
 
-    public func certifyData(data: Bytes) throws -> Bytes {
-        var signature = createSignature()
-        let success = autograph_certify_data(
-            &signature,
-            &state,
-            data,
-            data.count
-        )
-        if !success {
-            throw AutographError.certification
-        }
-        return signature
-    }
-
-    public func certifyIdentity() throws -> Bytes {
-        var signature = createSignature()
-        let success = autograph_certify_identity(
-            &signature,
-            &state
-        )
-        if !success {
-            throw AutographError.certification
-        }
-        return signature
-    }
-
-    public func verifyData(
-        data: Bytes,
-        publicKey: Bytes,
-        signature: Bytes
-    ) -> Bool {
-        autograph_verify_data(
-            &state,
-            data,
-            data.count,
-            publicKey,
-            signature
-        )
-    }
-
-    public func verifyIdentity(
-        publicKey: Bytes,
-        signature: Bytes
-    ) -> Bool {
-        autograph_verify_identity(
-            &state,
-            publicKey,
-            signature
-        )
-    }
-
-    public func close() throws -> (Bytes, Bytes) {
-        var key = createSecretKey()
-        var ciphertext = createSessionCiphertext(state)
-        let success = autograph_close_session(&key, &ciphertext, &state)
-        if !success {
-            throw AutographError.session
-        }
-        return (key, ciphertext)
-    }
-
-    public func open(key: inout Bytes, ciphertext: Bytes) throws {
-        let success = autograph_open_session(
-            &state,
-            &key,
-            ciphertext,
-            ciphertext.count
-        )
-        if !success {
-            throw AutographError.session
-        }
+    public func close() {
+        established = false
+        zeroize(data: &ourIdentityKeyPair)
+        zeroize(data: &ourSessionKeyPair)
+        zeroize(data: &sendingKey)
+        zeroize(data: &receivingKey)
+        zeroize(data: &sendingNonce)
+        zeroize(data: &receivingNonce)
+        skippedIndexes = Array(repeating: 0, count: skippedIndexes.count)
     }
 }
