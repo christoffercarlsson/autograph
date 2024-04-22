@@ -8,11 +8,11 @@ import (
 	t "github.com/christoffercarlsson/autograph/go/types"
 )
 
-func EphemeralKeyPair(keyPair *t.KeyPair) bool {
+func SessionKeyPair(keyPair *t.KeyPair) bool {
 	if !e.Init() {
 		return false
 	}
-	return e.KeyPairEphemeral(keyPair)
+	return e.KeyPairSession(keyPair)
 }
 
 func IdentityKeyPair(keyPair *t.KeyPair) bool {
@@ -22,9 +22,9 @@ func IdentityKeyPair(keyPair *t.KeyPair) bool {
 	return e.KeyPairIdentity(keyPair)
 }
 
-func GenerateKeyPair() (t.KeyPair, error) {
+func GenerateSessionKeyPair() (t.KeyPair, error) {
 	var keyPair t.KeyPair = [c.KEY_PAIR_SIZE]byte{}
-	success := EphemeralKeyPair(&keyPair)
+	success := SessionKeyPair(&keyPair)
 	if !success {
 		return [c.KEY_PAIR_SIZE]byte{}, fmt.Errorf("failed to generate KeyPair")
 	}
