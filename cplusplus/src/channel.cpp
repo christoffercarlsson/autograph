@@ -1,124 +1,120 @@
 #include "autograph.h"
-#include "numbers.h"
+#include "constants.h"
+#include "external.h"
+
+extern "C" {
+bool autograph_use_key_pairs(uint8_t *identity_key, uint8_t *session_key,
+                             uint8_t *identity_key_pair,
+                             uint8_t *session_key_pair,
+                             const uint8_t *our_identity_key_pair,
+                             uint8_t *our_session_key_pair) {
+  autograph_get_public_key(identity_key, our_identity_key_pair);
+  autograph_get_public_key(session_key, our_session_key_pair);
+  memmove(identity_key_pair, our_identity_key_pair, KEY_PAIR_SIZE);
+  memmove(session_key_pair, our_session_key_pair, KEY_PAIR_SIZE);
+  zeroize(our_session_key_pair, KEY_PAIR_SIZE);
+  return ready();
+}
+
+void autograph_use_public_keys(uint8_t *identity_key, uint8_t *session_key,
+                               const uint8_t *their_identity_key,
+                               const uint8_t *their_session_key) {
+  memmove(identity_key, their_identity_key, PUBLIC_KEY_SIZE);
+  memmove(session_key, their_session_key, PUBLIC_KEY_SIZE);
+}
+}
 
 namespace Autograph {
 
-Bytes createCiphertext(const Bytes plaintext) {
-  size_t size = autograph_ciphertext_size(plaintext.size());
-  Bytes ciphertext(size);
-  return ciphertext;
+size_t calculateSkippedIndexesSize(
+    const optional<uint16_t> skippedIndexesCount) {
+  return skippedIndexesCount ? *skippedIndexesCount
+                             : DEFAULT_SKIPPED_INDEXES_COUNT;
 }
 
-Bytes createPlaintext(const Bytes ciphertext) {
-  size_t size = autograph_plaintext_size(ciphertext.size());
-  Bytes plaintext(size);
-  return plaintext;
+Channel::Channel(const optional<uint16_t> skippedIndexesCount)
+    : skippedIndexes(calculateSkippedIndexesSize(skippedIndexesCount)) {
+  established = false;
 }
 
-Bytes createSessionCiphertext(const State &state) {
-  size_t size = autograph_ciphertext_size(autograph_session_size(state.data()));
-  Bytes ciphertext(size);
-  return ciphertext;
+bool Channel::isEstablished() const { return established; }
+
+tuple<bool, PublicKey, PublicKey> Channel::useKeyPairs(
+    const KeyPair &ourIdentityKeyPair, KeyPair &ourSessionKeyPair) {
+  established = false;
+  PublicKey identityKey;
+  PublicKey sessionKey;
+  bool ready = autograph_use_key_pairs(
+      identityKey.data(), sessionKey.data(), this->ourIdentityKeyPair.data(),
+      this->ourSessionKeyPair.data(), ourIdentityKeyPair.data(),
+      ourSessionKeyPair.data());
+  return {ready, identityKey, sessionKey};
 }
 
-uint32_t readIndex(const Index &index) {
-  return autograph_read_index(index.data());
-}
-
-Bytes resizePlaintext(Bytes plaintext, const Size plaintextSize) {
-  size_t size = autograph_read_size(plaintextSize.data());
-  plaintext.resize(size);
-  return plaintext;
-}
-
-Channel::Channel(State &state) : state(state) {}
-
-tuple<bool, Hello> Channel::useKeyPairs(KeyPair &identityKeyPair,
-                                        KeyPair &ephemeralKeyPair) {
-  Hello publicKeys;
-  bool success =
-      autograph_use_key_pairs(publicKeys.data(), state.data(),
-                              identityKeyPair.data(), ephemeralKeyPair.data());
-  return make_tuple(success, publicKeys);
-}
-
-void Channel::usePublicKeys(Hello &publicKeys) {
-  autograph_use_public_keys(state.data(), publicKeys.data());
+void Channel::usePublicKeys(const PublicKey &theirIdentityKey,
+                            const PublicKey &theirSessionKey) {
+  established = false;
+  autograph_use_public_keys(this->theirIdentityKey.data(),
+                            this->theirSessionKey.data(),
+                            theirIdentityKey.data(), theirSessionKey.data());
 }
 
 tuple<bool, SafetyNumber> Channel::authenticate() const {
-  SafetyNumber safetyNumber;
-  bool success = autograph_authenticate(safetyNumber.data(), state.data());
-  return make_tuple(success, safetyNumber);
+  return Autograph::authenticate(ourIdentityKeyPair, theirIdentityKey);
+}
+
+tuple<bool, Signature> Channel::certify(const optional<Bytes> &data) const {
+  return Autograph::certify(ourIdentityKeyPair, theirIdentityKey, data);
+}
+
+bool Channel::verify(const PublicKey &certifierIdentityKey,
+                     const Signature &signature,
+                     const optional<Bytes> &data) const {
+  return Autograph::verify(theirIdentityKey, certifierIdentityKey, signature,
+                           data);
 }
 
 tuple<bool, Signature> Channel::keyExchange(const bool isInitiator) {
-  Signature signature;
-  bool success =
-      autograph_key_exchange(signature.data(), state.data(), isInitiator);
-  return make_tuple(success, signature);
+  established = false;
+  auto [success, transcript, signature, sendingKey, receivingKey] =
+      Autograph::keyExchange(isInitiator, ourIdentityKeyPair, ourSessionKeyPair,
+                             theirIdentityKey, theirSessionKey);
+  this->transcript = transcript;
+  this->sendingKey = sendingKey;
+  this->receivingKey = receivingKey;
+  return {success, signature};
 }
 
-bool Channel::verifyKeyExchange(const Signature &signature) {
-  return autograph_verify_key_exchange(state.data(), signature.data());
+bool Channel::verifyKeyExchange(const Signature &theirSignature) {
+  established = Autograph::verifyKeyExchange(transcript, ourIdentityKeyPair,
+                                             theirIdentityKey, theirSignature);
+  Autograph::zeroize(sendingNonce);
+  Autograph::zeroize(receivingNonce);
+  skippedIndexes = {0};
+  return established;
 }
 
 tuple<bool, uint32_t, Bytes> Channel::encrypt(const Bytes &plaintext) {
-  Bytes ciphertext = createCiphertext(plaintext);
-  Index index;
-  bool success =
-      autograph_encrypt_message(ciphertext.data(), index.data(), state.data(),
-                                plaintext.data(), plaintext.size());
-  return make_tuple(success, readIndex(index), ciphertext);
+  auto [success, index, ciphertext] =
+      Autograph::encrypt(sendingKey, sendingNonce, plaintext);
+  return {established && success, index, ciphertext};
 }
 
 tuple<bool, uint32_t, Bytes> Channel::decrypt(const Bytes &ciphertext) {
-  Bytes plaintext = createPlaintext(ciphertext);
-  Size size;
-  Index index;
-  bool success = autograph_decrypt_message(
-      plaintext.data(), size.data(), index.data(), state.data(),
-      ciphertext.data(), ciphertext.size());
-  return make_tuple(success, readIndex(index),
-                    resizePlaintext(plaintext, size));
+  auto [success, index, plaintext] = Autograph::decrypt(
+      receivingKey, receivingNonce, skippedIndexes, ciphertext);
+  return {established && success, index, plaintext};
 }
 
-tuple<bool, Signature> Channel::certifyData(const Bytes &data) const {
-  Signature signature;
-  bool success = autograph_certify_data(signature.data(), state.data(),
-                                        data.data(), data.size());
-  return make_tuple(success, signature);
-}
-
-tuple<bool, Signature> Channel::certifyIdentity() const {
-  Signature signature;
-  bool success = autograph_certify_identity(signature.data(), state.data());
-  return make_tuple(success, signature);
-}
-
-bool Channel::verifyData(const Bytes &data, const PublicKey &publicKey,
-                         const Signature &signature) const {
-  return autograph_verify_data(state.data(), data.data(), data.size(),
-                               publicKey.data(), signature.data());
-}
-
-bool Channel::verifyIdentity(const PublicKey &publicKey,
-                             const Signature &signature) const {
-  return autograph_verify_identity(state.data(), publicKey.data(),
-                                   signature.data());
-}
-
-tuple<bool, SecretKey, Bytes> Channel::close() {
-  SecretKey key;
-  Bytes ciphertext = createSessionCiphertext(state);
-  bool success =
-      autograph_close_session(key.data(), ciphertext.data(), state.data());
-  return make_tuple(success, key, ciphertext);
-}
-
-bool Channel::open(SecretKey &key, const Bytes &ciphertext) {
-  return autograph_open_session(state.data(), key.data(), ciphertext.data(),
-                                ciphertext.size());
+void Channel::close() {
+  established = false;
+  skippedIndexes = {0};
+  Autograph::zeroize(ourIdentityKeyPair);
+  Autograph::zeroize(ourSessionKeyPair);
+  Autograph::zeroize(sendingKey);
+  Autograph::zeroize(receivingKey);
+  Autograph::zeroize(sendingNonce);
+  Autograph::zeroize(receivingNonce);
 }
 
 }  // namespace Autograph

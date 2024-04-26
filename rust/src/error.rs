@@ -4,8 +4,6 @@ pub enum Error {
     Certification,
     Decryption,
     Encryption,
-    Initialization,
     KeyExchange,
     KeyPair,
-    Session,
 }

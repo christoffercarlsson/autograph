@@ -13,18 +13,18 @@ func isZeroized(s []byte) bool {
 	return true
 }
 
-func TestKeyPairEphemral(t *testing.T) {
-	keyPair, err := GenerateKeyPair()
+func TestKeyPairSession(t *testing.T) {
+	keyPair, err := GenerateSessionKeyPair()
 	if err != nil {
-		t.Errorf("TEST:KEYPAIR:FAIL GenerateKeyPair Ephemral returned err")
+		t.Errorf("TEST:KEYPAIR:FAIL GenerateKeyPair Session returned err")
 	}
 	if isZeroized(keyPair[:]) {
-		t.Errorf("TEST:KEYPAIR:FAIL Generated Ephemral KeyPair is zeroized")
+		t.Errorf("TEST:KEYPAIR:FAIL Generated Session KeyPair is zeroized")
 	}
 }
 
 func TestKeyPairIdentity(t *testing.T) {
-	keyPair, err := GenerateKeyPair()
+	keyPair, err := GenerateIdentityKeyPair()
 	if err != nil {
 		t.Errorf("TEST:KEYPAIR:FAIL GenerateKeyPair Identity returned err")
 	}

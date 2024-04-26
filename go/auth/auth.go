@@ -2,53 +2,64 @@ package auth
 
 import (
 	"bytes"
+	"fmt"
 
 	c "github.com/christoffercarlsson/autograph/go/constants"
 	"github.com/christoffercarlsson/autograph/go/external"
-	"github.com/christoffercarlsson/autograph/go/numbers"
-	s "github.com/christoffercarlsson/autograph/go/state"
+	"github.com/christoffercarlsson/autograph/go/keypair"
 	t "github.com/christoffercarlsson/autograph/go/types"
 )
 
-func EncodeFingerprint(fingerprint *t.Fingerprint, digest *t.Digest) {
+func EncodeFingerprint(digest *t.Digest) t.Fingerprint {
+	fingerprint := t.Fingerprint{}
 	for i := uint16(0); i < c.FINGERPRINT_SIZE; i += 4 {
 		dig := digest[:]
-		n := numbers.GetUint32(&dig, int(i))
+		n := external.GetUint32(&dig, int(i))
 		finger := fingerprint[:]
-		numbers.SetUint32(&finger, int(i), n%c.FINGERPRINT_DIVISOR)
+		external.SetUint32(&finger, int(i), n%c.FINGERPRINT_DIVISOR)
 	}
+	return fingerprint
 }
 
-func CalculateFingerprint(fingerprint *t.Fingerprint, publicKey *t.PublicKey) bool {
+func CalculateFingerprint(publicKey *t.PublicKey) (t.Fingerprint, error) {
 	a := [c.DIGEST_SIZE]byte{}
 	b := [c.DIGEST_SIZE]byte{}
-	external.Hash(&a, publicKey[:])
+	success := external.Hash(&a, publicKey[:])
+	if !success {
+		return t.Fingerprint{}, fmt.Errorf("fingerprint hash failure")
+	}
 	for i := 1; i < int(c.FINGERPRINT_ITERATIONS); i += 1 {
-		external.Hash(&b, a[:])
+		success := external.Hash(&b, a[:])
+		if !success {
+			return t.Fingerprint{}, fmt.Errorf("fingerprint hash failure")
+		}
 		copy(a[:], b[:])
 	}
-	EncodeFingerprint(fingerprint, &a)
-	return true
+	return EncodeFingerprint(&a), nil
 }
 
-func SetSafetyNumber(safetyNumber *t.SafetyNumber, a *t.Fingerprint, b *t.Fingerprint) {
-	copy((*safetyNumber)[:], a[:])
-	copy((*safetyNumber)[c.FINGERPRINT_SIZE:], b[:])
-}
+func CalculateSafetyNumber(ourFingerprint *t.Fingerprint, theirFingerprint *t.Fingerprint) t.SafetyNumber {
+	safetyNumber := t.SafetyNumber{}
 
-func Authenticate(safetyNumber *t.SafetyNumber, state *t.State) bool {
-	ourFingerprint := [c.FINGERPRINT_SIZE]byte{}
-	theirFingerprint := [c.FINGERPRINT_SIZE]byte{}
-	if !CalculateFingerprint(&ourFingerprint, s.GetIdentityPublicKey(state)) {
-		return false
-	}
-	if !CalculateFingerprint(&theirFingerprint, s.GetTheirIdentityKey(state)) {
-		return false
-	}
 	if bytes.Compare(ourFingerprint[:], theirFingerprint[:]) < 0 {
-		SetSafetyNumber(safetyNumber, &theirFingerprint, &ourFingerprint)
+		copy((safetyNumber)[:c.FINGERPRINT_SIZE], theirFingerprint[:])
+		copy((safetyNumber)[c.FINGERPRINT_SIZE:], ourFingerprint[:])
 	} else {
-		SetSafetyNumber(safetyNumber, &ourFingerprint, &theirFingerprint)
+		copy((safetyNumber)[:c.FINGERPRINT_SIZE], ourFingerprint[:])
+		copy((safetyNumber)[c.FINGERPRINT_SIZE:], theirFingerprint[:])
 	}
-	return true
+	return safetyNumber
+}
+
+func Authenticate(identityKeyPair *t.KeyPair, theirIdentityKey *t.PublicKey) (t.SafetyNumber, error) {
+	ourIdentityKey := keypair.GetPublicKey(identityKeyPair)
+	ourFingerprint, err := CalculateFingerprint(&ourIdentityKey)
+	if err != nil {
+		return t.SafetyNumber{}, err
+	}
+	theirFingerprint, err := CalculateFingerprint(theirIdentityKey)
+	if err != nil {
+		return t.SafetyNumber{}, err
+	}
+	return CalculateSafetyNumber(&ourFingerprint, &theirFingerprint), nil
 }

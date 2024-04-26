@@ -170,16 +170,10 @@ func KeyExchangeTest(
 	a *Channel,
 	b *Channel,
 ) error {
-	aliceHello, err := a.UseKeyPairs(aliceIdentityKeyPair, aliceEphemeralKeyPair)
-	if err != nil {
-		return fmt.Errorf("TEST:KEYEXCHANGE:FAIL Alice UseKeyPair returned err")
-	}
-	bobHello, err := b.UseKeyPairs(bobIdentityKeyPair, bobEphemeralKeyPair)
-	if err != nil {
-		return fmt.Errorf("TEST:KEYEXCHANGE:FAIL Bob UseKeyPair returned err")
-	}
-	a.UsePublicKeys(&bobHello)
-	b.UsePublicKeys(&aliceHello)
+	aliceIdentityKey, aliceSessionKey := a.UseKeyPairs(&aliceIdentityKeyPair, &aliceEphemeralKeyPair)
+	bobIdentityKey, bobSessionKey := b.UseKeyPairs(&bobIdentityKeyPair, &bobEphemeralKeyPair)
+	a.UsePublicKeys(&bobIdentityKey, &bobSessionKey)
+	b.UsePublicKeys(&aliceIdentityKey, &aliceSessionKey)
 	handshakeAlice, err := a.KeyExchange(true)
 	if err != nil {
 		return fmt.Errorf("TEST:KEYEXCHANGE:FAIL Alice KeyExchange returned err: \n%s", err)
@@ -188,11 +182,11 @@ func KeyExchangeTest(
 	if err != nil {
 		return fmt.Errorf("TEST:KEYEXCHANGE:FAIL Bob KeyExchange returned err: \n%s", err)
 	}
-	err = a.VerifyKeyExchange(handshakeBob)
+	err = a.VerifyKeyExchange(&handshakeBob)
 	if err != nil {
 		return fmt.Errorf("TEST:KEYEXCHANGE:FAIL Alice VerifyKeyExchange returned err: \n%s", err)
 	}
-	err = b.VerifyKeyExchange(handshakeAlice)
+	err = b.VerifyKeyExchange(&handshakeAlice)
 	if err != nil {
 		return fmt.Errorf("TEST:KEYEXCHANGE:FAIL Bob VerifyKeyExchange returned err: \n%s", err)
 	}
@@ -285,7 +279,7 @@ func BobCertifyAliceDataTest(
 	a *Channel,
 	b *Channel,
 ) error {
-	signature, err := b.CertifyData(&data)
+	signature, err := b.Certify(&data)
 	if err != nil {
 		return fmt.Errorf("TEST:CERT_DATA B -> A:FAIL returned err: %s", err)
 	}
@@ -299,7 +293,7 @@ func AliceCertifyBobDataTest(
 	a *Channel,
 	b *Channel,
 ) error {
-	signature, err := a.CertifyData(&data)
+	signature, err := a.Certify(&data)
 	if err != nil {
 		return fmt.Errorf("TEST:CERT_DATA B -> A:FAIL returned err: %s", err)
 	}
@@ -313,7 +307,8 @@ func BobCertifyAliceIdentityTest(
 	a *Channel,
 	b *Channel,
 ) error {
-	signature, err := b.CertifyIdentity()
+	emptyData := []byte{}
+	signature, err := b.Certify(&emptyData)
 	if err != nil {
 		return fmt.Errorf("TEST:CERT_DATA B -> A:FAIL returned err: %s", err)
 	}
@@ -327,7 +322,8 @@ func AliceCertifyBobIdentityTest(
 	a *Channel,
 	b *Channel,
 ) error {
-	signature, err := a.CertifyIdentity()
+	emptyData := []byte{}
+	signature, err := a.Certify(&emptyData)
 	if err != nil {
 		return fmt.Errorf("TEST:CERT_DATA B -> A:FAIL returned err: %s", err)
 	}
@@ -341,28 +337,30 @@ func BobVerifyAliceDataTest(
 	a *Channel,
 	b *Channel,
 ) bool {
-	return b.VerifyData(&data, &charlieIdentityKey, &charlieSignatureAliceData)
+	return b.Verify(&charlieIdentityKey, &charlieSignatureAliceData, &data)
 }
 
 func AliceVerifyBobDataTest(
 	a *Channel,
 	b *Channel,
 ) bool {
-	return a.VerifyData(&data, &charlieIdentityKey, &charlieSignatureBobData)
+	return a.Verify(&charlieIdentityKey, &charlieSignatureBobData, &data)
 }
 
 func BobVerifyAliceIdentityTest(
 	a *Channel,
 	b *Channel,
 ) bool {
-	return b.VerifyIdentity(&charlieIdentityKey, &charlieSignatureAliceIdentity)
+	emptyData := []byte{}
+	return b.Verify(&charlieIdentityKey, &charlieSignatureAliceIdentity, &emptyData)
 }
 
 func AliceVerifyBobIdentityTest(
 	a *Channel,
 	b *Channel,
 ) bool {
-	return a.VerifyIdentity(&charlieIdentityKey, &charlieSignatureBobIdentity)
+	emptyData := []byte{}
+	return a.Verify(&charlieIdentityKey, &charlieSignatureBobIdentity, &emptyData)
 }
 
 func OutOfOrderMessagesTest(
@@ -407,19 +405,15 @@ func OutOfOrderMessagesTest(
 	}
 	// Index start at 2 since another test (test_alice_message_to_bob) that
 	// uses the same channel ran before this test
-	// assert_eq!(index1, 2);
 	if index1 != 2 {
 		return fmt.Errorf("TEST:OUT_OF_ORDER:FAIL index1 != 2")
 	}
-	// assert_eq!(index2, 3);
 	if index2 != 3 {
 		return fmt.Errorf("TEST:OUT_OF_ORDER:FAIL index2 != 3")
 	}
-	// assert_eq!(index3, 4);
 	if index3 != 4 {
 		return fmt.Errorf("TEST:OUT_OF_ORDER:FAIL index3 != 4")
 	}
-	// assert_eq!(index4, 5);
 	if index4 != 5 {
 		return fmt.Errorf("TEST:OUT_OF_ORDER:FAIL index4 != 5")
 	}
@@ -438,31 +432,9 @@ func OutOfOrderMessagesTest(
 	return nil
 }
 
-func ChannelOpenCloseTest(
-	a *Channel,
-	b *Channel,
-) error {
-	key, ciphertext, err := a.Close()
-	b.Open(&key, &ciphertext)
-	if err != nil {
-		return fmt.Errorf("TEST:CHANNEL_OPEN_CLOSE:FAIL a.Close() returned err: %s", err)
-	}
-	if !KeyEquality(key, [c.SECRET_KEY_SIZE]byte{}) {
-		return fmt.Errorf("TEST:CHANNEL_OPEN_CLOSE:FAIL key not zeroized)")
-	}
-	signature, err := b.CertifyIdentity()
-	if err != nil {
-		return fmt.Errorf("TEST:CHANNEL_OPEN_CLOSE:FAIL b.CertifyIdentity() returned err: %s", err)
-	}
-	if !SignatureEquality(signature, aliceSignatureBobIdentity) {
-		return fmt.Errorf("TEST:CHANNEL_OPEN_CLOSE:FAIL Wrong signature")
-	}
-	return nil
-}
-
 func TestChannel(t *testing.T) {
-	a := New()
-	b := New()
+	a := New(5)
+	b := New(5)
 	err := KeyExchangeTest(&a, &b)
 	if err != nil {
 		t.Errorf("TEST:KEYPAIR:FAIL KeyExchangeTest returned err: %s", err)
@@ -514,9 +486,5 @@ func TestChannel(t *testing.T) {
 	err = OutOfOrderMessagesTest(&a, &b)
 	if err != nil {
 		t.Errorf("TEST:OUT_OF_ORDER:FAIL OutOfOrderMessagesTest returned err: %s", err)
-	}
-	err = ChannelOpenCloseTest(&a, &b)
-	if err != nil {
-		t.Errorf("TEST:CHANNEL_OPEN_CLOSE:FAIL ChannelOpenClose returned err: %s", err)
 	}
 }

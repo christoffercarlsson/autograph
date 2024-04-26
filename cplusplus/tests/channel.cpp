@@ -89,7 +89,8 @@ TEST_CASE("Channel", "[channel]") {
       43,  155, 242, 78,  64,  205, 218, 80,  171, 34,  128, 255, 51,
       237, 60,  37,  224, 232, 149, 153, 213, 204, 93,  26,  7};
 
-  Autograph::Bytes data = {72, 101, 108, 108, 111, 32, 87, 111, 114, 108, 100};
+  std::optional<Autograph::Bytes> data = {
+      {72, 101, 108, 108, 111, 32, 87, 111, 114, 108, 100}};
 
   Autograph::SafetyNumber safetyNumber = {
       0, 0, 126, 217, 0, 0, 218, 180, 0, 1, 102, 162, 0, 0, 41, 97,
@@ -125,20 +126,17 @@ TEST_CASE("Channel", "[channel]") {
       21,  10,  39,  204, 215, 158, 210, 177, 243, 28,  138, 52,  91,
       236, 55,  30,  117, 10,  125, 87,  232, 80,  6,   232, 93};
 
-  Autograph::State aliceState;
-  Autograph::State bobState;
+  Autograph::Channel a(3);
+  Autograph::Channel b(3);
 
-  Autograph::Channel a(aliceState);
-  Autograph::Channel b(bobState);
-
-  auto [aliceInit, aliceHello] =
+  auto [aliceInit, aliceIdentityKey, aliceSessionKey] =
       a.useKeyPairs(aliceIdentityKeyPair, aliceEphemeralKeyPair);
 
-  auto [bobInit, bobHello] =
+  auto [bobInit, bobIdentityKey, bobSessionKey] =
       b.useKeyPairs(bobIdentityKeyPair, bobEphemeralKeyPair);
 
-  a.usePublicKeys(bobHello);
-  b.usePublicKeys(aliceHello);
+  a.usePublicKeys(bobIdentityKey, bobSessionKey);
+  b.usePublicKeys(aliceIdentityKey, aliceSessionKey);
 
   auto [aliceKeyExchange, handshakeAlice] = a.keyExchange(true);
   auto [bobKeyExchange, handshakeBob] = b.keyExchange(false);
@@ -167,27 +165,27 @@ TEST_CASE("Channel", "[channel]") {
   }
 
   SECTION("should allow Alice to send encrypted data to Bob") {
-    auto [encryptSuccess, encryptIndex, message] = a.encrypt(data);
+    auto [encryptSuccess, encryptIndex, message] = a.encrypt(data.value());
     auto [decryptSuccess, decryptIndex, plaintext] = b.decrypt(message);
     REQUIRE(encryptSuccess == true);
     REQUIRE(decryptSuccess == true);
     REQUIRE(encryptIndex == 1);
     REQUIRE(decryptIndex == 1);
     REQUIRE_THAT(message, Catch::Matchers::Equals(aliceMessage));
-    REQUIRE_THAT(plaintext, Catch::Matchers::Equals(data));
+    REQUIRE_THAT(plaintext, Catch::Matchers::Equals(data.value()));
   }
 
   SECTION("should allow Bob to send encrypted data to Alice") {
-    auto [encryptSuccess, encryptIndex, message] = b.encrypt(data);
+    auto [encryptSuccess, encryptIndex, message] = b.encrypt(data.value());
     auto [decryptSuccess, decryptIndex, plaintext] = a.decrypt(message);
     REQUIRE_THAT(message, Catch::Matchers::Equals(bobMessage));
-    REQUIRE_THAT(plaintext, Catch::Matchers::Equals(data));
+    REQUIRE_THAT(plaintext, Catch::Matchers::Equals(data.value()));
   }
 
   SECTION(
       "should allow Bob to certify Alice's ownership of her identity key and "
       "data") {
-    auto [success, signature] = b.certifyData(data);
+    auto [success, signature] = b.certify(data);
     REQUIRE(success == true);
     REQUIRE(signature == bobSignatureAliceData);
   }
@@ -195,19 +193,19 @@ TEST_CASE("Channel", "[channel]") {
   SECTION(
       "should allow Alice to certify Bob's ownership of his identity key and "
       "data") {
-    auto [success, signature] = a.certifyData(data);
+    auto [success, signature] = a.certify(data);
     REQUIRE(success == true);
     REQUIRE(signature == aliceSignatureBobData);
   }
 
   SECTION("should allow Bob to certify Alice's ownership of her identity key") {
-    auto [success, signature] = b.certifyIdentity();
+    auto [success, signature] = b.certify(std::nullopt);
     REQUIRE(success == true);
     REQUIRE(signature == bobSignatureAliceIdentity);
   }
 
   SECTION("should allow Alice to certify Bob's ownership of his identity key") {
-    auto [success, signature] = a.certifyIdentity();
+    auto [success, signature] = a.certify(std::nullopt);
     REQUIRE(success == true);
     REQUIRE(signature == aliceSignatureBobIdentity);
   }
@@ -216,23 +214,22 @@ TEST_CASE("Channel", "[channel]") {
       "should allow Bob to verify Alice's ownership of her identity key and "
       "data based on Charlie's public key and signature") {
     bool verified =
-        b.verifyData(data, charlieIdentityKey, charlieSignatureAliceData);
+        b.verify(charlieIdentityKey, charlieSignatureAliceData, data);
     REQUIRE(verified == true);
   }
 
   SECTION(
       "should allow Alice to verify Bob's ownership of his identity key and "
       "data based on Charlie's public key and signature") {
-    bool verified =
-        a.verifyData(data, charlieIdentityKey, charlieSignatureBobData);
+    bool verified = a.verify(charlieIdentityKey, charlieSignatureBobData, data);
     REQUIRE(verified == true);
   }
 
   SECTION(
       "should allow Bob to verify Alice's ownership of her identity key based "
       "on Charlie's public key and signature") {
-    bool verified =
-        b.verifyIdentity(charlieIdentityKey, charlieSignatureAliceIdentity);
+    bool verified = b.verify(charlieIdentityKey, charlieSignatureAliceIdentity,
+                             std::nullopt);
     REQUIRE(verified == true);
   }
 
@@ -240,7 +237,7 @@ TEST_CASE("Channel", "[channel]") {
       "should allow Alice to verify Bob's ownership of his identity key based "
       "on Charlie's public key and signature") {
     bool verified =
-        a.verifyIdentity(charlieIdentityKey, charlieSignatureBobIdentity);
+        a.verify(charlieIdentityKey, charlieSignatureBobIdentity, std::nullopt);
     REQUIRE(verified == true);
   }
 
@@ -269,15 +266,5 @@ TEST_CASE("Channel", "[channel]") {
     REQUIRE_THAT(plaintext2, Catch::Matchers::Equals(data2));
     REQUIRE_THAT(plaintext3, Catch::Matchers::Equals(data3));
     REQUIRE_THAT(plaintext4, Catch::Matchers::Equals(data4));
-  }
-
-  SECTION("should handle sessions correctly") {
-    auto [closeSuccess, key, ciphertext] = a.close();
-    auto openSuccess = b.open(key, ciphertext);
-    auto [certifySuccess, signature] = b.certifyIdentity();
-    REQUIRE(closeSuccess == true);
-    REQUIRE(openSuccess == true);
-    REQUIRE(certifySuccess == true);
-    REQUIRE(signature == aliceSignatureBobIdentity);
   }
 }

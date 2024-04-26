@@ -1,59 +1,95 @@
 package keyexchange
 
 import (
+	"fmt"
+
 	"github.com/christoffercarlsson/autograph/go/cert"
 	c "github.com/christoffercarlsson/autograph/go/constants"
 	e "github.com/christoffercarlsson/autograph/go/external"
-	"github.com/christoffercarlsson/autograph/go/kdf"
-	s "github.com/christoffercarlsson/autograph/go/state"
+	"github.com/christoffercarlsson/autograph/go/keypair"
 	t "github.com/christoffercarlsson/autograph/go/types"
 )
 
-func DeriveSecretKeys(state *t.State, isInitiator bool) bool {
+func CalculateSecretKeys(isInitiator bool, okm *t.Okm) (t.SecretKey, t.SecretKey) {
+	sendingKey := t.SecretKey{}
+	receivingKey := t.SecretKey{}
+	if isInitiator {
+		copy(sendingKey[:], okm[:c.SECRET_KEY_SIZE])
+		copy(receivingKey[:], okm[c.SECRET_KEY_SIZE:])
+	} else {
+		copy(sendingKey[:], okm[c.SECRET_KEY_SIZE:])
+		copy(receivingKey[:], okm[:c.SECRET_KEY_SIZE])
+	}
+	return sendingKey, receivingKey
+}
+
+func DeriveSecretKeys(isInitiator bool, ourSessionKeypair *t.KeyPair, theirSessionKey *t.PublicKey) (t.SecretKey, t.SecretKey, error) {
 	var sharedSecret t.SharedSecret = [c.SHARED_SECRET_SIZE]byte{}
 	var okm t.Okm = [c.OKM_SIZE]byte{}
 	dhSuccess := e.DiffieHellman(
 		&sharedSecret,
-		s.GetEphemeralPrivateKey(state),
-		s.GetTheirEphemeralKey(state),
+		ourSessionKeypair,
+		theirSessionKey,
 	)
-	kdfSuccess := kdf.Kdf(&okm, &sharedSecret)
-	s.SetSecretKeys(state, isInitiator, &okm)
+	// kdfSuccess := kdf.Kdf(&okm, &sharedSecret)
+	salt := [c.SALT_SIZE]byte{}
+	e.Zeroize64(&salt)
+	saltSlice := salt[:]
+	okmSlice := okm[:]
+	sharedSecretSlice := sharedSecret[:]
+	kdfSuccess := e.Hkdf(&okmSlice, &sharedSecretSlice, &saltSlice, &c.INFO)
+	sendingKey, receivingKey := CalculateSecretKeys(isInitiator, &okm)
 
 	e.Zeroize64(&okm)
 	e.Zeroize32(&sharedSecret)
-	return dhSuccess && kdfSuccess
+	e.Zeroize64(ourSessionKeypair)
+	if !dhSuccess || !kdfSuccess {
+		return t.SecretKey{}, t.SecretKey{}, fmt.Errorf("diffie or kdf failure")
+	}
+	return sendingKey, receivingKey, nil
 }
 
-func KeyExchange(ourSignature *t.Signature, state *t.State, isInitiator bool) bool {
-	s.SetTranscript(state, isInitiator)
-	keySuccess := DeriveSecretKeys(state, isInitiator)
-	s.DeleteEphemeralPrivateKey(state)
-	transcript := s.GetTranscript(state)[:]
-	certifySuccess := cert.CertifyDataOwnership(
-		ourSignature,
-		state,
-		s.GetTheirIdentityKey(state),
-		&transcript,
+func CalculateTranscript(
+	isInitiator bool,
+	ourSessionKeyPair *t.KeyPair,
+	theirSessionKey *t.PublicKey,
+) t.Transcript {
+	transcript := [c.TRANSCRIPT_SIZE]byte{}
+	ourSessionKey := keypair.GetPublicKey(ourSessionKeyPair)
+	if isInitiator {
+		copy(transcript[:c.PUBLIC_KEY_SIZE], ourSessionKey[:])
+		copy(transcript[c.PUBLIC_KEY_SIZE:], theirSessionKey[:])
+	} else {
+		copy(transcript[:c.PUBLIC_KEY_SIZE], theirSessionKey[:])
+		copy(transcript[c.PUBLIC_KEY_SIZE:], ourSessionKey[:])
+	}
+	return transcript
+}
+
+func KeyExchange(isInitiator bool, ourIdentityKeyPair *t.KeyPair, ourSessionKeyPair *t.KeyPair, theirIdentityKey *t.PublicKey, theirSessionKey *t.PublicKey) (t.Transcript, t.Signature, t.SecretKey, t.SecretKey, error) {
+	transcript := CalculateTranscript(isInitiator, ourSessionKeyPair, theirSessionKey)
+	sendingKey, receivingKey, err := DeriveSecretKeys(isInitiator, ourSessionKeyPair, theirSessionKey)
+	if err != nil {
+		return t.Transcript{}, t.Signature{}, t.SecretKey{}, t.SecretKey{}, err
+	}
+	transcriptSlice := transcript[:]
+	signature, err := cert.Certify(
+		ourIdentityKeyPair,
+		theirIdentityKey,
+		&transcriptSlice,
 	)
-	if !certifySuccess || !keySuccess {
-		s.ZeroizeState(state)
-		return false
+	if err != nil {
+		return t.Transcript{}, t.Signature{}, t.SecretKey{}, t.SecretKey{}, err
 	}
-	return true
+	return transcript, signature, sendingKey, receivingKey, nil
 }
 
-func VerifyKeyExchange(state *t.State, theirSignature t.Signature) bool {
-	transcript := s.GetTranscript(state)[:]
-	if !cert.VerifyDataOwnership(
-		s.GetIdentityPublicKey(state),
-		&transcript,
-		s.GetTheirIdentityKey(state),
-		&theirSignature,
-	) {
-		s.ZeroizeState(state)
-		return false
+func VerifyKeyExchange(transcript *t.Transcript, ourIdentityKeyPair *t.KeyPair, theirIdentityKey *t.PublicKey, theirSignature *t.Signature) error {
+	ourIdentityKey := keypair.GetPublicKey(ourIdentityKeyPair)
+	transcriptSlice := transcript[:]
+	verifySuccess := cert.Verify(&ourIdentityKey, theirIdentityKey, theirSignature, &transcriptSlice)
+	if !verifySuccess {
+		return fmt.Errorf("verify failure")
 	}
-	s.ZeroizeSkippedIndexes(state)
-	return true
+	return nil
 }

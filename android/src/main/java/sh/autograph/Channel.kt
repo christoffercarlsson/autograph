@@ -1,271 +1,146 @@
 package sh.autograph
 
-class Channel(private val state: ByteArray = createState()) {
+const val DEFAULT_SKIPPED_INDEXES_COUNT = 100
+private fun createSkippedIndexes(count: Int?): IntArray {
+    val size = count ?: DEFAULT_SKIPPED_INDEXES_COUNT
+    return IntArray(size.toUShort().toInt()) { 0 }
+}
+
+class Channel {
+    private var ourIdentityKeyPair: ByteArray = Helper.createKeyPair()
+    private var ourSessionKeyPair: ByteArray = Helper.createKeyPair()
+    private var theirIdentityKey: ByteArray = Helper.createPublicKey()
+    private var theirSessionKey: ByteArray = Helper.createPublicKey()
+    private var transcript: ByteArray = Helper.createTranscript()
+    private var sendingKey: ByteArray = Helper.createSecretKey()
+    private var receivingKey: ByteArray = Helper.createSecretKey()
+    private var sendingNonce: ByteArray = Helper.createNonce()
+    private var receivingNonce: ByteArray = Helper.createNonce()
+    private var skippedIndexes: IntArray = IntArray(0)
+    private var established: Boolean = false
+
+    constructor(skippedIndexesCount: Int?) {
+        skippedIndexes = createSkippedIndexes(skippedIndexesCount)
+    }
+
     companion object {
         init {
             System.loadLibrary("autograph")
         }
 
-        private external fun autographStateSize(): Int
-
-        private external fun autographHelloSize(): Int
-
-        private external fun autographSafetyNumberSize(): Int
-
-        private external fun autographSecretKeySize(): Int
-
-        private external fun autographSignatureSize(): Int
-
-        private external fun autographIndexSize(): Int
-
-        private external fun autographSizeSize(): Int
-
-        private external fun autographCiphertextSize(plaintextSize: Int): Int
-
-        private external fun autographPlaintextSize(ciphertextSize: Int): Int
-
-        private external fun autographSessionSize(state: ByteArray): Int
-
-        private external fun autographReadIndex(index: ByteArray): Int
-
-        private external fun autographReadSize(size: ByteArray): Int
-
         private external fun autographUseKeyPairs(
-            publicKeys: ByteArray,
-            state: ByteArray,
+            identityKey: ByteArray,
+            sessionKey: ByteArray,
             identityKeyPair: ByteArray,
-            ephemeralKeyPair: ByteArray,
+            sessionKeyPair: ByteArray,
+            ourIdentityKeyPair: ByteArray,
+            ourSessionKeyPair: ByteArray,
         ): Boolean
 
         private external fun autographUsePublicKeys(
-            state: ByteArray,
-            publicKeys: ByteArray,
+            identityKey: ByteArray,
+            sessionKey: ByteArray,
+            theirIdentityKey: ByteArray,
+            theirSessionKey: ByteArray,
         )
-
-        private external fun autographAuthenticate(
-            safetyNumber: ByteArray,
-            state: ByteArray,
-        ): Boolean
-
-        private external fun autographKeyExchange(
-            signature: ByteArray,
-            state: ByteArray,
-            isInitiator: Boolean,
-        ): Boolean
-
-        private external fun autographVerifyKeyExchange(
-            state: ByteArray,
-            signature: ByteArray,
-        ): Boolean
-
-        private external fun autographEncryptMessage(
-            ciphertext: ByteArray,
-            index: ByteArray,
-            state: ByteArray,
-            plaintext: ByteArray,
-        ): Boolean
-
-        private external fun autographDecryptMessage(
-            plaintext: ByteArray,
-            size: ByteArray,
-            index: ByteArray,
-            state: ByteArray,
-            ciphertext: ByteArray,
-        ): Boolean
-
-        private external fun autographCertifyData(
-            signature: ByteArray,
-            state: ByteArray,
-            data: ByteArray,
-        ): Boolean
-
-        private external fun autographCertifyIdentity(
-            signature: ByteArray,
-            state: ByteArray,
-        ): Boolean
-
-        private external fun autographVerifyData(
-            state: ByteArray,
-            data: ByteArray,
-            publicKey: ByteArray,
-            signature: ByteArray,
-        ): Boolean
-
-        private external fun autographVerifyIdentity(
-            state: ByteArray,
-            publicKey: ByteArray,
-            signature: ByteArray,
-        ): Boolean
-
-        private external fun autographCloseSession(
-            key: ByteArray,
-            ciphertext: ByteArray,
-            state: ByteArray,
-        ): Boolean
-
-        private external fun autographOpenSession(
-            state: ByteArray,
-            key: ByteArray,
-            ciphertext: ByteArray,
-        ): Boolean
-
-        fun createState(): ByteArray = ByteArray(autographStateSize())
-
-        private fun createHello(): ByteArray = ByteArray(autographHelloSize())
-
-        private fun createSafetyNumber(): ByteArray = ByteArray(autographSafetyNumberSize())
-
-        private fun createSecretKey(): ByteArray = ByteArray(autographSecretKeySize())
-
-        private fun createSignature(): ByteArray = ByteArray(autographSignatureSize())
-
-        private fun createIndex(): ByteArray = ByteArray(autographIndexSize())
-
-        private fun createSize(): ByteArray = ByteArray(autographSizeSize())
-
-        private fun createCiphertext(plaintext: ByteArray): ByteArray {
-            val size = autographCiphertextSize(plaintext.size)
-            return ByteArray(size)
-        }
-
-        private fun createPlaintext(ciphertext: ByteArray): ByteArray {
-            val size = autographPlaintextSize(ciphertext.size)
-            return ByteArray(size)
-        }
-
-        private fun createSessionCiphertext(state: ByteArray): ByteArray {
-            val sessionSize = autographSessionSize(state)
-            val size = autographCiphertextSize(sessionSize)
-            return ByteArray(size)
-        }
-
-        private fun readIndex(index: ByteArray): Int {
-            return autographReadIndex(index)
-        }
-
-        private fun resizePlaintext(
-            plaintext: ByteArray,
-            plaintextSize: ByteArray,
-        ): ByteArray {
-            val size = autographReadSize(plaintextSize)
-            val bytes = ByteArray(size)
-            plaintext.copyInto(bytes, 0, 0, size)
-            return bytes
-        }
     }
+
+    fun isEstablished(): Boolean = established
 
     fun useKeyPairs(
-        identityKeyPair: ByteArray,
-        ephemeralKeyPair: ByteArray,
-    ): ByteArray {
-        val publicKeys = createHello()
-        val success = autographUseKeyPairs(publicKeys, state, identityKeyPair, ephemeralKeyPair)
-        if (!success) {
+        ourIdentityKeyPair: ByteArray,
+        ourSessionKeyPair: ByteArray,
+    ): Pair<ByteArray, ByteArray> {
+        established = false
+        val identityKey = Helper.createPublicKey()
+        val sessionKey = Helper.createPublicKey()
+        val ready =
+            Channel.autographUseKeyPairs(
+                identityKey,
+                sessionKey,
+                this.ourIdentityKeyPair,
+                this.ourSessionKeyPair,
+                ourIdentityKeyPair,
+                ourSessionKeyPair,
+            )
+        if (!ready) {
             throw RuntimeException("Initialization failed")
         }
-        return publicKeys
+        return Pair(identityKey, sessionKey)
     }
 
-    fun usePublicKeys(publicKeys: ByteArray) {
-        autographUsePublicKeys(state, publicKeys)
+    fun usePublicKeys(
+        theirIdentityKey: ByteArray,
+        theirSessionKey: ByteArray,
+    ) {
+        established = false
+        autographUsePublicKeys(this.theirIdentityKey, this.theirSessionKey, theirIdentityKey, theirSessionKey)
     }
 
     fun authenticate(): ByteArray {
-        val safetyNumber = createSafetyNumber()
-        val success = autographAuthenticate(safetyNumber, state)
-        if (!success) {
-            throw RuntimeException("Authentication failed")
-        }
-        return safetyNumber
+        return Auth.authenticate(ourIdentityKeyPair, theirIdentityKey)
+    }
+
+    fun certify(data: ByteArray?): ByteArray {
+        return Cert.certify(ourIdentityKeyPair, theirIdentityKey, data)
+    }
+
+    fun verify(
+        certifierIdentityKey: ByteArray,
+        signature: ByteArray,
+        data: ByteArray?,
+    ): Boolean {
+        return Cert.verify(theirIdentityKey, certifierIdentityKey, signature, data)
     }
 
     fun keyExchange(isInitiator: Boolean): ByteArray {
-        val signature = createSignature()
-        val success = autographKeyExchange(signature, state, isInitiator)
-        if (!success) {
-            throw RuntimeException("Key exchange failed")
-        }
-        return signature
+        established = false
+        val (transcript, ourSignature, sendingKey, receivingKey) =
+            KeyExchange.keyExchange(
+                isInitiator,
+                ourIdentityKeyPair,
+                ourSessionKeyPair,
+                theirIdentityKey,
+                theirSessionKey,
+            )
+        this.transcript = transcript
+        this.sendingKey = sendingKey
+        this.receivingKey = receivingKey
+        return ourSignature
     }
 
-    fun verifyKeyExchange(signature: ByteArray) {
-        val success = autographVerifyKeyExchange(state, signature)
-        if (!success) {
-            throw RuntimeException("Key exchange verification failed")
-        }
+    fun verifyKeyExchange(theirSignature: ByteArray) {
+        KeyExchange.verifyKeyExchange(transcript, ourIdentityKeyPair, theirIdentityKey, theirSignature)
+        established = true
+        Helper.zeroize(sendingNonce)
+        Helper.zeroize(receivingNonce)
+        skippedIndexes.fill(0)
     }
 
     fun encrypt(plaintext: ByteArray): Pair<Int, ByteArray> {
-        val ciphertext = createCiphertext(plaintext)
-        val index = createIndex()
-        val success = autographEncryptMessage(ciphertext, index, state, plaintext)
-        if (!success) {
+        if (established) {
+            return Message.encrypt(sendingKey, sendingNonce, plaintext)
+        } else {
             throw RuntimeException("Encryption failed")
         }
-        return Pair(readIndex(index), ciphertext)
     }
 
     fun decrypt(ciphertext: ByteArray): Pair<Int, ByteArray> {
-        val plaintext = createPlaintext(ciphertext)
-        val size = createSize()
-        val index = createIndex()
-        val success = autographDecryptMessage(plaintext, size, index, state, ciphertext)
-        if (!success) {
+        if (established) {
+            return Message.decrypt(receivingKey, receivingNonce, skippedIndexes, ciphertext)
+        } else {
             throw RuntimeException("Decryption failed")
         }
-        return Pair(readIndex(index), resizePlaintext(plaintext, size))
     }
 
-    fun certifyData(data: ByteArray): ByteArray {
-        val signature = createSignature()
-        val success = autographCertifyData(signature, state, data)
-        if (!success) {
-            throw RuntimeException("Certification failed")
-        }
-        return signature
-    }
-
-    fun certifyIdentity(): ByteArray {
-        val signature = createSignature()
-        val success = autographCertifyIdentity(signature, state)
-        if (!success) {
-            throw RuntimeException("Certification failed")
-        }
-        return signature
-    }
-
-    fun verifyData(
-        data: ByteArray,
-        publicKey: ByteArray,
-        signature: ByteArray,
-    ): Boolean {
-        return autographVerifyData(state, data, publicKey, signature)
-    }
-
-    fun verifyIdentity(
-        publicKey: ByteArray,
-        signature: ByteArray,
-    ): Boolean {
-        return autographVerifyIdentity(state, publicKey, signature)
-    }
-
-    fun close(): Pair<ByteArray, ByteArray> {
-        val key = createSecretKey()
-        val ciphertext = createSessionCiphertext(state)
-        val success = autographCloseSession(key, ciphertext, state)
-        if (!success) {
-            throw RuntimeException("Failed to close session")
-        }
-        return Pair(key, ciphertext)
-    }
-
-    fun open(
-        key: ByteArray,
-        ciphertext: ByteArray,
-    ) {
-        val success = autographOpenSession(state, key, ciphertext)
-        if (!success) {
-            throw RuntimeException("Failed to open session")
-        }
+    fun close() {
+        established = false
+        Helper.zeroize(ourIdentityKeyPair)
+        Helper.zeroize(ourSessionKeyPair)
+        Helper.zeroize(sendingKey)
+        Helper.zeroize(receivingKey)
+        Helper.zeroize(sendingNonce)
+        Helper.zeroize(receivingNonce)
+        skippedIndexes.fill(0)
     }
 }

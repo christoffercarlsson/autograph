@@ -1,9 +1,17 @@
-#include "autograph.h"
 #include "constants.h"
+#include "external.h"
 
-size_t autograph_hello_size() { return HELLO_SIZE; }
+void autograph_zeroize(uint8_t *data, const size_t data_size) {
+  zeroize(data, data_size);
+}
+
+bool autograph_is_zero(const uint8_t *data, const size_t data_size) {
+  return is_zero(data, data_size);
+}
 
 size_t autograph_key_pair_size() { return KEY_PAIR_SIZE; }
+
+size_t autograph_nonce_size() { return NONCE_SIZE; }
 
 size_t autograph_public_key_size() { return PUBLIC_KEY_SIZE; }
 
@@ -13,8 +21,4 @@ size_t autograph_secret_key_size() { return SECRET_KEY_SIZE; }
 
 size_t autograph_signature_size() { return SIGNATURE_SIZE; }
 
-size_t autograph_state_size() { return STATE_SIZE; }
-
-size_t autograph_index_size() { return INDEX_SIZE; }
-
-size_t autograph_size_size() { return SIZE_SIZE; }
+size_t autograph_transcript_size() { return TRANSCRIPT_SIZE; }

@@ -10,9 +10,9 @@ final class KeyPairTests: XCTestCase {
         XCTAssertNotEqual(keyPair, emptyKeyPair)
     }
 
-    func testGenerateEphemeralKeyPair() throws {
+    func testGenerateSessionKeyPair() throws {
         let emptyKeyPair = Autograph.Bytes(repeating: 0, count: 64)
-        let keyPair = try Autograph.generateKeyPair()
+        let keyPair = try Autograph.generateSessionKeyPair()
         XCTAssertEqual(keyPair.count, 64)
         XCTAssertNotEqual(keyPair, emptyKeyPair)
     }

@@ -3,7 +3,7 @@
 #include "constants.h"
 #include "sodium.h"
 
-bool init() { return sodium_init() >= 0; }
+bool ready() { return sodium_init() >= 0; }
 
 bool encrypt(uint8_t *ciphertext, const uint8_t *key, const uint8_t *nonce,
              const uint8_t *plaintext, const size_t plaintext_size) {
@@ -19,14 +19,9 @@ bool decrypt(uint8_t *plaintext, const uint8_t *key, const uint8_t *nonce,
                                                    NULL, 0, nonce, key) == 0;
 }
 
-bool diffie_hellman(uint8_t *shared_secret, const uint8_t *our_private_key,
+bool diffie_hellman(uint8_t *shared_secret, const uint8_t *our_key_pair,
                     const uint8_t *their_public_key) {
-  return crypto_scalarmult(shared_secret, our_private_key, their_public_key) ==
-         0;
-}
-
-bool key_pair_ephemeral(uint8_t *key_pair) {
-  return crypto_box_keypair(key_pair + PRIVATE_KEY_SIZE, key_pair) == 0;
+  return crypto_scalarmult(shared_secret, our_key_pair, their_public_key) == 0;
 }
 
 bool key_pair_identity(uint8_t *key_pair) {
@@ -34,7 +29,11 @@ bool key_pair_identity(uint8_t *key_pair) {
   return crypto_sign_keypair(public_key, key_pair) == 0;
 }
 
-bool sign(uint8_t *signature, uint8_t *key_pair, const uint8_t *message,
+bool key_pair_session(uint8_t *key_pair) {
+  return crypto_box_keypair(key_pair + PRIVATE_KEY_SIZE, key_pair) == 0;
+}
+
+bool sign(uint8_t *signature, const uint8_t *key_pair, const uint8_t *message,
           const size_t message_size) {
   return crypto_sign_detached(signature, NULL, message, message_size,
                               key_pair) == 0;
@@ -62,4 +61,24 @@ bool hkdf(uint8_t *okm, const size_t okm_size, const uint8_t *ikm,
                                        prk) == 0;
 }
 
-void zeroize(uint8_t *bytes, const size_t size) { sodium_memzero(bytes, size); }
+void zeroize(uint8_t *data, const size_t data_size) {
+  sodium_memzero(data, data_size);
+}
+
+bool is_zero(const uint8_t *data, const size_t data_size) {
+  return sodium_is_zero(data, data_size) == 1;
+}
+
+uint32_t get_uint32(const uint8_t *bytes, const size_t offset) {
+  uint32_t number = ((uint32_t)bytes[offset] << 24) |
+                    ((uint32_t)bytes[offset + 1] << 16) |
+                    ((uint32_t)bytes[offset + 2] << 8) | bytes[offset + 3];
+  return number;
+}
+
+void set_uint32(uint8_t *bytes, const size_t offset, const uint32_t number) {
+  bytes[offset] = (number >> 24) & 0xFF;
+  bytes[offset + 1] = (number >> 16) & 0xFF;
+  bytes[offset + 2] = (number >> 8) & 0xFF;
+  bytes[offset + 3] = number & 0xFF;
+}

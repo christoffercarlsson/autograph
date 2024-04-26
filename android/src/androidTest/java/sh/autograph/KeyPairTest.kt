@@ -8,15 +8,15 @@ import org.junit.runner.RunWith
 @RunWith(AndroidJUnit4::class)
 class KeyPairTest {
     @Test
-    fun testGenerateKeyPair() {
-        val keyPair = KeyPair.generateKeyPair()
+    fun testGenerateIdentityKeyPair() {
+        val keyPair = KeyPair.generateIdentityKeyPair()
         assertEquals(keyPair.size, 64)
         assertFalse(keyPair.all { it == 0.toByte() })
     }
 
     @Test
-    fun testGenerateIdentityKeyPair() {
-        val keyPair = KeyPair.generateIdentityKeyPair()
+    fun testGenerateSessionKeyPair() {
+        val keyPair = KeyPair.generateSessionKeyPair()
         assertEquals(keyPair.size, 64)
         assertFalse(keyPair.all { it == 0.toByte() })
     }

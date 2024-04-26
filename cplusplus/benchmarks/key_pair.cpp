@@ -4,12 +4,12 @@
 
 #include "autograph.h"
 
-static void ephemeral_key_pair(benchmark::State& benchmarkState) {
+static void session_key_pair(benchmark::State& benchmarkState) {
   Autograph::KeyPair keyPair;
 
   for (auto _ : benchmarkState) {
-    if (!autograph_ephemeral_key_pair(keyPair.data())) {
-      throw std::runtime_error("Ephemeral key pair generation failed");
+    if (!autograph_session_key_pair(keyPair.data())) {
+      throw std::runtime_error("Session key pair generation failed");
     }
   }
 }
@@ -24,5 +24,5 @@ static void identity_key_pair(benchmark::State& benchmarkState) {
   }
 }
 
-BENCHMARK(ephemeral_key_pair);
+BENCHMARK(session_key_pair);
 BENCHMARK(identity_key_pair);

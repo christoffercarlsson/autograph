@@ -5,14 +5,14 @@
 TEST_CASE("Key pair", "[key_pair]") {
   Autograph::KeyPair emptyKeyPair;
 
-  SECTION("should generate ephemeral key pairs") {
-    auto [success, keyPair] = Autograph::generateKeyPair();
+  SECTION("should generate identity key pairs") {
+    auto [success, keyPair] = Autograph::generateIdentityKeyPair();
     REQUIRE(success == true);
     REQUIRE(keyPair != emptyKeyPair);
   }
 
-  SECTION("should generate identity key pairs") {
-    auto [success, keyPair] = Autograph::generateIdentityKeyPair();
+  SECTION("should generate session key pairs") {
+    auto [success, keyPair] = Autograph::generateSessionKeyPair();
     REQUIRE(success == true);
     REQUIRE(keyPair != emptyKeyPair);
   }
