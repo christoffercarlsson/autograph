@@ -131,17 +131,13 @@ class ChannelTest {
             114, -113, 77, 115, -121, -113, 103,
         )
 
-    private lateinit var aliceState: ByteArray
-    private lateinit var bobState: ByteArray
     private lateinit var a: Channel
     private lateinit var b: Channel
 
     @Before
     fun setUpChannels() {
-        aliceState = Channel.createState()
-        bobState = Channel.createState()
-        a = Channel(aliceState)
-        b = Channel(bobState)
+        a = Channel(3)
+        b = Channel(3)
         val aliceEphemeralKeyPair: ByteArray =
             byteArrayOf(
                 -55, -114, 54, -8, -105, -106, -32, 79, 30, 126, -49, -99, 118, 85, 9, -44,
@@ -156,14 +152,19 @@ class ChannelTest {
                 88, 115, -85, 4, 34, -75, 120, 21, 10, 39, -52, -41, -98, -46, -79, -13, 28,
                 -118, 52, 91, -20, 55, 30, 117, 10, 125, 87, -24, 80, 6, -24, 93,
             )
-        val aliceHello = a.useKeyPairs(aliceIdentityKeyPair, aliceEphemeralKeyPair)
-        val bobHello = b.useKeyPairs(bobIdentityKeyPair, bobEphemeralKeyPair)
-        a.usePublicKeys(bobHello)
-        b.usePublicKeys(aliceHello)
+
+        val (aliceIdentityKey, aliceSessionKey) = a.useKeyPairs(aliceIdentityKeyPair, aliceEphemeralKeyPair)
+        val (bobIdentityKey, bobSessionKey) = b.useKeyPairs(bobIdentityKeyPair, bobEphemeralKeyPair)
+
+        a.usePublicKeys(bobIdentityKey, bobSessionKey)
+        b.usePublicKeys(aliceIdentityKey, aliceSessionKey)
+
         val handshakeAlice = a.keyExchange(true)
         val handshakeBob = b.keyExchange(false)
+
         a.verifyKeyExchange(handshakeBob)
         b.verifyKeyExchange(handshakeAlice)
+
         assertArrayEquals(handshakeAlice, aliceHandshake)
         assertArrayEquals(handshakeBob, bobHandshake)
     }
@@ -188,57 +189,57 @@ class ChannelTest {
 
     @Test
     fun testBobMessageToAlice() {
-        val (encryptIndex, message) = b.encrypt(data)
-        val (decryptIndex, plaintext) = a.decrypt(message)
+        val (_, message) = b.encrypt(data)
+        val (_, plaintext) = a.decrypt(message)
         assertArrayEquals(plaintext, data)
         assertArrayEquals(message, bobMessage)
     }
 
     @Test
     fun testBobCertifyAliceData() {
-        val signature = b.certifyData(data)
+        val signature = b.certify(data)
         assertArrayEquals(signature, bobSignatureAliceData)
     }
 
     @Test
     fun testAliceCertifyBobData() {
-        val signature = a.certifyData(data)
+        val signature = a.certify(data)
         assertArrayEquals(signature, aliceSignatureBobData)
     }
 
     @Test
     fun testBobCertifyAliceIdentity() {
-        val signature = b.certifyIdentity()
+        val signature = b.certify(null)
         assertArrayEquals(signature, bobSignatureAliceIdentity)
     }
 
-    @Test
-    fun testAliceCertifyBobIdentity() {
-        val signature = a.certifyIdentity()
-        assertArrayEquals(signature, aliceSignatureBobIdentity)
-    }
+   @Test
+   fun testAliceCertifyBobIdentity() {
+       val signature = a.certify(null)
+       assertArrayEquals(signature, aliceSignatureBobIdentity)
+   }
 
     @Test
     fun testBobVerifyAliceData() {
-        val verified = b.verifyData(data, charlieIdentityKey, charlieSignatureAliceData)
+        val verified = b.verify(charlieIdentityKey, charlieSignatureAliceData, data)
         assertTrue(verified)
     }
 
     @Test
     fun testAliceVerifyBobData() {
-        val verified = a.verifyData(data, charlieIdentityKey, charlieSignatureBobData)
+        val verified = a.verify(charlieIdentityKey, charlieSignatureBobData, data)
         assertTrue(verified)
     }
 
     @Test
     fun testBobVerifyAliceIdentity() {
-        val verified = b.verifyIdentity(charlieIdentityKey, charlieSignatureAliceIdentity)
+        val verified = b.verify(charlieIdentityKey, charlieSignatureAliceIdentity, null)
         assertTrue(verified)
     }
 
     @Test
     fun testAliceVerifyBobIdentity() {
-        val verified = a.verifyIdentity(charlieIdentityKey, charlieSignatureBobIdentity)
+        val verified = a.verify(charlieIdentityKey, charlieSignatureBobIdentity, null)
         assertTrue(verified)
     }
 
@@ -248,29 +249,21 @@ class ChannelTest {
         val data2 = byteArrayOf(4, 5, 6)
         val data3 = byteArrayOf(7, 8, 9)
         val data4 = byteArrayOf(10, 11, 12)
-        val (encryptIndex1, message1) = a.encrypt(data1)
-        val (encryptIndex2, message2) = a.encrypt(data2)
-        val (encryptIndex3, message3) = a.encrypt(data3)
-        val (encryptIndex4, message4) = a.encrypt(data4)
-        val (decryptIndex4, plaintext4) = b.decrypt(message4)
-        val (decryptIndex2, plaintext2) = b.decrypt(message2)
-        val (decryptIndex3, plaintext3) = b.decrypt(message3)
-        val (decryptIndex1, plaintext1) = b.decrypt(message1)
-        assertEquals(decryptIndex1, 1)
-        assertEquals(decryptIndex2, 2)
-        assertEquals(decryptIndex3, 3)
-        assertEquals(decryptIndex4, 4)
+        val (_, message1) = a.encrypt(data1)
+        val (_, message2) = a.encrypt(data2)
+        val (_, message3) = a.encrypt(data3)
+        val (_, message4) = a.encrypt(data4)
+        val (index4, plaintext4) = b.decrypt(message4)
+        val (index2, plaintext2) = b.decrypt(message2)
+        val (index3, plaintext3) = b.decrypt(message3)
+        val (index1, plaintext1) = b.decrypt(message1)
+        assertEquals(index1, 1)
+        assertEquals(index2, 2)
+        assertEquals(index3, 3)
+        assertEquals(index4, 4)
         assertArrayEquals(plaintext1, data1)
         assertArrayEquals(plaintext2, data2)
         assertArrayEquals(plaintext3, data3)
         assertArrayEquals(plaintext4, data4)
-    }
-
-    @Test
-    fun testSession() {
-        val (key, ciphertext) = a.close()
-        b.open(key, ciphertext)
-        val signature = b.certifyIdentity()
-        assertArrayEquals(signature, aliceSignatureBobIdentity)
     }
 }

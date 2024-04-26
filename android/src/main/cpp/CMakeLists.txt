@@ -16,6 +16,15 @@ set(AUTOGRAPH_CMAKE_LIST_DIR
 
 include(${AUTOGRAPH_CMAKE_LIST_DIR}/sources.cmake)
 
-add_library(${AUTOGRAPH_TARGET} SHARED ${AUTOGRAPH_SOURCES} channel.c key_pair.c)
+add_library(
+  ${AUTOGRAPH_TARGET} SHARED
+  ${AUTOGRAPH_SOURCES}
+  auth.c
+  cert.c
+  channel.c
+  helpers.c
+  key_exchange.c
+  key_pair.c
+  message.c)
 
 include(${AUTOGRAPH_CMAKE_LIST_DIR}/targets.cmake)

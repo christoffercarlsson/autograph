@@ -15,9 +15,9 @@ export const createNonce = () => new Uint8Array(autograph_nonce_size())
 
 export const createPublicKey = () => new Uint8Array(autograph_public_key_size())
 
-export const createSignature = () => new Uint8Array(autograph_signature_size())
-
 export const createSecretKey = () => new Uint8Array(autograph_secret_key_size())
+
+export const createSignature = () => new Uint8Array(autograph_signature_size())
 
 export const createTranscript = () =>
   new Uint8Array(autograph_transcript_size())

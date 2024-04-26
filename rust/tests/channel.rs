@@ -170,12 +170,16 @@ fn test_key_exchange(
         a.use_key_pairs(&alice_identity_key_pair, &mut alice_ephemeral_key_pair);
     let (bob_identity_key, bob_ephemeral_key) =
         b.use_key_pairs(&bob_identity_key_pair, &mut bob_ephemeral_key_pair);
+
     a.use_public_keys(&bob_identity_key, &bob_ephemeral_key);
     b.use_public_keys(&alice_identity_key, &alice_ephemeral_key);
+
     let handshake_alice = a.key_exchange(true).unwrap();
     let handshake_bob = b.key_exchange(false).unwrap();
+
     a.verify_key_exchange(&handshake_bob).unwrap();
     b.verify_key_exchange(&handshake_alice).unwrap();
+
     assert_eq!(handshake_alice, alice_handshake);
     assert_eq!(handshake_bob, bob_handshake);
 }
