@@ -2,7 +2,7 @@
 publish = false
 name = "autograph-protocol"
 description = "A Rust implementation of the Autograph protocol"
-version = "0.5.0"
+version = "1.0.0-alpha"
 authors = ["Christoffer Carlsson <cc@christofferc.com>"]
 edition = "2021"
 keywords = [
