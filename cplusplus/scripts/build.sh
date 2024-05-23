@@ -37,7 +37,7 @@ while [ $# -gt 0 ]; do
             AUTOGRAPH_TESTS=1
             shift
             ;;
-        -w | --wasm | --web-assembly)
+        -w | --wasm | --web-assembly | --webassembly)
             AUTOGRAPH_WASM=1
             shift
             ;;

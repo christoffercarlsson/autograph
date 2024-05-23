@@ -1,4 +1,4 @@
-import wasmModule from '../wasm/autograph.js'
+import wasmReady from '../wasm/autograph.js'
 
 type EmscriptenModule = {
   _calloc: (size: number, elementSize: number) => number
@@ -9,6 +9,7 @@ type EmscriptenModule = {
     types: string[],
     values: (number | boolean)[]
   ) => number | boolean
+  getRandomValue: () => number
   HEAPU8: Uint8Array
 }
 
@@ -65,7 +66,18 @@ const call = (
 
 export const ready = async () => {
   if (!Module) {
-    Module = (await wasmModule()) as EmscriptenModule
+    Module = (await wasmReady()) as EmscriptenModule
+    try {
+      const getRandomValue = () => {
+        const view = new Uint32Array(1)
+        globalThis.crypto.getRandomValues(view)
+        return view[0] >>> 0
+      }
+      getRandomValue()
+      Module.getRandomValue = getRandomValue
+    } catch {
+      throw new Error('No secure random number generator found')
+    }
   }
 }
 

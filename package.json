@@ -36,8 +36,7 @@
   "exports": "./typescript/dist/src/autograph.js",
   "main": "./typescript/dist/src/autograph.js",
   "files": [
-    "typescript/dist/src/**/*.js",
-    "typescript/dist/src/autograph.wasm"
+    "typescript/dist/src/**/*.js"
   ],
   "homepage": "https://github.com/christoffercarlsson/autograph#readme",
   "keywords": [

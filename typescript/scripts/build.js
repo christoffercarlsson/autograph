@@ -23,10 +23,6 @@ const run = async () => {
     ...sharedOptions,
     entryPoints: await globby('typescript/tests/**/*.test.ts')
   })
-  await copyFile(
-    'typescript/wasm/autograph.wasm',
-    'typescript/dist/src/autograph.wasm'
-  )
 }
 
 run().catch((error) => {
