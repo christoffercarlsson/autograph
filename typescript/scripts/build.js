@@ -2,7 +2,6 @@ import { build } from 'esbuild'
 import sourceMapPlugin from 'esbuild-plugin-exclude-vendor-source-maps'
 import { globby } from 'globby'
 import { exit } from 'node:process'
-import { copyFile } from 'node:fs/promises'
 
 const run = async () => {
   const sharedOptions = {
@@ -16,8 +15,14 @@ const run = async () => {
   await build({
     ...sharedOptions,
     entryPoints: ['typescript/src/autograph.ts'],
+    bundle: true
+  })
+  await build({
+    ...sharedOptions,
+    entryPoints: ['typescript/src/autograph.ts'],
     bundle: true,
-    splitting: true
+    format: 'cjs',
+    outExtension: { '.js': '.cjs' }
   })
   await build({
     ...sharedOptions,
