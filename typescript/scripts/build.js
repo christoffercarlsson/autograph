@@ -2,31 +2,33 @@ import { build } from 'esbuild'
 import sourceMapPlugin from 'esbuild-plugin-exclude-vendor-source-maps'
 import { globby } from 'globby'
 import { exit } from 'node:process'
-import { copyFile } from 'node:fs/promises'
 
 const run = async () => {
   const sharedOptions = {
     format: 'esm',
+    minify: true,
     outbase: 'typescript',
     outdir: 'typescript/dist',
-    platform: 'node',
+    platform: 'browser',
     plugins: [sourceMapPlugin],
     sourcemap: true
   }
   await build({
     ...sharedOptions,
-    entryPoints: ['typescript/src/autograph.ts'],
     bundle: true,
-    splitting: true
+    entryPoints: ['typescript/src/autograph.ts']
+  })
+  await build({
+    ...sharedOptions,
+    bundle: true,
+    entryPoints: ['typescript/src/autograph.ts'],
+    format: 'cjs',
+    outExtension: { '.js': '.cjs' }
   })
   await build({
     ...sharedOptions,
     entryPoints: await globby('typescript/tests/**/*.test.ts')
   })
-  await copyFile(
-    'typescript/wasm/autograph.wasm',
-    'typescript/dist/src/autograph.wasm'
-  )
 }
 
 run().catch((error) => {
