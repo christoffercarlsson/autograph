@@ -124,10 +124,10 @@ fn test_channel() {
     ];
 
     let (alice_identity_key, alice_session_key, alice_use_public_keys) =
-        use_key_pairs(alice_identity_key_pair, alice_ephemeral_key_pair, Some(3));
+        use_key_pairs(alice_identity_key_pair, alice_ephemeral_key_pair);
 
     let (bob_identity_key, bob_session_key, bob_use_public_keys) =
-        use_key_pairs(bob_identity_key_pair, bob_ephemeral_key_pair, Some(3));
+        use_key_pairs(bob_identity_key_pair, bob_ephemeral_key_pair);
 
     let mut a = alice_use_public_keys(bob_identity_key, bob_session_key);
     let mut b = bob_use_public_keys(alice_identity_key, alice_session_key);
@@ -162,10 +162,8 @@ fn test_key_exchange(
 ) {
     let handshake_alice = a.key_exchange(true).unwrap();
     let handshake_bob = b.key_exchange(false).unwrap();
-
     a.verify_key_exchange(&handshake_bob).unwrap();
     b.verify_key_exchange(&handshake_alice).unwrap();
-
     assert_eq!(handshake_alice, alice_handshake);
     assert_eq!(handshake_bob, bob_handshake);
 }

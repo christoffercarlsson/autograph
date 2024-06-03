@@ -1,4 +1,4 @@
-use alloc::{boxed::Box, vec, vec::Vec};
+use alloc::{boxed::Box, vec::Vec};
 
 use crate::{
     auth::authenticate,
@@ -8,16 +8,10 @@ use crate::{
     key_exchange::{key_exchange, verify_key_exchange},
     key_pair::get_public_key,
     message::{decrypt, encrypt},
-    types::{KeyPair, Nonce, PublicKey, SafetyNumber, SecretKey, Signature, Transcript},
+    types::{
+        KeyPair, Nonce, PublicKey, SafetyNumber, SecretKey, Signature, SkippedIndexes, Transcript,
+    },
 };
-
-fn calculate_skipped_indexes(count: Option<u16>) -> usize {
-    if let Some(size) = count {
-        size.into()
-    } else {
-        SKIPPED_INDEXES_COUNT.into()
-    }
-}
 
 pub struct Channel {
     our_identity_key_pair: KeyPair,
@@ -29,7 +23,7 @@ pub struct Channel {
     receiving_key: SecretKey,
     sending_nonce: Nonce,
     receiving_nonce: Nonce,
-    skipped_indexes: Vec<u32>,
+    skipped_indexes: SkippedIndexes,
 }
 
 impl Channel {
@@ -38,7 +32,6 @@ impl Channel {
         our_session_key_pair: KeyPair,
         their_identity_key: PublicKey,
         their_session_key: PublicKey,
-        skipped_indexes_count: Option<u16>,
     ) -> Self {
         Self {
             our_identity_key_pair,
@@ -50,7 +43,7 @@ impl Channel {
             receiving_key: [0; SECRET_KEY_SIZE],
             sending_nonce: [0; NONCE_SIZE],
             receiving_nonce: [0; NONCE_SIZE],
-            skipped_indexes: vec![0; calculate_skipped_indexes(skipped_indexes_count)],
+            skipped_indexes: [0; SKIPPED_INDEXES_COUNT],
         }
     }
 
@@ -113,16 +106,12 @@ impl Channel {
     }
 }
 
-#[allow(clippy::type_complexity)]
+type UsePublicKeysFunction = Box<dyn FnOnce(PublicKey, PublicKey) -> Channel>;
+
 pub fn use_key_pairs(
     our_identity_key_pair: KeyPair,
     our_session_key_pair: KeyPair,
-    skipped_indexes_count: Option<u16>,
-) -> (
-    PublicKey,
-    PublicKey,
-    Box<dyn FnOnce(PublicKey, PublicKey) -> Channel>,
-) {
+) -> (PublicKey, PublicKey, UsePublicKeysFunction) {
     let our_identity_key = get_public_key(&our_identity_key_pair);
     let our_session_key = get_public_key(&our_session_key_pair);
     let use_public_keys = move |their_identity_key: PublicKey, their_session_key: PublicKey| {
@@ -131,7 +120,6 @@ pub fn use_key_pairs(
             our_session_key_pair,
             their_identity_key,
             their_session_key,
-            skipped_indexes_count,
         )
     };
     (our_identity_key, our_session_key, Box::new(use_public_keys))
