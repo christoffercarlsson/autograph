@@ -1,4 +1,4 @@
-use alloc::{boxed::Box, vec::Vec};
+use alloc::vec::Vec;
 
 use crate::{
     auth::authenticate,
@@ -6,7 +6,6 @@ use crate::{
     constants::{NONCE_SIZE, SECRET_KEY_SIZE, SKIPPED_INDEXES_COUNT, TRANSCRIPT_SIZE},
     error::Error,
     key_exchange::{key_exchange, verify_key_exchange},
-    key_pair::get_public_key,
     message::{decrypt, encrypt},
     types::{
         KeyPair, Nonce, PublicKey, SafetyNumber, SecretKey, Signature, SkippedIndexes, Transcript,
@@ -104,23 +103,4 @@ impl Channel {
             ciphertext,
         )
     }
-}
-
-type UsePublicKeysFunction = Box<dyn FnOnce(PublicKey, PublicKey) -> Channel>;
-
-pub fn use_key_pairs(
-    our_identity_key_pair: KeyPair,
-    our_session_key_pair: KeyPair,
-) -> (PublicKey, PublicKey, UsePublicKeysFunction) {
-    let our_identity_key = get_public_key(&our_identity_key_pair);
-    let our_session_key = get_public_key(&our_session_key_pair);
-    let use_public_keys = move |their_identity_key: PublicKey, their_session_key: PublicKey| {
-        Channel::new(
-            our_identity_key_pair,
-            our_session_key_pair,
-            their_identity_key,
-            their_session_key,
-        )
-    };
-    (our_identity_key, our_session_key, Box::new(use_public_keys))
 }

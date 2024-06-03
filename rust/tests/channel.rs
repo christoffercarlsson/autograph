@@ -1,4 +1,4 @@
-use autograph_protocol::{use_key_pairs, Channel, KeyPair, PublicKey, SafetyNumber, Signature};
+use autograph_protocol::{get_public_keys, Channel, KeyPair, PublicKey, SafetyNumber, Signature};
 
 #[test]
 fn test_channel() {
@@ -123,14 +123,23 @@ fn test_channel() {
         232, 80, 6, 232, 93,
     ];
 
-    let (alice_identity_key, alice_session_key, alice_use_public_keys) =
-        use_key_pairs(alice_identity_key_pair, alice_ephemeral_key_pair);
+    let (alice_identity_key, alice_session_key) =
+        get_public_keys(&alice_identity_key_pair, &alice_ephemeral_key_pair);
+    let (bob_identity_key, bob_session_key) =
+        get_public_keys(&bob_identity_key_pair, &bob_ephemeral_key_pair);
 
-    let (bob_identity_key, bob_session_key, bob_use_public_keys) =
-        use_key_pairs(bob_identity_key_pair, bob_ephemeral_key_pair);
-
-    let mut a = alice_use_public_keys(bob_identity_key, bob_session_key);
-    let mut b = bob_use_public_keys(alice_identity_key, alice_session_key);
+    let mut a = Channel::new(
+        alice_identity_key_pair,
+        alice_ephemeral_key_pair,
+        bob_identity_key,
+        bob_session_key,
+    );
+    let mut b = Channel::new(
+        bob_identity_key_pair,
+        bob_ephemeral_key_pair,
+        alice_identity_key,
+        alice_session_key,
+    );
 
     test_key_exchange(&mut a, &mut b, alice_handshake, bob_handshake);
     test_authenticate(&a, &b, safety_number);

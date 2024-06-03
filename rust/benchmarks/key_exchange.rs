@@ -37,7 +37,7 @@ pub fn benchmark(c: &mut Criterion) {
 
     c.bench_function("key_exchange", |b| {
         b.iter(|| {
-            let mut our_session_key_pair: KeyPair = [
+            let our_session_key_pair: KeyPair = [
                 201, 142, 54, 248, 151, 150, 224, 79, 30, 126, 207, 157, 118, 85, 9, 212, 148, 156,
                 73, 176, 107, 107, 47, 111, 95, 98, 33, 192, 80, 223, 48, 221, 35, 16, 23, 37, 205,
                 131, 166, 97, 13, 81, 136, 246, 193, 253, 139, 193, 230, 155, 222, 221, 37, 114,
@@ -46,7 +46,7 @@ pub fn benchmark(c: &mut Criterion) {
             key_exchange(
                 true,
                 &our_identity_key_pair,
-                black_box(&mut our_session_key_pair),
+                black_box(&our_session_key_pair),
                 &their_identity_key,
                 &their_session_key,
             )

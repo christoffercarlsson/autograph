@@ -14,26 +14,6 @@ use crate::{
     types::{Digest, KeyPair, Nonce, PrivateKey, PublicKey, SecretKey, SharedSecret, Signature},
 };
 
-pub fn encrypt(ciphertext: &mut [u8], key: &SecretKey, nonce: &Nonce, plaintext: &[u8]) -> bool {
-    let cipher = ChaCha20Poly1305::new(GenericArray::from_slice(key));
-    let result = cipher.encrypt(GenericArray::from_slice(nonce), plaintext.as_ref());
-    if result.is_err() {
-        return false;
-    }
-    ciphertext.copy_from_slice(result.unwrap().as_slice());
-    true
-}
-
-pub fn decrypt(plaintext: &mut [u8], key: &SecretKey, nonce: &Nonce, ciphertext: &[u8]) -> bool {
-    let cipher = ChaCha20Poly1305::new(GenericArray::from_slice(key));
-    let result = cipher.decrypt(GenericArray::from_slice(nonce), ciphertext.as_ref());
-    if result.is_err() {
-        return false;
-    }
-    plaintext.copy_from_slice(result.unwrap().as_slice());
-    true
-}
-
 pub fn diffie_hellman(
     shared_secret: &mut SharedSecret,
     our_key_pair: &KeyPair,
@@ -117,15 +97,22 @@ pub fn hkdf(okm: &mut [u8], ikm: &[u8], salt: &[u8], info: &[u8]) -> bool {
     h.expand(info, okm).is_ok()
 }
 
-pub fn get_uint32(bytes: &[u8], offset: usize) -> u32 {
-    u32::from_be_bytes([
-        bytes[offset],
-        bytes[offset + 1],
-        bytes[offset + 2],
-        bytes[offset + 3],
-    ])
+pub fn encrypt(ciphertext: &mut [u8], key: &SecretKey, nonce: &Nonce, plaintext: &[u8]) -> bool {
+    let cipher = ChaCha20Poly1305::new(GenericArray::from_slice(key));
+    let result = cipher.encrypt(GenericArray::from_slice(nonce), plaintext.as_ref());
+    if result.is_err() {
+        return false;
+    }
+    ciphertext.copy_from_slice(result.unwrap().as_slice());
+    true
 }
 
-pub fn set_uint32(bytes: &mut [u8], offset: usize, number: u32) {
-    bytes[offset..offset + 4].copy_from_slice(number.to_be_bytes().as_slice());
+pub fn decrypt(plaintext: &mut [u8], key: &SecretKey, nonce: &Nonce, ciphertext: &[u8]) -> bool {
+    let cipher = ChaCha20Poly1305::new(GenericArray::from_slice(key));
+    let result = cipher.decrypt(GenericArray::from_slice(nonce), ciphertext.as_ref());
+    if result.is_err() {
+        return false;
+    }
+    plaintext.copy_from_slice(result.unwrap().as_slice());
+    true
 }
