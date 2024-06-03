@@ -1,22 +1,22 @@
-export declare const authenticate: (
+declare const authenticate: (
   ourIdentityKeyPair: Uint8Array,
   theirIdentityKey: Uint8Array
 ) => Uint8Array
 
-export declare const certify: (
+declare const certify: (
   ourIdentityKeyPair: Uint8Array,
   theirIdentityKey: Uint8Array,
   data?: Uint8Array
 ) => Uint8Array
 
-export declare const verify: (
+declare const verify: (
   ownerIdentityKey: Uint8Array,
   certifierIdentityKey: Uint8Array,
   signature: Uint8Array,
   data?: Uint8Array
 ) => boolean
 
-export default class Channel {
+declare class Channel {
   constructor(skippedIndexesCount?: number)
 
   isEstablished(): boolean
@@ -49,13 +49,13 @@ export default class Channel {
   close(): void
 }
 
-export declare const ready: () => Promise<void>
+declare const ready: () => Promise<void>
 
-export declare const zeroize: (data: Uint8Array) => void
+declare const zeroize: (data: Uint8Array) => void
 
-export declare const isZero: (data: Uint8Array) => boolean
+declare const isZero: (data: Uint8Array) => boolean
 
-export declare const keyExchange: (
+declare const keyExchange: (
   isInitiator: boolean,
   ourIdentityKeyPair: Uint8Array,
   ourSessionKeyPair: Uint8Array,
@@ -63,28 +63,45 @@ export declare const keyExchange: (
   theirSessionKey: Uint8Array
 ) => [Uint8Array, Uint8Array, Uint8Array, Uint8Array]
 
-export declare const verifyKeyExchange: (
+declare const verifyKeyExchange: (
   transcript: Uint8Array,
   ourIdentityKeyPair: Uint8Array,
   theirIdentityKey: Uint8Array,
   theirSignature: Uint8Array
 ) => void
 
-export declare const generateIdentityKeyPair: () => Uint8Array
+declare const generateIdentityKeyPair: () => Uint8Array
 
-export declare const generateSessionKeyPair: () => Uint8Array
+declare const generateSessionKeyPair: () => Uint8Array
 
-export declare const getPublicKey: (keyPair: Uint8Array) => Uint8Array
+declare const getPublicKey: (keyPair: Uint8Array) => Uint8Array
 
-export declare const encrypt: (
+declare const encrypt: (
   key: Uint8Array,
   nonce: Uint8Array,
   plaintext: Uint8Array
 ) => [number, Uint8Array]
 
-export declare const decrypt: (
+declare const decrypt: (
   key: Uint8Array,
   nonce: Uint8Array,
   skippedIndexes: Uint32Array,
   ciphertext: Uint8Array
 ) => [number, Uint8Array]
+
+export {
+  authenticate,
+  certify,
+  verify,
+  Channel,
+  ready,
+  zeroize,
+  isZero,
+  keyExchange,
+  verifyKeyExchange,
+  generateIdentityKeyPair,
+  generateSessionKeyPair,
+  getPublicKey,
+  encrypt,
+  decrypt
+}
