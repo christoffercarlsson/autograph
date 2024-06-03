@@ -117,19 +117,6 @@ pub fn hkdf(okm: &mut [u8], ikm: &[u8], salt: &[u8], info: &[u8]) -> bool {
     h.expand(info, okm).is_ok()
 }
 
-pub fn zeroize(bytes: &mut [u8]) {
-    bytes.zeroize();
-}
-
-pub fn is_zero(bytes: &[u8]) -> bool {
-    for &byte in bytes {
-        if byte != 0 {
-            return false;
-        }
-    }
-    true
-}
-
 pub fn get_uint32(bytes: &[u8], offset: usize) -> u32 {
     u32::from_be_bytes([
         bytes[offset],

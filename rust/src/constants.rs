@@ -21,4 +21,4 @@ pub const FINGERPRINT_DIVISOR: u32 = 100000;
 
 pub const INFO: [u8; 9] = [97, 117, 116, 111, 103, 114, 97, 112, 104];
 
-pub const DEFAULT_SKIPPED_INDEXES_COUNT: u16 = 100;
+pub const SKIPPED_INDEXES_COUNT: u16 = 128;
