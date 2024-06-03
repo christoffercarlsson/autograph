@@ -2,7 +2,7 @@ set(CMAKE_SYSTEM_NAME Darwin)
 set(CMAKE_OSX_SYSROOT "macosx")
 
 set(CMAKE_OSX_DEPLOYMENT_TARGET
-    "10.14"
+    "14.0"
     CACHE STRING "Minimum macOS deployment target")
 set(CMAKE_C_FLAGS
     "${CMAKE_C_FLAGS} -arch ${CMAKE_OSX_ARCHITECTURES} -mmacosx-version-min=${CMAKE_OSX_DEPLOYMENT_TARGET}"
