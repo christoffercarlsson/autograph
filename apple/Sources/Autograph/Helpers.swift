@@ -1,40 +1,38 @@
 import Clibautograph
 import Foundation
 
-public typealias Bytes = [UInt8]
-
-func createBytes(_ size: Int) -> Bytes {
-    Bytes(repeating: 0, count: size)
+func createBytes(_ size: Int) -> [UInt8] {
+    [UInt8](repeating: 0, count: size)
 }
 
-func createKeyPair() -> Bytes {
+func createKeyPair() -> [UInt8] {
     createBytes(autograph_key_pair_size())
 }
 
-func createNonce() -> Bytes {
+func createNonce() -> [UInt8] {
     createBytes(autograph_nonce_size())
 }
 
-func createPublicKey() -> Bytes {
+func createPublicKey() -> [UInt8] {
     createBytes(autograph_public_key_size())
 }
 
-func createSecretKey() -> Bytes {
+func createSafetyNumber() -> [UInt8] {
+    createBytes(autograph_safety_number_size())
+}
+
+func createSecretKey() -> [UInt8] {
     createBytes(autograph_secret_key_size())
 }
 
-func createSignature() -> Bytes {
+func createSignature() -> [UInt8] {
     createBytes(autograph_signature_size())
 }
 
-func createTranscript() -> Bytes {
+func createSkippedIndexes() -> [UInt32] {
+    [UInt32](repeating: 0, count: Int(autograph_skipped_indexes_count()))
+}
+
+func createTranscript() -> [UInt8] {
     createBytes(autograph_transcript_size())
-}
-
-public func zeroize(data: inout Bytes) {
-    autograph_zeroize(&data, data.count)
-}
-
-public func isZero(data: Bytes) -> Bool {
-    autograph_is_zero(data, data.count)
 }

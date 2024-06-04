@@ -5,9 +5,13 @@
 #include <stddef.h>
 #include <stdint.h>
 
+#include "autograph.h"
+
 #ifdef __cplusplus
 extern "C" {
 #endif
+
+bool autograph_ready();
 
 bool autograph_identity_key_pair(uint8_t *key_pair);
 
@@ -32,7 +36,7 @@ bool autograph_key_exchange(uint8_t *transcript, uint8_t *our_signature,
                             uint8_t *sending_key, uint8_t *receiving_key,
                             const bool is_initiator,
                             const uint8_t *our_identity_key_pair,
-                            uint8_t *our_session_key_pair,
+                            const uint8_t *our_session_key_pair,
                             const uint8_t *their_identity_key,
                             const uint8_t *their_session_key);
 
@@ -48,12 +52,10 @@ bool autograph_encrypt(uint32_t *index, uint8_t *ciphertext, const uint8_t *key,
 bool autograph_decrypt(uint32_t *index, uint8_t *plaintext,
                        size_t *plaintext_size, const uint8_t *key,
                        uint8_t *nonce, uint32_t *skipped_indexes,
-                       const size_t skipped_indexes_size,
+                       const uint16_t skipped_indexes_count,
                        const uint8_t *ciphertext, const size_t ciphertext_size);
 
-void autograph_zeroize(uint8_t *data, const size_t data_size);
-
-bool autograph_is_zero(const uint8_t *data, const size_t data_size);
+uint16_t autograph_skipped_indexes_count();
 
 size_t autograph_key_pair_size();
 
@@ -73,12 +75,10 @@ size_t autograph_ciphertext_size(const size_t plaintext_size);
 
 size_t autograph_plaintext_size(const size_t ciphertext_size);
 
-bool autograph_use_key_pairs(uint8_t *identity_public_key,
-                             uint8_t *session_public_key,
-                             uint8_t *identity_key_pair,
+void autograph_use_key_pairs(uint8_t *identity_key_pair,
                              uint8_t *session_key_pair,
                              const uint8_t *our_identity_key_pair,
-                             uint8_t *our_session_key_pair);
+                             const uint8_t *our_session_key_pair);
 
 void autograph_use_public_keys(uint8_t *identity_key, uint8_t *session_key,
                                const uint8_t *their_identity_key,
@@ -101,6 +101,7 @@ constexpr size_t SAFETY_NUMBER_SIZE = 64;
 constexpr size_t SECRET_KEY_SIZE = 32;
 constexpr size_t SIGNATURE_SIZE = 64;
 constexpr size_t TRANSCRIPT_SIZE = 64;
+constexpr size_t SKIPPED_INDEXES_COUNT = 128;
 
 using Bytes = std::vector<uint8_t>;
 using KeyPair = std::array<uint8_t, KEY_PAIR_SIZE>;
@@ -112,29 +113,31 @@ using Signature = std::array<uint8_t, SIGNATURE_SIZE>;
 using SkippedIndexes = std::vector<uint32_t>;
 using Transcript = std::array<uint8_t, TRANSCRIPT_SIZE>;
 
-using std::optional;
-using std::tuple;
+bool ready();
 
-tuple<bool, KeyPair> generateIdentityKeyPair();
+std::tuple<bool, KeyPair> generateIdentityKeyPair();
 
-tuple<bool, KeyPair> generateSessionKeyPair();
+std::tuple<bool, KeyPair> generateSessionKeyPair();
 
 PublicKey getPublicKey(const KeyPair &keyPair);
 
-tuple<bool, SafetyNumber> authenticate(const KeyPair &ourIdentityKeyPair,
-                                       const PublicKey &theirIdentityKey);
+std::tuple<PublicKey, PublicKey> getPublicKeys(const KeyPair &identityKeyPair,
+                                               const KeyPair &sessionKeyPair);
 
-tuple<bool, Signature> certify(const KeyPair &ourIdentityKeyPair,
-                               const PublicKey &theirIdentityKey,
-                               const optional<Bytes> &data);
+std::tuple<bool, SafetyNumber> authenticate(const KeyPair &ourIdentityKeyPair,
+                                            const PublicKey &theirIdentityKey);
+
+std::tuple<bool, Signature> certify(const KeyPair &ourIdentityKeyPair,
+                                    const PublicKey &theirIdentityKey,
+                                    const std::optional<Bytes> &data);
 
 bool verify(const PublicKey &ownerIdentityKey,
             const PublicKey &certifierIdentityKey, const Signature &signature,
-            const optional<Bytes> &data);
+            const std::optional<Bytes> &data);
 
-tuple<bool, Transcript, Signature, SecretKey, SecretKey> keyExchange(
+std::tuple<bool, Transcript, Signature, SecretKey, SecretKey> keyExchange(
     const bool isInitiator, const KeyPair &ourIdentityKeyPair,
-    KeyPair &ourSessionKeyPair, const PublicKey &theirIdentityKey,
+    const KeyPair &ourSessionKeyPair, const PublicKey &theirIdentityKey,
     const PublicKey &theirSessionKey);
 
 bool verifyKeyExchange(const Transcript &transcript,
@@ -142,41 +145,32 @@ bool verifyKeyExchange(const Transcript &transcript,
                        const PublicKey &theirIdentityKey,
                        const Signature &theirSignature);
 
-tuple<bool, uint32_t, Bytes> encrypt(const SecretKey &key, Nonce &nonce,
-                                     const Bytes &plaintext);
+std::tuple<bool, uint32_t, Bytes> encrypt(const SecretKey &key, Nonce &nonce,
+                                          const Bytes &plaintext);
 
-tuple<bool, uint32_t, Bytes> decrypt(const SecretKey &key, Nonce &nonce,
-                                     SkippedIndexes &skippedIndexes,
-                                     const Bytes &ciphertext);
+std::tuple<bool, uint32_t, Bytes> decrypt(const SecretKey &key, Nonce &nonce,
+                                          SkippedIndexes &skippedIndexes,
+                                          const Bytes &ciphertext);
 
 class Channel {
  public:
-  Channel(const optional<uint16_t> skippedIndexesCount);
+  Channel(const KeyPair &ourIdentityKeyPair, const KeyPair &ourSessionKeyPair,
+          const PublicKey &theirIdentityKey, const PublicKey &theirSessionKey);
 
-  bool isEstablished() const;
+  std::tuple<bool, SafetyNumber> authenticate() const;
 
-  tuple<bool, PublicKey, PublicKey> useKeyPairs(
-      const KeyPair &ourIdentityKeyPair, KeyPair &ourSessionKeyPair);
-
-  void usePublicKeys(const PublicKey &theirIdentityKey,
-                     const PublicKey &theirSessionKey);
-
-  tuple<bool, SafetyNumber> authenticate() const;
-
-  tuple<bool, Signature> certify(const optional<Bytes> &data) const;
+  std::tuple<bool, Signature> certify(const std::optional<Bytes> &data) const;
 
   bool verify(const PublicKey &certifierIdentityKey, const Signature &signature,
-              const optional<Bytes> &data) const;
+              const std::optional<Bytes> &data) const;
 
-  tuple<bool, Signature> keyExchange(const bool isInitiator);
+  std::tuple<bool, Signature> keyExchange(const bool isInitiator);
 
   bool verifyKeyExchange(const Signature &signature);
 
-  tuple<bool, uint32_t, Bytes> encrypt(const Bytes &plaintext);
+  std::tuple<bool, uint32_t, Bytes> encrypt(const Bytes &plaintext);
 
-  tuple<bool, uint32_t, Bytes> decrypt(const Bytes &ciphertext);
-
-  void close();
+  std::tuple<bool, uint32_t, Bytes> decrypt(const Bytes &ciphertext);
 
  private:
   KeyPair ourIdentityKeyPair;
@@ -189,18 +183,7 @@ class Channel {
   Nonce sendingNonce;
   Nonce receivingNonce;
   SkippedIndexes skippedIndexes;
-  bool established;
 };
-
-void zeroize(Bytes &data);
-
-void zeroize(SecretKey &key);
-
-void zeroize(KeyPair &keyPair);
-
-void zeroize(Nonce &nonce);
-
-bool isZero(Bytes &data);
 
 }  // namespace Autograph
 #endif

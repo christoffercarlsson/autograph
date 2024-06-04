@@ -3,7 +3,7 @@ import XCTest
 @testable import Autograph
 
 final class ChannelTests: XCTestCase {
-    let aliceHandshake: Autograph.Bytes = [
+    let aliceHandshake: [UInt8] = [
         19, 133, 19, 97, 135, 34, 43, 49, 100, 198, 150, 205, 26, 151, 20, 127,
         115,
         193, 120, 209, 25, 46, 221, 194, 223, 118, 62, 0, 135, 6, 112, 250, 198,
@@ -12,7 +12,7 @@ final class ChannelTests: XCTestCase {
         25, 35, 233, 170, 220, 170, 38, 185, 233, 61, 160, 12, 117, 73, 8,
     ]
 
-    let bobHandshake: Autograph.Bytes = [
+    let bobHandshake: [UInt8] = [
         89, 193, 59, 76, 215, 36, 171, 145, 63, 32, 134, 60, 225, 112, 136, 191,
         176, 64, 42, 18, 210, 2, 33, 212, 243, 245, 230, 147, 182, 20, 81, 101,
         170,
@@ -21,19 +21,19 @@ final class ChannelTests: XCTestCase {
         91, 236, 12, 10, 64, 82, 140, 15, 76, 243, 188, 24, 236, 62, 5,
     ]
 
-    let aliceMessage: Autograph.Bytes = [
+    let aliceMessage: [UInt8] = [
         51, 243, 8, 165, 206, 25, 129, 63, 124, 51, 176, 40, 21, 4, 178, 3, 128,
         195, 26, 68, 65,
         200, 192, 212, 63, 10, 201, 247, 177, 3, 137, 113,
     ]
 
-    let bobMessage: Autograph.Bytes = [
+    let bobMessage: [UInt8] = [
         253, 199, 105, 203, 139, 136, 132, 228, 198, 157, 65, 140, 116, 90, 212,
         112, 55, 190, 186,
         221, 205, 80, 46, 24, 161, 117, 201, 113, 133, 213, 29, 105,
     ]
 
-    let aliceSignatureBobData: Autograph.Bytes = [
+    let aliceSignatureBobData: [UInt8] = [
         198, 235, 143, 145, 121, 29, 143, 128, 167, 118, 33, 71, 38, 209, 169,
         2,
         134, 90, 203, 72, 171, 252, 236, 237, 55, 41, 227, 248, 198, 165, 58,
@@ -43,7 +43,7 @@ final class ChannelTests: XCTestCase {
         186, 88, 238, 233, 86, 167, 207, 20, 150, 227, 38, 160, 68, 82, 8,
     ]
 
-    let aliceSignatureBobIdentity: Autograph.Bytes = [
+    let aliceSignatureBobIdentity: [UInt8] = [
         170, 64, 159, 119, 20, 17, 130, 46, 124, 70, 154, 47, 90, 7, 116, 204,
         255,
         198, 56, 60, 24, 112, 214, 188, 212, 64, 210, 117, 228, 145, 111, 250,
@@ -53,7 +53,7 @@ final class ChannelTests: XCTestCase {
         255, 184, 35, 205, 183, 167, 138, 179, 217, 135, 163, 124, 13, 5,
     ]
 
-    let bobSignatureAliceData: Autograph.Bytes = [
+    let bobSignatureAliceData: [UInt8] = [
         17, 229, 247, 220, 138, 161, 5, 224, 147, 178, 230, 168, 132, 164, 94,
         3,
         119, 118, 16, 163, 222, 85, 3, 160, 88, 222, 210, 140, 222, 158, 254,
@@ -63,7 +63,7 @@ final class ChannelTests: XCTestCase {
         177, 72, 126, 225, 214, 41, 80, 214, 247, 95, 23, 145, 227, 87, 172, 4,
     ]
 
-    let bobSignatureAliceIdentity: Autograph.Bytes = [
+    let bobSignatureAliceIdentity: [UInt8] = [
         186, 27, 195, 159, 150, 127, 96, 11, 25, 224, 30, 145, 56, 194, 138,
         164,
         70, 54, 243, 213, 229, 203, 179, 218, 207, 213, 168, 160, 56, 32, 164,
@@ -73,13 +73,13 @@ final class ChannelTests: XCTestCase {
         171, 20, 194, 165, 165, 65, 178, 190, 16, 44, 82, 157, 68, 102, 13,
     ]
 
-    let charlieIdentityKey: Autograph.Bytes = [
+    let charlieIdentityKey: [UInt8] = [
         129, 128, 10, 70, 174, 223, 175, 90, 43, 37, 148, 125, 188, 163, 110,
         136,
         15, 246, 192, 76, 167, 8, 26, 149, 219, 223, 83, 47, 193, 159, 6, 3,
     ]
 
-    let charlieSignatureAliceData: Autograph.Bytes = [
+    let charlieSignatureAliceData: [UInt8] = [
         231, 126, 138, 39, 145, 83, 130, 243, 2, 56, 53, 185, 199, 242, 217,
         239,
         118, 208, 172, 6, 201, 132, 94, 179, 57, 59, 160, 23, 150, 221, 67, 122,
@@ -87,7 +87,7 @@ final class ChannelTests: XCTestCase {
         179, 142, 37, 4, 135, 162, 118, 160, 119, 245, 234, 39, 26, 75, 71, 6,
     ]
 
-    let charlieSignatureAliceIdentity: Autograph.Bytes = [
+    let charlieSignatureAliceIdentity: [UInt8] = [
         146, 120, 170, 85, 78, 187, 162, 243, 234, 149, 138, 201, 18, 132, 187,
         129,
         45, 53, 116, 227, 178, 209, 200, 224, 149, 91, 166, 120, 203, 73, 138,
@@ -98,7 +98,7 @@ final class ChannelTests: XCTestCase {
         9,
     ]
 
-    let charlieSignatureBobData: Autograph.Bytes = [
+    let charlieSignatureBobData: [UInt8] = [
         135, 249, 64, 214, 240, 146, 173, 141, 97, 18, 16, 47, 83, 125, 13, 166,
         169, 96, 99, 21, 215, 217, 236, 173, 120, 50, 143, 251, 228, 76, 195, 8,
         248, 133, 170, 103, 122, 169, 190, 57, 51, 14, 171, 199, 229, 55, 55,
@@ -106,7 +106,7 @@ final class ChannelTests: XCTestCase {
         53, 202, 139, 118, 93, 68, 131, 96, 175, 50, 31, 243, 170, 34, 102, 1,
     ]
 
-    let charlieSignatureBobIdentity: Autograph.Bytes = [
+    let charlieSignatureBobIdentity: [UInt8] = [
         198, 41, 56, 189, 24, 9, 75, 102, 228, 51, 193, 102, 25, 51, 92, 1, 192,
         219, 16, 17, 22, 28, 22, 16, 198, 67, 248, 16, 98, 164, 99, 243, 254,
         45,
@@ -114,11 +114,11 @@ final class ChannelTests: XCTestCase {
         255, 51, 237, 60, 37, 224, 232, 149, 153, 213, 204, 93, 26, 7,
     ]
 
-    let data: Autograph.Bytes = [
+    let data: [UInt8] = [
         72, 101, 108, 108, 111, 32, 87, 111, 114, 108, 100,
     ]
 
-    let safetyNumber: Autograph.Bytes = [
+    let safetyNumber: [UInt8] = [
         0, 0, 126, 217, 0, 0, 218, 180, 0, 1, 102, 162, 0, 0, 41, 97, 0, 0, 40,
         245,
         0, 1, 15, 218, 0, 0, 12, 28, 0, 0, 98, 95, 0, 0, 96, 224, 0, 0, 16, 147,
@@ -128,7 +128,7 @@ final class ChannelTests: XCTestCase {
         0, 48, 226,
     ]
 
-    let aliceIdentityKeyPair: Autograph.Bytes = [
+    let aliceIdentityKeyPair: [UInt8] = [
         118, 164, 17, 240, 147, 79, 190, 38, 66, 93, 254, 238, 125, 202, 197, 2,
         56, 252, 122, 177,
         18, 187, 249, 208, 29, 149, 122, 103, 57, 199, 19, 17, 213, 153, 88,
@@ -139,7 +139,7 @@ final class ChannelTests: XCTestCase {
         24, 225, 91, 220, 141, 150,
     ]
 
-    let bobIdentityKeyPair: Autograph.Bytes = [
+    let bobIdentityKeyPair: [UInt8] = [
         52, 0, 150, 226, 138, 192, 249, 231, 126, 199, 95, 240, 106, 17,
         150,
         95, 221, 247, 33,
@@ -153,13 +153,13 @@ final class ChannelTests: XCTestCase {
 
     var a: Autograph.Channel!
     var b: Autograph.Channel!
-    var aliceEphemeralKeyPair: Autograph.Bytes!
-    var bobEphemeralKeyPair: Autograph.Bytes!
-    var handshakeAlice: Autograph.Bytes!
-    var handshakeBob: Autograph.Bytes!
+    var aliceSessionKeyPair: [UInt8]!
+    var bobSessionKeyPair: [UInt8]!
+    var handshakeAlice: [UInt8]!
+    var handshakeBob: [UInt8]!
 
     override func setUpWithError() throws {
-        aliceEphemeralKeyPair = [
+        aliceSessionKeyPair = [
             201, 142, 54, 248, 151, 150, 224, 79, 30, 126, 207, 157, 118, 85, 9,
             212, 148, 156, 73,
             176, 107, 107, 47, 111, 95, 98, 33, 192, 80, 223, 48, 221, 35, 16,
@@ -171,7 +171,7 @@ final class ChannelTests: XCTestCase {
             210, 144, 127, 176, 198, 45,
         ]
 
-        bobEphemeralKeyPair = [
+        bobSessionKeyPair = [
             74, 233, 106, 152, 76, 212, 181, 144, 132, 237, 223, 58, 122, 173,
             99, 100, 152, 219, 214,
             210, 213, 72, 171, 73, 167, 92, 199, 196, 176, 66, 213, 208, 88,
@@ -183,24 +183,27 @@ final class ChannelTests: XCTestCase {
             232, 80, 6, 232, 93,
         ]
 
-        a = Autograph.Channel(skippedIndexesCount: 3)
-        b = Autograph.Channel(skippedIndexesCount: 3)
+        try Autograph.ready()
 
-        let (aliceIdentityKey, aliceSessionKey) = try a.useKeyPairs(
+        let (aliceIdentityKey, aliceSessionKey) = Autograph.getPublicKeys(
+            identityKeyPair: aliceIdentityKeyPair,
+            sessionKeyPair: aliceSessionKeyPair
+        )
+
+        let (bobIdentityKey, bobSessionKey) = Autograph.getPublicKeys(
+            identityKeyPair: bobIdentityKeyPair,
+            sessionKeyPair: bobSessionKeyPair
+        )
+
+        a = Autograph.Channel(
             ourIdentityKeyPair: aliceIdentityKeyPair,
-            ourSessionKeyPair: &aliceEphemeralKeyPair
+            ourSessionKeyPair: aliceSessionKeyPair,
+            theirIdentityKey: bobIdentityKey, theirSessionKey: bobSessionKey
         )
 
-        let (bobIdentityKey, bobSessionKey) = try b.useKeyPairs(
+        b = Autograph.Channel(
             ourIdentityKeyPair: bobIdentityKeyPair,
-            ourSessionKeyPair: &bobEphemeralKeyPair
-        )
-
-        a.usePublicKeys(
-            theirIdentityKey: bobIdentityKey,
-            theirSessionKey: bobSessionKey
-        )
-        b.usePublicKeys(
+            ourSessionKeyPair: bobSessionKeyPair,
             theirIdentityKey: aliceIdentityKey,
             theirSessionKey: aliceSessionKey
         )
@@ -316,10 +319,10 @@ final class ChannelTests: XCTestCase {
 
     // Should handle out of order messages correctly
     func testOutOfOrderMessages() throws {
-        let data1: Autograph.Bytes = [1, 2, 3]
-        let data2: Autograph.Bytes = [4, 5, 6]
-        let data3: Autograph.Bytes = [7, 8, 9]
-        let data4: Autograph.Bytes = [10, 11, 12]
+        let data1: [UInt8] = [1, 2, 3]
+        let data2: [UInt8] = [4, 5, 6]
+        let data3: [UInt8] = [7, 8, 9]
+        let data4: [UInt8] = [10, 11, 12]
         let (_, message1) = try a.encrypt(plaintext: data1)
         let (_, message2) = try a.encrypt(plaintext: data2)
         let (_, message3) = try a.encrypt(plaintext: data3)

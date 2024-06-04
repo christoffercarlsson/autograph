@@ -2,10 +2,10 @@ import Clibautograph
 import Foundation
 
 public func certify(
-    ourIdentityKeyPair: Bytes,
-    theirIdentityKey: Bytes,
-    data: Bytes?
-) throws -> Bytes {
+    ourIdentityKeyPair: [UInt8],
+    theirIdentityKey: [UInt8],
+    data: [UInt8]?
+) throws -> [UInt8] {
     var signature = createSignature()
     var success = false
     if let data {
@@ -32,10 +32,10 @@ public func certify(
 }
 
 public func verify(
-    ownerIdentityKey: Bytes,
-    certifierIdentityKey: Bytes,
-    signature: Bytes,
-    data: Bytes?
+    ownerIdentityKey: [UInt8],
+    certifierIdentityKey: [UInt8],
+    signature: [UInt8],
+    data: [UInt8]?
 ) -> Bool {
     var verified = false
     if let data {
