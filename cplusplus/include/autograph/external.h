@@ -36,10 +36,6 @@ bool hkdf(uint8_t *okm, const size_t okm_size, const uint8_t *ikm,
           const size_t ikm_size, const uint8_t *salt, const size_t salt_size,
           const uint8_t *info, const size_t info_size);
 
-void zeroize(uint8_t *data, const size_t data_size);
-
-bool is_zero(const uint8_t *data, const size_t data_size);
-
 uint32_t get_uint32(const uint8_t *bytes, const size_t offset);
 
 void set_uint32(uint8_t *bytes, const size_t offset, const uint32_t number);

@@ -1,12 +1,25 @@
-#include "constants.h"
-#include "external.h"
+#include "helpers.h"
 
-void autograph_zeroize(uint8_t *data, const size_t data_size) {
-  zeroize(data, data_size);
+#include "autograph.h"
+#include "constants.h"
+#include "sodium.h"
+
+uint32_t get_uint32(const uint8_t *bytes, const size_t offset) {
+  uint32_t number = ((uint32_t)bytes[offset] << 24) |
+                    ((uint32_t)bytes[offset + 1] << 16) |
+                    ((uint32_t)bytes[offset + 2] << 8) | bytes[offset + 3];
+  return number;
 }
 
-bool autograph_is_zero(const uint8_t *data, const size_t data_size) {
-  return is_zero(data, data_size);
+void set_uint32(uint8_t *bytes, const size_t offset, const uint32_t number) {
+  bytes[offset] = (number >> 24) & 0xFF;
+  bytes[offset + 1] = (number >> 16) & 0xFF;
+  bytes[offset + 2] = (number >> 8) & 0xFF;
+  bytes[offset + 3] = number & 0xFF;
+}
+
+void zeroize(uint8_t *data, const size_t data_size) {
+  sodium_memzero(data, data_size);
 }
 
 size_t autograph_key_pair_size() { return KEY_PAIR_SIZE; }

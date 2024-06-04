@@ -105,7 +105,7 @@ TEST_CASE("Channel", "[channel]") {
       111, 196, 208, 155, 156, 165, 31,  120, 186, 79,  205, 247, 175,
       243, 184, 114, 80,  152, 243, 24,  225, 91,  220, 141, 150};
 
-  Autograph::KeyPair aliceEphemeralKeyPair = {
+  Autograph::KeyPair aliceSessionKeyPair = {
       201, 142, 54,  248, 151, 150, 224, 79,  30,  126, 207, 157, 118,
       85,  9,   212, 148, 156, 73,  176, 107, 107, 47,  111, 95,  98,
       33,  192, 80,  223, 48,  221, 35,  16,  23,  37,  205, 131, 166,
@@ -119,24 +119,26 @@ TEST_CASE("Channel", "[channel]") {
       222, 101, 149, 224, 200, 223, 235, 222, 110, 67,  61,  200, 62,
       29,  37,  150, 228, 137, 114, 143, 77,  115, 135, 143, 103};
 
-  Autograph::KeyPair bobEphemeralKeyPair = {
+  Autograph::KeyPair bobSessionKeyPair = {
       74,  233, 106, 152, 76,  212, 181, 144, 132, 237, 223, 58,  122,
       173, 99,  100, 152, 219, 214, 210, 213, 72,  171, 73,  167, 92,
       199, 196, 176, 66,  213, 208, 88,  115, 171, 4,   34,  181, 120,
       21,  10,  39,  204, 215, 158, 210, 177, 243, 28,  138, 52,  91,
       236, 55,  30,  117, 10,  125, 87,  232, 80,  6,   232, 93};
 
-  Autograph::Channel a(3);
-  Autograph::Channel b(3);
+  bool initialized = Autograph::ready();
 
-  auto [aliceInit, aliceIdentityKey, aliceSessionKey] =
-      a.useKeyPairs(aliceIdentityKeyPair, aliceEphemeralKeyPair);
+  REQUIRE(initialized == true);
 
-  auto [bobInit, bobIdentityKey, bobSessionKey] =
-      b.useKeyPairs(bobIdentityKeyPair, bobEphemeralKeyPair);
+  auto [aliceIdentityKey, aliceSessionKey] =
+      Autograph::getPublicKeys(aliceIdentityKeyPair, aliceSessionKeyPair);
+  auto [bobIdentityKey, bobSessionKey] =
+      Autograph::getPublicKeys(bobIdentityKeyPair, bobSessionKeyPair);
 
-  a.usePublicKeys(bobIdentityKey, bobSessionKey);
-  b.usePublicKeys(aliceIdentityKey, aliceSessionKey);
+  Autograph::Channel a(aliceIdentityKeyPair, aliceSessionKeyPair,
+                       bobIdentityKey, bobSessionKey);
+  Autograph::Channel b(bobIdentityKeyPair, bobSessionKeyPair, aliceIdentityKey,
+                       aliceSessionKey);
 
   auto [aliceKeyExchange, handshakeAlice] = a.keyExchange(true);
   auto [bobKeyExchange, handshakeBob] = b.keyExchange(false);
@@ -145,8 +147,6 @@ TEST_CASE("Channel", "[channel]") {
   bool bobVerified = b.verifyKeyExchange(handshakeAlice);
 
   SECTION("should allow Alice and Bob to perform a key exchange") {
-    REQUIRE(aliceInit == true);
-    REQUIRE(bobInit == true);
     REQUIRE(aliceKeyExchange == true);
     REQUIRE(bobKeyExchange == true);
     REQUIRE(aliceVerified == true);

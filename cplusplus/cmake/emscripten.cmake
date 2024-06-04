@@ -3,6 +3,7 @@ add_executable(${AUTOGRAPH_TARGET} ${AUTOGRAPH_SOURCES})
 target_compile_options(${AUTOGRAPH_TARGET} PRIVATE -Os)
 
 set(AUTOGRAPH_EXPORTED_FUNCTIONS
+    autograph_ready
     autograph_identity_key_pair
     autograph_session_key_pair
     autograph_authenticate
@@ -12,8 +13,6 @@ set(AUTOGRAPH_EXPORTED_FUNCTIONS
     autograph_verify_key_exchange
     autograph_encrypt
     autograph_decrypt
-    autograph_zeroize
-    autograph_is_zero
     autograph_key_pair_size
     autograph_nonce_size
     autograph_public_key_size

@@ -5,6 +5,9 @@
 TEST_CASE("Key pair", "[key_pair]") {
   Autograph::KeyPair emptyKeyPair;
 
+  bool initialized = Autograph::ready();
+  REQUIRE(initialized == true);
+
   SECTION("should generate identity key pairs") {
     auto [success, keyPair] = Autograph::generateIdentityKeyPair();
     REQUIRE(success == true);
