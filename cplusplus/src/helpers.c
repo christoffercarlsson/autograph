@@ -22,6 +22,10 @@ void zeroize(uint8_t *data, const size_t data_size) {
   sodium_memzero(data, data_size);
 }
 
+uint16_t autograph_skipped_indexes_count() {
+  return DEFAULT_SKIPPED_INDEXES_COUNT;
+}
+
 size_t autograph_key_pair_size() { return KEY_PAIR_SIZE; }
 
 size_t autograph_nonce_size() { return NONCE_SIZE; }

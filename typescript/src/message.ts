@@ -10,6 +10,11 @@ const createCiphertext = (plaintext: Uint8Array) => {
   return new Uint8Array(size)
 }
 
+const createPlaintext = (ciphertext: Uint8Array) => {
+  const size = autograph_plaintext_size(ciphertext.byteLength)
+  return new Uint8Array(size)
+}
+
 export const encrypt = (
   key: Uint8Array,
   nonce: Uint8Array,
@@ -29,11 +34,6 @@ export const encrypt = (
     throw new Error('Encryption failed')
   }
   return [index.at(0), ciphertext]
-}
-
-const createPlaintext = (ciphertext: Uint8Array) => {
-  const size = autograph_plaintext_size(ciphertext.byteLength)
-  return new Uint8Array(size)
 }
 
 export const decrypt = (

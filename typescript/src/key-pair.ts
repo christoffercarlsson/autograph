@@ -28,3 +28,12 @@ export const getPublicKey = (keyPair: Uint8Array) => {
   autograph_get_public_key(publicKey, keyPair)
   return publicKey
 }
+
+export const getPublicKeys = (
+  identityKeyPair: Uint8Array,
+  sessionKeyPair: Uint8Array
+): [Uint8Array, Uint8Array] => {
+  const identityKey = getPublicKey(identityKeyPair)
+  const sessionKey = getPublicKey(sessionKeyPair)
+  return [identityKey, sessionKey]
+}

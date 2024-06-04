@@ -1,4 +1,4 @@
-import { Channel, ready } from '../src/autograph'
+import { Channel, getPublicKeys, ready } from '../src/autograph'
 
 describe('Channel', () => {
   const aliceHandshake = Uint8Array.from([
@@ -123,14 +123,14 @@ describe('Channel', () => {
   })
 
   beforeEach(() => {
-    const aliceEphemeralKeyPair = Uint8Array.from([
+    const aliceSessionKeyPair = Uint8Array.from([
       201, 142, 54, 248, 151, 150, 224, 79, 30, 126, 207, 157, 118, 85, 9, 212,
       148, 156, 73, 176, 107, 107, 47, 111, 95, 98, 33, 192, 80, 223, 48, 221,
       35, 16, 23, 37, 205, 131, 166, 97, 13, 81, 136, 246, 193, 253, 139, 193,
       230, 155, 222, 221, 37, 114, 190, 87, 104, 44, 210, 144, 127, 176, 198, 45
     ])
 
-    const bobEphemeralKeyPair = Uint8Array.from([
+    const bobSessionKeyPair = Uint8Array.from([
       74, 233, 106, 152, 76, 212, 181, 144, 132, 237, 223, 58, 122, 173, 99,
       100, 152, 219, 214, 210, 213, 72, 171, 73, 167, 92, 199, 196, 176, 66,
       213, 208, 88, 115, 171, 4, 34, 181, 120, 21, 10, 39, 204, 215, 158, 210,
@@ -138,21 +138,28 @@ describe('Channel', () => {
       93
     ])
 
-    a = new Channel(3)
-    b = new Channel(3)
-
-    const [aliceIdentityKey, aliceSessionKey] = a.useKeyPairs(
+    const [aliceIdentityKey, aliceSessionKey] = getPublicKeys(
       aliceIdentityKeyPair,
-      aliceEphemeralKeyPair
+      aliceSessionKeyPair
     )
 
-    const [bobIdentityKey, bobSessionKey] = b.useKeyPairs(
+    const [bobIdentityKey, bobSessionKey] = getPublicKeys(
       bobIdentityKeyPair,
-      bobEphemeralKeyPair
+      bobSessionKeyPair
     )
 
-    a.usePublicKeys(bobIdentityKey, bobSessionKey)
-    b.usePublicKeys(aliceIdentityKey, aliceSessionKey)
+    a = new Channel(
+      aliceIdentityKeyPair,
+      aliceSessionKeyPair,
+      bobIdentityKey,
+      bobSessionKey
+    )
+    b = new Channel(
+      bobIdentityKeyPair,
+      bobSessionKeyPair,
+      aliceIdentityKey,
+      aliceSessionKey
+    )
 
     handshakeAlice = a.keyExchange(true)
     handshakeBob = b.keyExchange(false)

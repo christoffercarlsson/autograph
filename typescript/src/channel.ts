@@ -1,26 +1,16 @@
 import {
-  createKeyPair,
-  zeroize,
-  createPublicKey,
   createTranscript,
   createSecretKey,
-  createNonce
+  createNonce,
+  createPublicKey,
+  createSkippedIndexes,
+  createKeyPair
 } from './helpers'
 import authenticate from './auth'
 import { certify, verify } from './cert'
 import { keyExchange, verifyKeyExchange } from './key-exchange'
 import { autograph_use_key_pairs, autograph_use_public_keys } from './clib'
 import { decrypt, encrypt } from './message'
-
-const SKIPPED_INDEXES_MAX_COUNT = 65535
-const SKIPPED_INDEXES_DEFAULT_COUNT = 100
-
-const createSkippedIndexes = (count?: number) =>
-  new Uint32Array(
-    count >= 0 && count <= SKIPPED_INDEXES_MAX_COUNT
-      ? count
-      : SKIPPED_INDEXES_DEFAULT_COUNT
-  )
 
 export default class Channel {
   private ourIdentityKeyPair: Uint8Array
@@ -33,9 +23,13 @@ export default class Channel {
   private sendingNonce: Uint8Array
   private receivingNonce: Uint8Array
   private skippedIndexes: Uint32Array
-  private established: boolean
 
-  constructor(skippedIndexesCount?: number) {
+  constructor(
+    ourIdentityKeyPair: Uint8Array,
+    ourSessionKeyPair: Uint8Array,
+    theirIdentityKey: Uint8Array,
+    theirSessionKey: Uint8Array
+  ) {
     this.ourIdentityKeyPair = createKeyPair()
     this.ourSessionKeyPair = createKeyPair()
     this.theirIdentityKey = createPublicKey()
@@ -45,43 +39,22 @@ export default class Channel {
     this.receivingKey = createSecretKey()
     this.sendingNonce = createNonce()
     this.receivingNonce = createNonce()
-    this.skippedIndexes = createSkippedIndexes(skippedIndexesCount)
-    this.established = false
-  }
-
-  isEstablished() {
-    return this.established
-  }
-
-  useKeyPairs(
-    ourIdentityKeyPair: Uint8Array,
-    ourSessionKeyPair: Uint8Array
-  ): [Uint8Array, Uint8Array] {
-    this.established = false
-    const identityKey = createPublicKey()
-    const sessionKey = createPublicKey()
-    const ready = autograph_use_key_pairs(
-      identityKey,
-      sessionKey,
+    this.skippedIndexes = createSkippedIndexes()
+    autograph_use_key_pairs(
       this.ourIdentityKeyPair,
       this.ourSessionKeyPair,
       ourIdentityKeyPair,
       ourSessionKeyPair
     )
-    if (!ready) {
-      throw new Error('Initialization failed')
-    }
-    return [identityKey, sessionKey]
-  }
-
-  usePublicKeys(theirIdentityKey: Uint8Array, theirSessionKey: Uint8Array) {
-    this.established = false
     autograph_use_public_keys(
       this.theirIdentityKey,
       this.theirSessionKey,
       theirIdentityKey,
       theirSessionKey
     )
+    this.sendingNonce = this.sendingNonce.fill(0)
+    this.receivingNonce = this.receivingNonce.fill(0)
+    this.skippedIndexes = this.skippedIndexes.fill(0)
   }
 
   authenticate() {
@@ -101,7 +74,6 @@ export default class Channel {
   }
 
   keyExchange(isInitiator: boolean) {
-    this.established = false
     const [transcript, ourSignature, sendingKey, receivingKey] = keyExchange(
       isInitiator,
       this.ourIdentityKeyPair,
@@ -122,41 +94,18 @@ export default class Channel {
       this.theirIdentityKey,
       theirSignature
     )
-    this.established = true
-    zeroize(this.sendingNonce)
-    zeroize(this.receivingNonce)
-    this.skippedIndexes = this.skippedIndexes.fill(0)
   }
 
   encrypt(plaintext: Uint8Array) {
-    if (this.established) {
-      return encrypt(this.sendingKey, this.sendingNonce, plaintext)
-    } else {
-      throw new Error('Encryption failed')
-    }
+    return encrypt(this.sendingKey, this.sendingNonce, plaintext)
   }
 
   decrypt(ciphertext: Uint8Array) {
-    if (this.established) {
-      return decrypt(
-        this.receivingKey,
-        this.receivingNonce,
-        this.skippedIndexes,
-        ciphertext
-      )
-    } else {
-      throw new Error('Decryption failed')
-    }
-  }
-
-  close() {
-    this.established = false
-    zeroize(this.ourIdentityKeyPair)
-    zeroize(this.ourSessionKeyPair)
-    zeroize(this.sendingKey)
-    zeroize(this.receivingKey)
-    zeroize(this.sendingNonce)
-    zeroize(this.receivingNonce)
-    this.skippedIndexes = this.skippedIndexes.fill(0)
+    return decrypt(
+      this.receivingKey,
+      this.receivingNonce,
+      this.skippedIndexes,
+      ciphertext
+    )
   }
 }

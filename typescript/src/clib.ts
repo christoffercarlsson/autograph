@@ -64,6 +64,8 @@ const call = (
   return result
 }
 
+const autograph_ready = () => call('autograph_ready', 'boolean') as boolean
+
 export const ready = async () => {
   if (!Module) {
     Module = (await wasmReady()) as EmscriptenModule
@@ -77,6 +79,9 @@ export const ready = async () => {
       Module.getRandomValue = getRandomValue
     } catch {
       throw new Error('No secure random number generator found')
+    }
+    if (!autograph_ready()) {
+      throw new Error('Initialization failed')
     }
   }
 }
@@ -223,11 +228,8 @@ export const autograph_decrypt = (
     ciphertext_size
   ) as boolean
 
-export const autograph_zeroize = (data: Uint8Array, data_size: number) =>
-  call('autograph_zeroize', null, data, data_size) as number
-
-export const autograph_is_zero = (data: Uint8Array, data_size: number) =>
-  call('autograph_is_zero', 'boolean', data, data_size) as boolean
+export const autograph_skipped_indexes_count = () =>
+  call('autograph_skipped_indexes_count', 'number') as number
 
 export const autograph_key_pair_size = () =>
   call('autograph_key_pair_size', 'number') as number
@@ -257,8 +259,6 @@ export const autograph_plaintext_size = (ciphertext_size: number) =>
   call('autograph_plaintext_size', 'number', ciphertext_size) as number
 
 export const autograph_use_key_pairs = (
-  identity_public_key: Uint8Array,
-  session_public_key: Uint8Array,
   identity_key_pair: Uint8Array,
   session_key_pair: Uint8Array,
   our_identity_key_pair: Uint8Array,
@@ -266,14 +266,12 @@ export const autograph_use_key_pairs = (
 ) =>
   call(
     'autograph_use_key_pairs',
-    'boolean',
-    identity_public_key,
-    session_public_key,
+    null,
     identity_key_pair,
     session_key_pair,
     our_identity_key_pair,
     our_session_key_pair
-  ) as boolean
+  )
 
 export const autograph_use_public_keys = (
   identity_key: Uint8Array,

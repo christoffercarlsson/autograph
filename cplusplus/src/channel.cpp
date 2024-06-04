@@ -1,3 +1,5 @@
+#include <algorithm>
+
 #include "autograph.h"
 #include "constants.h"
 
@@ -25,7 +27,8 @@ namespace Autograph {
 Channel::Channel(const KeyPair &ourIdentityKeyPair,
                  const KeyPair &ourSessionKeyPair,
                  const PublicKey &theirIdentityKey,
-                 const PublicKey &theirSessionKey) {
+                 const PublicKey &theirSessionKey)
+    : skippedIndexes(autograph_skipped_indexes_count()) {
   autograph_use_key_pairs(this->ourIdentityKeyPair.data(),
                           this->ourSessionKeyPair.data(),
                           ourIdentityKeyPair.data(), ourSessionKeyPair.data());
@@ -34,7 +37,7 @@ Channel::Channel(const KeyPair &ourIdentityKeyPair,
                             theirIdentityKey.data(), theirSessionKey.data());
   sendingNonce.fill(0);
   receivingNonce.fill(0);
-  skippedIndexes.fill(0);
+  std::fill(skippedIndexes.begin(), skippedIndexes.end(), 0);
 }
 
 std::tuple<bool, SafetyNumber> Channel::authenticate() const {

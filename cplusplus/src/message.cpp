@@ -103,11 +103,11 @@ bool decrypt_ciphertext(uint8_t *plaintext, size_t *plaintext_size,
 bool decrypt_skipped(uint32_t *index, uint8_t *plaintext,
                      size_t *plaintext_size, const uint8_t *key,
                      uint32_t *skipped_indexes,
-                     const size_t skipped_indexes_size,
+                     const uint16_t skipped_indexes_count,
                      const uint8_t *ciphertext, const size_t ciphertext_size) {
   uint8_t nonce[NONCE_SIZE];
   zeroize(nonce, NONCE_SIZE);
-  for (size_t i = 0; i < skipped_indexes_size; i++) {
+  for (uint16_t i = 0; i < skipped_indexes_count; i++) {
     if (skipped_indexes[i] == 0) {
       continue;
     }
@@ -122,10 +122,10 @@ bool decrypt_skipped(uint32_t *index, uint8_t *plaintext,
   return false;
 }
 
-bool skip_index(uint32_t *skipped_indexes, const size_t skipped_indexes_size,
+bool skip_index(uint32_t *skipped_indexes, const uint16_t skipped_indexes_count,
                 const uint8_t *nonce) {
   uint32_t index = get_index(nonce);
-  for (size_t i = 0; i < skipped_indexes_size; i++) {
+  for (uint16_t i = 0; i < skipped_indexes_count; i++) {
     if (skipped_indexes[i] == 0) {
       skipped_indexes[i] = index;
       return true;
@@ -137,12 +137,12 @@ bool skip_index(uint32_t *skipped_indexes, const size_t skipped_indexes_size,
 bool autograph_decrypt(uint32_t *index, uint8_t *plaintext,
                        size_t *plaintext_size, const uint8_t *key,
                        uint8_t *nonce, uint32_t *skipped_indexes,
-                       const size_t skipped_indexes_size,
+                       const uint16_t skipped_indexes_count,
                        const uint8_t *ciphertext,
                        const size_t ciphertext_size) {
   bool success =
       decrypt_skipped(index, plaintext, plaintext_size, key, skipped_indexes,
-                      skipped_indexes_size, ciphertext, ciphertext_size);
+                      skipped_indexes_count, ciphertext, ciphertext_size);
   while (!success) {
     if (!increment_nonce(nonce)) {
       return false;
@@ -150,7 +150,8 @@ bool autograph_decrypt(uint32_t *index, uint8_t *plaintext,
     *index = get_index(nonce);
     success = decrypt_ciphertext(plaintext, plaintext_size, key, nonce,
                                  ciphertext, ciphertext_size);
-    if (!success && !skip_index(skipped_indexes, skipped_indexes_size, nonce)) {
+    if (!success &&
+        !skip_index(skipped_indexes, skipped_indexes_count, nonce)) {
       return false;
     }
   }

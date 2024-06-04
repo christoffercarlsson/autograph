@@ -6,10 +6,10 @@ import { keyExchange, verifyKeyExchange } from './key-exchange'
 import {
   generateIdentityKeyPair,
   generateSessionKeyPair,
-  getPublicKey
+  getPublicKey,
+  getPublicKeys
 } from './key-pair'
 import { encrypt, decrypt } from './message'
-import { zeroize, isZero } from './helpers'
 
 export {
   authenticate,
@@ -22,8 +22,7 @@ export {
   generateIdentityKeyPair,
   generateSessionKeyPair,
   getPublicKey,
+  getPublicKeys,
   encrypt,
-  decrypt,
-  zeroize,
-  isZero
+  decrypt
 }

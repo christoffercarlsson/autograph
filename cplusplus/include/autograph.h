@@ -52,8 +52,10 @@ bool autograph_encrypt(uint32_t *index, uint8_t *ciphertext, const uint8_t *key,
 bool autograph_decrypt(uint32_t *index, uint8_t *plaintext,
                        size_t *plaintext_size, const uint8_t *key,
                        uint8_t *nonce, uint32_t *skipped_indexes,
-                       const size_t skipped_indexes_size,
+                       const uint16_t skipped_indexes_count,
                        const uint8_t *ciphertext, const size_t ciphertext_size);
+
+uint16_t autograph_skipped_indexes_count();
 
 size_t autograph_key_pair_size();
 
@@ -108,7 +110,7 @@ using PublicKey = std::array<uint8_t, PUBLIC_KEY_SIZE>;
 using SafetyNumber = std::array<uint8_t, SAFETY_NUMBER_SIZE>;
 using SecretKey = std::array<uint8_t, SECRET_KEY_SIZE>;
 using Signature = std::array<uint8_t, SIGNATURE_SIZE>;
-using SkippedIndexes = std::array<uint32_t, SKIPPED_INDEXES_COUNT>;
+using SkippedIndexes = std::vector<uint32_t>;
 using Transcript = std::array<uint8_t, TRANSCRIPT_SIZE>;
 
 bool ready();
