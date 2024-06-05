@@ -1,64 +1,40 @@
 import Clibautograph
 import Foundation
 
-private func createSkippedIndexes(_ count: UInt16?) -> [UInt32] {
-    [UInt32](repeating: 0, count: Int(count ?? 100))
-}
-
 public class Channel {
-    var ourIdentityKeyPair: Bytes
-    var ourSessionKeyPair: Bytes
-    var theirIdentityKey: Bytes
-    var theirSessionKey: Bytes
-    var transcript: Bytes
-    var sendingKey: Bytes
-    var receivingKey: Bytes
-    var sendingNonce: Bytes
-    var receivingNonce: Bytes
+    var ourIdentityKeyPair: [UInt8]
+    var ourSessionKeyPair: [UInt8]
+    var theirIdentityKey: [UInt8]
+    var theirSessionKey: [UInt8]
+    var transcript: [UInt8]
+    var sendingKey: [UInt8]
+    var receivingKey: [UInt8]
+    var sendingNonce: [UInt8]
+    var receivingNonce: [UInt8]
     var skippedIndexes: [UInt32]
-    var established: Bool
 
-    public init(skippedIndexesCount: UInt16?) {
-        ourIdentityKeyPair = createKeyPair()
-        ourSessionKeyPair = createKeyPair()
-        theirIdentityKey = createPublicKey()
-        theirSessionKey = createPublicKey()
+    public init(
+        ourIdentityKeyPair: [UInt8],
+        ourSessionKeyPair: [UInt8],
+        theirIdentityKey: [UInt8],
+        theirSessionKey: [UInt8]
+    ) {
+        self.ourIdentityKeyPair = createKeyPair()
+        self.ourSessionKeyPair = createKeyPair()
+        self.theirIdentityKey = createPublicKey()
+        self.theirSessionKey = createPublicKey()
         transcript = createTranscript()
         sendingKey = createSecretKey()
         receivingKey = createSecretKey()
         sendingNonce = createNonce()
         receivingNonce = createNonce()
-        skippedIndexes = createSkippedIndexes(skippedIndexesCount)
-        established = false
-    }
-
-    public func isEstablished() -> Bool {
-        established
-    }
-
-    public func useKeyPairs(
-        ourIdentityKeyPair: Bytes,
-        ourSessionKeyPair: inout Bytes
-    ) throws -> (Bytes, Bytes) {
-        established = false
-        var identityKey = createPublicKey()
-        var sessionKey = createPublicKey()
-        let ready = autograph_use_key_pairs(
-            &identityKey,
-            &sessionKey,
+        skippedIndexes = createSkippedIndexes()
+        autograph_use_key_pairs(
             &self.ourIdentityKeyPair,
             &self.ourSessionKeyPair,
             ourIdentityKeyPair,
-            &ourSessionKeyPair
+            ourSessionKeyPair
         )
-        if !ready {
-            throw AutographError.initialization
-        }
-        return (identityKey, sessionKey)
-    }
-
-    public func usePublicKeys(theirIdentityKey: Bytes, theirSessionKey: Bytes) {
-        established = false
         autograph_use_public_keys(
             &self.theirIdentityKey,
             &self.theirSessionKey,
@@ -67,24 +43,35 @@ public class Channel {
         )
     }
 
-    public func authenticate() throws -> Bytes {
-        try Autograph.authenticate(ourIdentityKeyPair: ourIdentityKeyPair, theirIdentityKey: theirIdentityKey)
+    public func authenticate() throws -> [UInt8] {
+        try Autograph.authenticate(
+            ourIdentityKeyPair: ourIdentityKeyPair,
+            theirIdentityKey: theirIdentityKey
+        )
     }
 
-    public func certify(data: Bytes?) throws -> Bytes {
-        try Autograph.certify(ourIdentityKeyPair: ourIdentityKeyPair, theirIdentityKey: theirIdentityKey, data: data)
+    public func certify(data: [UInt8]?) throws -> [UInt8] {
+        try Autograph.certify(
+            ourIdentityKeyPair: ourIdentityKeyPair,
+            theirIdentityKey: theirIdentityKey,
+            data: data
+        )
     }
 
     public func verify(
-        certifierIdentityKey: Bytes,
-        signature: Bytes,
-        data: Bytes?
+        certifierIdentityKey: [UInt8],
+        signature: [UInt8],
+        data: [UInt8]?
     ) -> Bool {
-        Autograph.verify(ownerIdentityKey: theirIdentityKey, certifierIdentityKey: certifierIdentityKey, signature: signature, data: data)
+        Autograph.verify(
+            ownerIdentityKey: theirIdentityKey,
+            certifierIdentityKey: certifierIdentityKey,
+            signature: signature,
+            data: data
+        )
     }
 
-    public func keyExchange(isInitiator: Bool) throws -> Bytes {
-        established = false
+    public func keyExchange(isInitiator: Bool) throws -> [UInt8] {
         let (
             transcript,
             ourSignature,
@@ -93,7 +80,7 @@ public class Channel {
         ) = try Autograph.keyExchange(
             isInitiator: isInitiator,
             ourIdentityKeyPair: ourIdentityKeyPair,
-            ourSessionKeyPair: &ourSessionKeyPair,
+            ourSessionKeyPair: ourSessionKeyPair,
             theirIdentityKey: theirIdentityKey,
             theirSessionKey: theirSessionKey
         )
@@ -103,48 +90,29 @@ public class Channel {
         return ourSignature
     }
 
-    public func verifyKeyExchange(theirSignature: Bytes) throws {
+    public func verifyKeyExchange(theirSignature: [UInt8]) throws {
         try Autograph.verifyKeyExchange(
             transcript: transcript,
             ourIdentityKeyPair: ourIdentityKeyPair,
             theirIdentityKey: theirIdentityKey,
             theirSignature: theirSignature
         )
-        established = true
-        zeroize(data: &sendingNonce)
-        zeroize(data: &receivingNonce)
-        skippedIndexes = Array(repeating: 0, count: skippedIndexes.count)
     }
 
-    public func encrypt(plaintext: Bytes) throws -> (UInt32, Bytes) {
-        if established {
-            return try Autograph.encrypt(key: sendingKey, nonce: &sendingNonce, plaintext: plaintext)
-        } else {
-            throw AutographError.encryption
-        }
+    public func encrypt(plaintext: [UInt8]) throws -> (UInt32, [UInt8]) {
+        try Autograph.encrypt(
+            key: sendingKey,
+            nonce: &sendingNonce,
+            plaintext: plaintext
+        )
     }
 
-    public func decrypt(ciphertext: Bytes) throws -> (UInt32, Bytes) {
-        if established {
-            return try Autograph.decrypt(
-                key: receivingKey,
-                nonce: &receivingNonce,
-                skippedIndexes: &skippedIndexes,
-                ciphertext: ciphertext
-            )
-        } else {
-            throw AutographError.decryption
-        }
-    }
-
-    public func close() {
-        established = false
-        zeroize(data: &ourIdentityKeyPair)
-        zeroize(data: &ourSessionKeyPair)
-        zeroize(data: &sendingKey)
-        zeroize(data: &receivingKey)
-        zeroize(data: &sendingNonce)
-        zeroize(data: &receivingNonce)
-        skippedIndexes = Array(repeating: 0, count: skippedIndexes.count)
+    public func decrypt(ciphertext: [UInt8]) throws -> (UInt32, [UInt8]) {
+        try Autograph.decrypt(
+            key: receivingKey,
+            nonce: &receivingNonce,
+            skippedIndexes: &skippedIndexes,
+            ciphertext: ciphertext
+        )
     }
 }

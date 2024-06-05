@@ -1,5 +1,5 @@
 import { autograph_certify, autograph_verify } from './clib'
-import { createSignature } from './helpers'
+import { createSignature } from './support'
 
 export const certify = (
   ourIdentityKeyPair: Uint8Array,

@@ -17,6 +17,6 @@
     "./typescript/scripts/**/*",
     "./typescript/src/**/*",
     "./typescript/tests/**/*",
-    "./types.d.ts"
+    "./autograph.d.ts"
   ]
 }

@@ -54,7 +54,7 @@ Java_sh_autograph_Message_00024Companion_autographDecrypt(
   jbyte* nonce_elements = (*env)->GetByteArrayElements(env, nonce, NULL);
   jint* skipped_indexes_elements =
       (*env)->GetIntArrayElements(env, skipped_indexes, NULL);
-  jsize skipped_indexes_size = (*env)->GetArrayLength(env, skipped_indexes);
+  jsize skipped_indexes_count = (*env)->GetArrayLength(env, skipped_indexes);
   jbyte* ciphertext_elements =
       (*env)->GetByteArrayElements(env, ciphertext, NULL);
   jsize ciphertext_size = (*env)->GetArrayLength(env, ciphertext);
@@ -62,7 +62,7 @@ Java_sh_autograph_Message_00024Companion_autographDecrypt(
       (uint32_t*)index_elements, (uint8_t*)plaintext_elements,
       (size_t*)plaintext_size_elements, (uint8_t*)key_elements,
       (uint8_t*)nonce_elements, (uint32_t*)skipped_indexes_elements,
-      (size_t)skipped_indexes_size, (uint8_t*)ciphertext_elements,
+      (uint16_t)skipped_indexes_count, (uint8_t*)ciphertext_elements,
       (size_t)ciphertext_size);
   (*env)->ReleaseIntArrayElements(env, index, index_elements, 0);
   (*env)->ReleaseByteArrayElements(env, plaintext, plaintext_elements, 0);

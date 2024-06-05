@@ -18,6 +18,7 @@ mod external;
 mod key_exchange;
 mod key_pair;
 mod message;
+mod support;
 mod types;
 
 pub use auth::authenticate;
@@ -28,8 +29,9 @@ pub use constants::{
     SIGNATURE_SIZE, TRANSCRIPT_SIZE,
 };
 pub use error::Error;
-pub use external::{is_zero, zeroize};
 pub use key_exchange::{key_exchange, verify_key_exchange};
-pub use key_pair::{generate_identity_key_pair, generate_session_key_pair, get_public_key};
+pub use key_pair::{
+    generate_identity_key_pair, generate_session_key_pair, get_public_key, get_public_keys,
+};
 pub use message::{decrypt, encrypt};
 pub use types::{KeyPair, Nonce, PublicKey, SafetyNumber, SecretKey, Signature, Transcript};

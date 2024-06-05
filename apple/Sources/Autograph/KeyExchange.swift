@@ -3,11 +3,11 @@ import Foundation
 
 public func keyExchange(
     isInitiator: Bool,
-    ourIdentityKeyPair: Bytes,
-    ourSessionKeyPair: inout Bytes,
-    theirIdentityKey: Bytes,
-    theirSessionKey: Bytes
-) throws -> (Bytes, Bytes, Bytes, Bytes) {
+    ourIdentityKeyPair: [UInt8],
+    ourSessionKeyPair: [UInt8],
+    theirIdentityKey: [UInt8],
+    theirSessionKey: [UInt8]
+) throws -> ([UInt8], [UInt8], [UInt8], [UInt8]) {
     var transcript = createTranscript()
     var ourSignature = createSignature()
     var sendingKey = createSecretKey()
@@ -19,7 +19,7 @@ public func keyExchange(
         &receivingKey,
         isInitiator,
         ourIdentityKeyPair,
-        &ourSessionKeyPair,
+        ourSessionKeyPair,
         theirIdentityKey,
         theirSessionKey
     )
@@ -30,10 +30,10 @@ public func keyExchange(
 }
 
 public func verifyKeyExchange(
-    transcript: Bytes,
-    ourIdentityKeyPair: Bytes,
-    theirIdentityKey: Bytes,
-    theirSignature: Bytes
+    transcript: [UInt8],
+    ourIdentityKeyPair: [UInt8],
+    theirIdentityKey: [UInt8],
+    theirSignature: [UInt8]
 ) throws {
     let verified = autograph_verify_key_exchange(
         transcript,

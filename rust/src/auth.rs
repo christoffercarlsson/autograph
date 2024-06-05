@@ -4,8 +4,9 @@ use crate::{
         SAFETY_NUMBER_SIZE,
     },
     error::Error,
-    external::{get_uint32, hash, set_uint32},
+    external::hash,
     key_pair::get_public_key,
+    support::{get_uint32, set_uint32},
     types::{Digest, Fingerprint, PublicKey, SafetyNumber},
     KeyPair,
 };

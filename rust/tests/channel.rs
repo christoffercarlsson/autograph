@@ -1,4 +1,4 @@
-use autograph_protocol::{Channel, KeyPair, PublicKey, SafetyNumber, Signature};
+use autograph_protocol::{get_public_keys, Channel, KeyPair, PublicKey, SafetyNumber, Signature};
 
 #[test]
 fn test_channel() {
@@ -123,18 +123,25 @@ fn test_channel() {
         232, 80, 6, 232, 93,
     ];
 
-    let mut a = Channel::new(Some(3));
-    let mut b = Channel::new(Some(3));
-    test_key_exchange(
-        &mut a,
-        &mut b,
+    let (alice_identity_key, alice_session_key) =
+        get_public_keys(&alice_identity_key_pair, &alice_ephemeral_key_pair);
+    let (bob_identity_key, bob_session_key) =
+        get_public_keys(&bob_identity_key_pair, &bob_ephemeral_key_pair);
+
+    let mut a = Channel::new(
         alice_identity_key_pair,
         alice_ephemeral_key_pair,
+        bob_identity_key,
+        bob_session_key,
+    );
+    let mut b = Channel::new(
         bob_identity_key_pair,
         bob_ephemeral_key_pair,
-        alice_handshake,
-        bob_handshake,
+        alice_identity_key,
+        alice_session_key,
     );
+
+    test_key_exchange(&mut a, &mut b, alice_handshake, bob_handshake);
     test_authenticate(&a, &b, safety_number);
     test_alice_message_to_bob(&mut a, &mut b, &data, alice_message);
     test_bob_message_to_alice(&mut a, &mut b, &data, bob_message);
@@ -159,27 +166,13 @@ fn test_channel() {
 fn test_key_exchange(
     a: &mut Channel,
     b: &mut Channel,
-    alice_identity_key_pair: KeyPair,
-    mut alice_ephemeral_key_pair: KeyPair,
-    bob_identity_key_pair: KeyPair,
-    mut bob_ephemeral_key_pair: KeyPair,
     alice_handshake: Signature,
     bob_handshake: Signature,
 ) {
-    let (alice_identity_key, alice_ephemeral_key) =
-        a.use_key_pairs(&alice_identity_key_pair, &mut alice_ephemeral_key_pair);
-    let (bob_identity_key, bob_ephemeral_key) =
-        b.use_key_pairs(&bob_identity_key_pair, &mut bob_ephemeral_key_pair);
-
-    a.use_public_keys(&bob_identity_key, &bob_ephemeral_key);
-    b.use_public_keys(&alice_identity_key, &alice_ephemeral_key);
-
     let handshake_alice = a.key_exchange(true).unwrap();
     let handshake_bob = b.key_exchange(false).unwrap();
-
     a.verify_key_exchange(&handshake_bob).unwrap();
     b.verify_key_exchange(&handshake_alice).unwrap();
-
     assert_eq!(handshake_alice, alice_handshake);
     assert_eq!(handshake_bob, bob_handshake);
 }

@@ -12,7 +12,7 @@ Pod::Spec.new do |s|
   s.author           = { 'Christoffer Carlsson' => 'cc@christofferc.com' }
   s.source           = { :git => 'https://github.com/christoffercarlsson/autograph.git', :tag => s.version }
 
-  s.ios.deployment_target = '11.0'
+  s.ios.deployment_target = '16.0'
   s.swift_version    = '5.8'
 
   s.vendored_frameworks = 'apple/Clibautograph.xcframework'

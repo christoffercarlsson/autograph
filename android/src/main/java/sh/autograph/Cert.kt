@@ -1,6 +1,6 @@
 package sh.autograph
 
-class Cert {
+internal class Cert {
     companion object {
         init {
             System.loadLibrary("autograph")
@@ -23,12 +23,16 @@ class Cert {
         fun certify(
             ourIdentityKeyPair: ByteArray,
             theirIdentityKey: ByteArray,
-            data: ByteArray?
+            data: ByteArray?,
         ): ByteArray {
-            val signature = Helper.createSignature()
-            val success = autographCertify(signature, ourIdentityKeyPair, theirIdentityKey,
-                data ?: byteArrayOf()
-            )
+            val signature = Support.createSignature()
+            val success =
+                autographCertify(
+                    signature,
+                    ourIdentityKeyPair,
+                    theirIdentityKey,
+                    data ?: byteArrayOf(),
+                )
             if (!success) {
                 throw RuntimeException("Certification failed")
             }
@@ -39,11 +43,31 @@ class Cert {
             ownerIdentityKey: ByteArray,
             certifierIdentityKey: ByteArray,
             signature: ByteArray,
-            data: ByteArray?
+            data: ByteArray?,
         ): Boolean {
-            return autographVerify(ownerIdentityKey, certifierIdentityKey, signature,
-                data ?: byteArrayOf()
+            return autographVerify(
+                ownerIdentityKey,
+                certifierIdentityKey,
+                signature,
+                data ?: byteArrayOf(),
             )
         }
     }
+}
+
+public fun certify(
+    ourIdentityKeyPair: ByteArray,
+    theirIdentityKey: ByteArray,
+    data: ByteArray?,
+): ByteArray {
+    return Cert.certify(ourIdentityKeyPair, theirIdentityKey, data)
+}
+
+public fun verify(
+    ownerIdentityKey: ByteArray,
+    certifierIdentityKey: ByteArray,
+    signature: ByteArray,
+    data: ByteArray?,
+): Boolean {
+    return Cert.verify(ownerIdentityKey, certifierIdentityKey, signature, data)
 }

@@ -31,3 +31,12 @@ pub fn get_public_key(key_pair: &KeyPair) -> PublicKey {
     public_key.copy_from_slice(&key_pair[PRIVATE_KEY_SIZE..]);
     public_key
 }
+
+pub fn get_public_keys(
+    identity_key_pair: &KeyPair,
+    session_key_pair: &KeyPair,
+) -> (PublicKey, PublicKey) {
+    let our_identity_key = get_public_key(identity_key_pair);
+    let our_session_key = get_public_key(session_key_pair);
+    (our_identity_key, our_session_key)
+}

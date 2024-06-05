@@ -1,5 +1,6 @@
 #include "external.h"
 
+#include "autograph.h"
 #include "constants.h"
 #include "sodium.h"
 
@@ -59,26 +60,4 @@ bool hkdf(uint8_t *okm, const size_t okm_size, const uint8_t *ikm,
   }
   return crypto_kdf_hkdf_sha512_expand(okm, okm_size, (char *)info, info_size,
                                        prk) == 0;
-}
-
-void zeroize(uint8_t *data, const size_t data_size) {
-  sodium_memzero(data, data_size);
-}
-
-bool is_zero(const uint8_t *data, const size_t data_size) {
-  return sodium_is_zero(data, data_size) == 1;
-}
-
-uint32_t get_uint32(const uint8_t *bytes, const size_t offset) {
-  uint32_t number = ((uint32_t)bytes[offset] << 24) |
-                    ((uint32_t)bytes[offset + 1] << 16) |
-                    ((uint32_t)bytes[offset + 2] << 8) | bytes[offset + 3];
-  return number;
-}
-
-void set_uint32(uint8_t *bytes, const size_t offset, const uint32_t number) {
-  bytes[offset] = (number >> 24) & 0xFF;
-  bytes[offset + 1] = (number >> 16) & 0xFF;
-  bytes[offset + 2] = (number >> 8) & 0xFF;
-  bytes[offset + 3] = number & 0xFF;
 }

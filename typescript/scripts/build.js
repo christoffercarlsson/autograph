@@ -6,7 +6,7 @@ import { exit } from 'node:process'
 const run = async () => {
   const sharedOptions = {
     format: 'esm',
-    minify: true,
+    minify: false,
     outbase: 'typescript',
     outdir: 'typescript/dist',
     platform: 'browser',

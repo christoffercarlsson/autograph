@@ -22,7 +22,7 @@ add_library(
   auth.c
   cert.c
   channel.c
-  helpers.c
+  support.c
   key_exchange.c
   key_pair.c
   message.c)

@@ -5,7 +5,7 @@ use crate::{
         TRANSCRIPT_SIZE,
     },
     error::Error,
-    external::{diffie_hellman, hkdf, zeroize},
+    external::{diffie_hellman, hkdf},
     get_public_key,
     types::{KeyPair, Okm, PublicKey, SecretKey, SharedSecret, Signature, Transcript},
 };
@@ -25,7 +25,7 @@ fn calculate_secret_keys(is_initiator: bool, okm: &Okm) -> (SecretKey, SecretKey
 
 fn derive_secret_keys(
     is_initiator: bool,
-    our_session_key_pair: &mut KeyPair,
+    our_session_key_pair: &KeyPair,
     their_session_key: &PublicKey,
 ) -> Result<(SecretKey, SecretKey), Error> {
     let mut shared_secret: SharedSecret = [0; SHARED_SECRET_SIZE];
@@ -34,9 +34,6 @@ fn derive_secret_keys(
     let salt = [0; SALT_SIZE];
     let kdf_success = hkdf(&mut okm, &shared_secret, &salt, &INFO);
     let (sending_key, receiving_key) = calculate_secret_keys(is_initiator, &okm);
-    zeroize(our_session_key_pair);
-    zeroize(&mut shared_secret);
-    zeroize(&mut okm);
     if dh_success && kdf_success {
         Ok((sending_key, receiving_key))
     } else {
@@ -64,7 +61,7 @@ fn calculate_transcript(
 pub fn key_exchange(
     is_initiator: bool,
     our_identity_key_pair: &KeyPair,
-    our_session_key_pair: &mut KeyPair,
+    our_session_key_pair: &KeyPair,
     their_identity_key: &PublicKey,
     their_session_key: &PublicKey,
 ) -> Result<(Transcript, Signature, SecretKey, SecretKey), Error> {

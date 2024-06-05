@@ -1,6 +1,6 @@
 package sh.autograph
 
-class Message {
+internal class Message {
     companion object {
         init {
             System.loadLibrary("autograph")
@@ -68,4 +68,21 @@ class Message {
             return Pair(index[0], plaintext.copyOf(plaintextSize[0]))
         }
     }
+}
+
+public fun encrypt(
+    key: ByteArray,
+    nonce: ByteArray,
+    plaintext: ByteArray,
+): Pair<Int, ByteArray> {
+    return Message.encrypt(key, nonce, plaintext)
+}
+
+public fun decrypt(
+    key: ByteArray,
+    nonce: ByteArray,
+    skippedIndexes: IntArray,
+    ciphertext: ByteArray,
+): Pair<Int, ByteArray> {
+    return Message.decrypt(key, nonce, skippedIndexes, ciphertext)
 }

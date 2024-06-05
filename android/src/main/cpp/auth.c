@@ -2,12 +2,6 @@
 
 #include "autograph.h"
 
-JNIEXPORT jint JNICALL
-Java_sh_autograph_Auth_00024Companion_autographSafetyNumberSize(JNIEnv* env,
-                                                                jclass class) {
-  return (jint)autograph_safety_number_size();
-}
-
 JNIEXPORT jboolean JNICALL
 Java_sh_autograph_Auth_00024Companion_autographAuthenticate(
     JNIEnv* env, jclass class, jbyteArray safety_number,
