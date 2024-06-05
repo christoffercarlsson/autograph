@@ -2,15 +2,11 @@
 
 #include "autograph.h"
 
-JNIEXPORT jboolean JNICALL
+JNIEXPORT void JNICALL
 Java_sh_autograph_Channel_00024Companion_autographUseKeyPairs(
-    JNIEnv* env, jclass class, jbyteArray identity_key, jbyteArray session_key,
-    jbyteArray identity_key_pair, jbyteArray session_key_pair,
-    jbyteArray our_identity_key_pair, jbyteArray our_session_key_pair) {
-  jbyte* identity_key_elements =
-      (*env)->GetByteArrayElements(env, identity_key, NULL);
-  jbyte* session_key_elements =
-      (*env)->GetByteArrayElements(env, session_key, NULL);
+    JNIEnv* env, jclass class, jbyteArray identity_key_pair,
+    jbyteArray session_key_pair, jbyteArray our_identity_key_pair,
+    jbyteArray our_session_key_pair) {
   jbyte* identity_key_pair_elements =
       (*env)->GetByteArrayElements(env, identity_key_pair, NULL);
   jbyte* session_key_pair_elements =
@@ -19,13 +15,11 @@ Java_sh_autograph_Channel_00024Companion_autographUseKeyPairs(
       (*env)->GetByteArrayElements(env, our_identity_key_pair, NULL);
   jbyte* our_session_key_pair_elements =
       (*env)->GetByteArrayElements(env, our_session_key_pair, NULL);
-  bool ready = autograph_use_key_pairs(
-      (uint8_t*)identity_key_elements, (uint8_t*)session_key_elements,
-      (uint8_t*)identity_key_pair_elements, (uint8_t*)session_key_pair_elements,
-      (uint8_t*)our_identity_key_pair_elements,
-      (uint8_t*)our_session_key_pair_elements);
-  (*env)->ReleaseByteArrayElements(env, identity_key, identity_key_elements, 0);
-  (*env)->ReleaseByteArrayElements(env, session_key, session_key_elements, 0);
+  autograph_use_key_pairs((uint8_t*)identity_key_pair_elements,
+                          (uint8_t*)session_key_pair_elements,
+                          (uint8_t*)our_identity_key_pair_elements,
+                          (uint8_t*)our_session_key_pair_elements);
+
   (*env)->ReleaseByteArrayElements(env, identity_key_pair,
                                    identity_key_pair_elements, 0);
   (*env)->ReleaseByteArrayElements(env, session_key_pair,
@@ -34,7 +28,6 @@ Java_sh_autograph_Channel_00024Companion_autographUseKeyPairs(
                                    our_identity_key_pair_elements, 0);
   (*env)->ReleaseByteArrayElements(env, our_session_key_pair,
                                    our_session_key_pair_elements, 0);
-  return ready ? JNI_TRUE : JNI_FALSE;
 }
 
 JNIEXPORT void JNICALL

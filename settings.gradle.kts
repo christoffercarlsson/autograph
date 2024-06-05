@@ -13,5 +13,5 @@ dependencyResolutionManagement {
     }
 }
 
-rootProject.name = "Autograph"
+rootProject.name = "autograph"
 include(":android")

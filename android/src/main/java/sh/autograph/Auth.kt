@@ -1,12 +1,10 @@
 package sh.autograph
 
-class Auth {
+internal class Auth {
     companion object {
         init {
             System.loadLibrary("autograph")
         }
-
-        private external fun autographSafetyNumberSize(): Int
 
         private external fun autographAuthenticate(
             safetyNumber: ByteArray,
@@ -14,13 +12,11 @@ class Auth {
             theirIdentityKey: ByteArray,
         ): Boolean
 
-        private fun createSafetyNumber(): ByteArray = ByteArray(autographSafetyNumberSize())
-
         fun authenticate(
             ourIdentityKeyPair: ByteArray,
             theirIdentityKey: ByteArray,
         ): ByteArray {
-            val safetyNumber = createSafetyNumber()
+            val safetyNumber = Support.createSafetyNumber()
             val success = autographAuthenticate(safetyNumber, ourIdentityKeyPair, theirIdentityKey)
             if (!success) {
                 throw RuntimeException("Authentication failed")
@@ -28,4 +24,11 @@ class Auth {
             return safetyNumber
         }
     }
+}
+
+public fun authenticate(
+    ourIdentityKeyPair: ByteArray,
+    theirIdentityKey: ByteArray,
+): ByteArray {
+    return Auth.authenticate(ourIdentityKeyPair, theirIdentityKey)
 }

@@ -1,6 +1,6 @@
 package sh.autograph
 
-class KeyExchange {
+internal class KeyExchange {
     companion object {
         init {
             System.loadLibrary("autograph")
@@ -32,10 +32,10 @@ class KeyExchange {
             theirIdentityKey: ByteArray,
             theirSessionKey: ByteArray,
         ): Array<ByteArray> {
-            var transcript = Helper.createTranscript()
-            var ourSignature = Helper.createSignature()
-            var sendingKey = Helper.createSecretKey()
-            var receivingKey = Helper.createSecretKey()
+            var transcript = Support.createTranscript()
+            var ourSignature = Support.createSignature()
+            var sendingKey = Support.createSecretKey()
+            var receivingKey = Support.createSecretKey()
             val success =
                 autographKeyExchange(
                     transcript,
@@ -49,7 +49,7 @@ class KeyExchange {
                     theirSessionKey,
                 )
             if (!success) {
-                throw RuntimeException("Key exhange failed")
+                throw RuntimeException("Key exchange failed")
             }
             return arrayOf(transcript, ourSignature, sendingKey, receivingKey)
         }
@@ -62,8 +62,27 @@ class KeyExchange {
         ) {
             val verified = autographVerifyKeyExchange(transcript, ourIdentityKeyPair, theirIdentityKey, theirSignature)
             if (!verified) {
-                throw RuntimeException("Key exhange failed")
+                throw RuntimeException("Key exchange failed")
             }
         }
     }
+}
+
+public fun keyExchange(
+    isInitiator: Boolean,
+    ourIdentityKeyPair: ByteArray,
+    ourSessionKeyPair: ByteArray,
+    theirIdentityKey: ByteArray,
+    theirSessionKey: ByteArray,
+): Array<ByteArray> {
+    return KeyExchange.keyExchange(isInitiator, ourIdentityKeyPair, ourSessionKeyPair, theirIdentityKey, theirSessionKey)
+}
+
+public fun verifyKeyExchange(
+    transcript: ByteArray,
+    ourIdentityKeyPair: ByteArray,
+    theirIdentityKey: ByteArray,
+    theirSignature: ByteArray,
+) {
+    return KeyExchange.verifyKeyExchange(transcript, ourIdentityKeyPair, theirIdentityKey, theirSignature)
 }

@@ -1,6 +1,6 @@
 package sh.autograph
 
-internal class Helper {
+internal class Support {
     companion object {
         init {
             System.loadLibrary("autograph")
@@ -12,15 +12,17 @@ internal class Helper {
 
         private external fun autographPublicKeySize(): Int
 
+        private external fun autographSafetyNumberSize(): Int
+
         private external fun autographSecretKeySize(): Int
 
         private external fun autographSignatureSize(): Int
 
         private external fun autographTranscriptSize(): Int
 
-        private external fun autographZeroize(data: ByteArray)
+        private external fun autographSkippedIndexesCount(): Int
 
-        private external fun autographIsZero(data: ByteArray): Boolean
+        private external fun autographReady(): Boolean
 
         fun createKeyPair(): ByteArray = ByteArray(autographKeyPairSize())
 
@@ -28,18 +30,24 @@ internal class Helper {
 
         fun createPublicKey(): ByteArray = ByteArray(autographPublicKeySize())
 
+        fun createSafetyNumber(): ByteArray = ByteArray(autographSafetyNumberSize())
+
         fun createSecretKey(): ByteArray = ByteArray(autographSecretKeySize())
 
         fun createSignature(): ByteArray = ByteArray(autographSignatureSize())
 
         fun createTranscript(): ByteArray = ByteArray(autographTranscriptSize())
 
-        fun zeroize(data: ByteArray) {
-            autographZeroize(data)
-        }
+        fun createSkippedIndexes(): IntArray = IntArray(autographSkippedIndexesCount())
 
-        fun isZero(data: ByteArray): Boolean {
-            return autographIsZero(data)
+        fun ready() {
+            if (!autographReady()) {
+                throw RuntimeException("Initialization failed")
+            }
         }
     }
+}
+
+public fun ready() {
+    return Support.ready()
 }
