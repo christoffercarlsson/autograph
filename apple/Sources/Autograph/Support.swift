@@ -36,3 +36,9 @@ func createSkippedIndexes() -> [UInt32] {
 func createTranscript() -> [UInt8] {
     createBytes(autograph_transcript_size())
 }
+
+public func ready() throws {
+    if !autograph_ready() {
+        throw AutographError.initialization
+    }
+}

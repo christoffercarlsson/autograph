@@ -3,7 +3,7 @@ import {
   autograph_identity_key_pair,
   autograph_get_public_key
 } from './clib'
-import { createKeyPair, createPublicKey } from './helpers'
+import { createKeyPair, createPublicKey } from './support'
 
 export const generateIdentityKeyPair = (): Uint8Array => {
   const keyPair = createKeyPair()

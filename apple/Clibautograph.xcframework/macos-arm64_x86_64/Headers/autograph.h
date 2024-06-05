@@ -101,7 +101,6 @@ constexpr size_t SAFETY_NUMBER_SIZE = 64;
 constexpr size_t SECRET_KEY_SIZE = 32;
 constexpr size_t SIGNATURE_SIZE = 64;
 constexpr size_t TRANSCRIPT_SIZE = 64;
-constexpr size_t SKIPPED_INDEXES_COUNT = 128;
 
 using Bytes = std::vector<uint8_t>;
 using KeyPair = std::array<uint8_t, KEY_PAIR_SIZE>;

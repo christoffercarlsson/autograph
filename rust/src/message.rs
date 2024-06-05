@@ -5,7 +5,7 @@ use crate::{
     constants::{NONCE_SIZE, PADDING_BLOCK_SIZE, PADDING_BYTE, TAG_SIZE},
     error::Error,
     external::{decrypt as external_decrypt, encrypt as external_encrypt},
-    helpers::{get_uint32, set_uint32},
+    support::{get_uint32, set_uint32},
     types::{Nonce, SecretKey},
 };
 

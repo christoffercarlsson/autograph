@@ -1,8 +1,13 @@
-#include "helpers.h"
+#include "support.h"
 
 #include "autograph.h"
 #include "constants.h"
+#include "external.h"
 #include "sodium.h"
+
+extern "C" {
+
+bool autograph_ready() { return ready(); }
 
 uint32_t get_uint32(const uint8_t *bytes, const size_t offset) {
   uint32_t number = ((uint32_t)bytes[offset] << 24) |
@@ -39,3 +44,11 @@ size_t autograph_secret_key_size() { return SECRET_KEY_SIZE; }
 size_t autograph_signature_size() { return SIGNATURE_SIZE; }
 
 size_t autograph_transcript_size() { return TRANSCRIPT_SIZE; }
+
+}  // extern "C"
+
+namespace Autograph {
+
+bool ready() { return autograph_ready(); }
+
+}  // namespace Autograph

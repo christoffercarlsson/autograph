@@ -3,7 +3,7 @@
 #include "autograph.h"
 #include "constants.h"
 #include "external.h"
-#include "helpers.h"
+#include "support.h"
 
 extern "C" {
 

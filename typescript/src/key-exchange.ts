@@ -1,5 +1,5 @@
 import { autograph_key_exchange, autograph_verify_key_exchange } from './clib'
-import { createSecretKey, createSignature, createTranscript } from './helpers'
+import { createSecretKey, createSignature, createTranscript } from './support'
 
 export const keyExchange = (
   isInitiator: boolean,

@@ -15,10 +15,10 @@ mod channel;
 mod constants;
 mod error;
 mod external;
-mod helpers;
 mod key_exchange;
 mod key_pair;
 mod message;
+mod support;
 mod types;
 
 pub use auth::authenticate;

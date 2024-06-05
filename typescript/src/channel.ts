@@ -5,7 +5,7 @@ import {
   createPublicKey,
   createSkippedIndexes,
   createKeyPair
-} from './helpers'
+} from './support'
 import authenticate from './auth'
 import { certify, verify } from './cert'
 import { keyExchange, verifyKeyExchange } from './key-exchange'

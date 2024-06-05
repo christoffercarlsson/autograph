@@ -5,8 +5,8 @@ use crate::{
     },
     error::Error,
     external::hash,
-    helpers::{get_uint32, set_uint32},
     key_pair::get_public_key,
+    support::{get_uint32, set_uint32},
     types::{Digest, Fingerprint, PublicKey, SafetyNumber},
     KeyPair,
 };
