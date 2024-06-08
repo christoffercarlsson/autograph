@@ -5,5 +5,6 @@ pub enum Error {
     Decryption,
     Encryption,
     KeyExchange,
+    KeyGeneration,
     KeyPair,
 }
