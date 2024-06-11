@@ -9,13 +9,13 @@ static void encrypt(benchmark::State& benchmarkState) {
 
   Autograph::Bytes ciphertext(32);
 
-  Autograph::SecretKey key = {
+  Autograph::Bytes key = {
       228, 80,  92,  70,  9,   154, 102, 79,  79, 238, 183,
       1,   104, 239, 123, 93,  228, 74,  44,  60, 147, 21,
       105, 30,  217, 135, 107, 104, 104, 117, 50, 116,
   };
 
-  Autograph::Nonce nonce;
+  Autograph::Bytes nonce(12);
 
   Autograph::Bytes plaintext = {72, 101, 108, 108, 111, 32,
                                 87, 111, 114, 108, 100};
@@ -36,15 +36,15 @@ static void decrypt(benchmark::State& benchmarkState) {
 
   size_t plaintextSize = 0;
 
-  Autograph::SecretKey key = {
+  Autograph::Bytes key = {
       228, 80,  92,  70,  9,   154, 102, 79,  79, 238, 183,
       1,   104, 239, 123, 93,  228, 74,  44,  60, 147, 21,
       105, 30,  217, 135, 107, 104, 104, 117, 50, 116,
   };
 
-  Autograph::Nonce nonce;
+  Autograph::Bytes nonce(12);
 
-  Autograph::SkippedIndexes skippedIndexes;
+  Autograph::Indexes skippedIndexes(128);
 
   Autograph::Bytes ciphertext = {253, 199, 105, 203, 139, 136, 132, 228,
                                  198, 157, 65,  140, 116, 90,  212, 112,

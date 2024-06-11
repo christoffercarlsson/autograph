@@ -1,15 +1,22 @@
 #include <string.h>
 
 #include "autograph.h"
-#include "constants.h"
-#include "external.h"
-#include "support.h"
+#include "primitives.h"
+#include "sodium.h"
+
+constexpr uint8_t PADDING_BLOCK_SIZE = 16;
+constexpr uint8_t PADDING_BYTE = 128;
+constexpr size_t DEFAULT_SKIPPED_INDEXES_COUNT = 128;
 
 extern "C" {
 
 size_t calculate_padded_size(const size_t plaintext_size) {
   return plaintext_size + PADDING_BLOCK_SIZE -
          (plaintext_size % PADDING_BLOCK_SIZE);
+}
+
+void zeroize(uint8_t *data, const size_t data_size) {
+  sodium_memzero(data, data_size);
 }
 
 void pad(uint8_t *padded, const size_t padded_size, const uint8_t *plaintext,
@@ -47,16 +54,30 @@ bool unpad(size_t *unpadded_size, const uint8_t *padded,
   return true;
 }
 
+uint32_t get_uint32(const uint8_t *bytes, const size_t offset) {
+  uint32_t number = ((uint32_t)bytes[offset] << 24) |
+                    ((uint32_t)bytes[offset + 1] << 16) |
+                    ((uint32_t)bytes[offset + 2] << 8) | bytes[offset + 3];
+  return number;
+}
+
+void set_uint32(uint8_t *bytes, const size_t offset, const uint32_t number) {
+  bytes[offset] = (number >> 24) & 0xFF;
+  bytes[offset + 1] = (number >> 16) & 0xFF;
+  bytes[offset + 2] = (number >> 8) & 0xFF;
+  bytes[offset + 3] = number & 0xFF;
+}
+
 uint32_t get_index(const uint8_t *nonce) {
-  return get_uint32(nonce, NONCE_SIZE - 4);
+  return get_uint32(nonce, autograph_primitive_nonce_size() - 4);
 }
 
 void set_index(uint8_t *nonce, const uint32_t index) {
-  set_uint32(nonce, NONCE_SIZE - 4, index);
+  set_uint32(nonce, autograph_primitive_nonce_size() - 4, index);
 }
 
 bool increment_nonce(uint8_t *nonce) {
-  size_t offset = NONCE_SIZE - 4;
+  size_t offset = autograph_primitive_nonce_size() - 4;
   uint32_t index = get_uint32(nonce, offset);
   if (index == UINT32_MAX) {
     return false;
@@ -66,11 +87,15 @@ bool increment_nonce(uint8_t *nonce) {
 }
 
 size_t autograph_plaintext_size(const size_t ciphertext_size) {
-  return ciphertext_size - TAG_SIZE;
+  return ciphertext_size - autograph_primitive_tag_size();
 }
 
 size_t autograph_ciphertext_size(const size_t plaintext_size) {
-  return calculate_padded_size(plaintext_size) + TAG_SIZE;
+  return calculate_padded_size(plaintext_size) + autograph_primitive_tag_size();
+}
+
+bool autograph_generate_secret_key(uint8_t *key) {
+  return autograph_primitive_generate_secret_key(key);
 }
 
 bool autograph_encrypt(uint32_t *index, uint8_t *ciphertext, const uint8_t *key,
@@ -82,7 +107,8 @@ bool autograph_encrypt(uint32_t *index, uint8_t *ciphertext, const uint8_t *key,
   size_t padded_size = calculate_padded_size(plaintext_size);
   uint8_t padded[padded_size];
   pad(padded, padded_size, plaintext, plaintext_size);
-  if (encrypt(ciphertext, key, nonce, padded, padded_size)) {
+  if (autograph_primitive_encrypt(ciphertext, key, nonce, padded,
+                                  padded_size)) {
     *index = get_index(nonce);
     return true;
   }
@@ -93,7 +119,8 @@ bool decrypt_ciphertext(uint8_t *plaintext, size_t *plaintext_size,
                         const uint8_t *key, const uint8_t *nonce,
                         const uint8_t *ciphertext,
                         const size_t ciphertext_size) {
-  if (decrypt(plaintext, key, nonce, ciphertext, ciphertext_size)) {
+  if (autograph_primitive_decrypt(plaintext, key, nonce, ciphertext,
+                                  ciphertext_size)) {
     return unpad(plaintext_size, plaintext,
                  autograph_plaintext_size(ciphertext_size));
   }
@@ -105,8 +132,9 @@ bool decrypt_skipped(uint32_t *index, uint8_t *plaintext,
                      uint32_t *skipped_indexes,
                      const uint16_t skipped_indexes_count,
                      const uint8_t *ciphertext, const size_t ciphertext_size) {
-  uint8_t nonce[NONCE_SIZE];
-  zeroize(nonce, NONCE_SIZE);
+  size_t nonce_size = autograph_primitive_nonce_size();
+  uint8_t nonce[nonce_size];
+  zeroize(nonce, nonce_size);
   for (uint16_t i = 0; i < skipped_indexes_count; i++) {
     if (skipped_indexes[i] == 0) {
       continue;
@@ -158,9 +186,42 @@ bool autograph_decrypt(uint32_t *index, uint8_t *plaintext,
   return success;
 }
 
+size_t autograph_secret_key_size() {
+  return autograph_primitive_secret_key_size();
+}
+
+size_t autograph_nonce_size() { return autograph_primitive_nonce_size(); }
+
+uint16_t autograph_skipped_indexes_count() {
+  return DEFAULT_SKIPPED_INDEXES_COUNT;
+}
+
 }  // extern "C"
 
 namespace Autograph {
+
+Bytes createSecretKey() {
+  Bytes secretKey(autograph_secret_key_size());
+  return secretKey;
+}
+
+std::tuple<bool, Bytes> generateSecretKey() {
+  auto key = createSecretKey();
+  bool success = autograph_generate_secret_key(key.data());
+  return {success, key};
+}
+
+Bytes createNonce() {
+  Bytes nonce(autograph_nonce_size());
+  zeroize(nonce.data(), nonce.size());
+  return nonce;
+}
+
+Indexes createIndexes(const std::optional<uint16_t> count) {
+  Indexes indexes(count ? *count : autograph_skipped_indexes_count());
+  std::fill(indexes.begin(), indexes.end(), 0);
+  return indexes;
+}
 
 Bytes createCiphertext(const Bytes plaintext) {
   size_t size = autograph_ciphertext_size(plaintext.size());
@@ -174,9 +235,9 @@ Bytes createPlaintext(const Bytes ciphertext) {
   return plaintext;
 }
 
-std::tuple<bool, uint32_t, Bytes> encrypt(const SecretKey &key, Nonce &nonce,
+std::tuple<bool, uint32_t, Bytes> encrypt(const Bytes &key, Bytes &nonce,
                                           const Bytes &plaintext) {
-  uint32_t index;
+  uint32_t index = 0;
   Bytes ciphertext = createCiphertext(plaintext);
   bool success =
       autograph_encrypt(&index, ciphertext.data(), key.data(), nonce.data(),
@@ -184,10 +245,10 @@ std::tuple<bool, uint32_t, Bytes> encrypt(const SecretKey &key, Nonce &nonce,
   return {success, index, ciphertext};
 }
 
-std::tuple<bool, uint32_t, Bytes> decrypt(const SecretKey &key, Nonce &nonce,
-                                          SkippedIndexes &skippedIndexes,
+std::tuple<bool, uint32_t, Bytes> decrypt(const Bytes &key, Bytes &nonce,
+                                          Indexes &skippedIndexes,
                                           const Bytes &ciphertext) {
-  uint32_t index;
+  uint32_t index = 0;
   Bytes plaintext = createPlaintext(ciphertext);
   size_t plaintextSize = 0;
   bool success = autograph_decrypt(&index, plaintext.data(), &plaintextSize,

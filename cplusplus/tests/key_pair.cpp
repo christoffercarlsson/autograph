@@ -3,7 +3,7 @@
 #include "autograph.h"
 
 TEST_CASE("Key pair", "[key_pair]") {
-  Autograph::KeyPair emptyKeyPair;
+  Autograph::Bytes emptyKeyPair(64);
 
   bool initialized = Autograph::ready();
   REQUIRE(initialized == true);

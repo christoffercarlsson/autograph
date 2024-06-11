@@ -5,7 +5,7 @@
 #include "autograph.h"
 
 static void session_key_pair(benchmark::State& benchmarkState) {
-  Autograph::KeyPair keyPair;
+  Autograph::Bytes keyPair(64);
 
   for (auto _ : benchmarkState) {
     if (!autograph_session_key_pair(keyPair.data())) {
@@ -15,7 +15,7 @@ static void session_key_pair(benchmark::State& benchmarkState) {
 }
 
 static void identity_key_pair(benchmark::State& benchmarkState) {
-  Autograph::KeyPair keyPair;
+  Autograph::Bytes keyPair(64);
 
   for (auto _ : benchmarkState) {
     if (!autograph_identity_key_pair(keyPair.data())) {
