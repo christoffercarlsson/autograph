@@ -25,7 +25,7 @@ export const generateIdentityKeyPair = (): Uint8Array => {
   const keyPair = createIdentityKeyPair()
   const success = autograph_identity_key_pair(keyPair)
   if (!success) {
-    throw new Error('Key generation failed')
+    throw new Error('Identity key pair generation failed')
   }
   return keyPair
 }
@@ -34,7 +34,7 @@ export const generateSessionKeyPair = (): Uint8Array => {
   const keyPair = createSessionKeyPair()
   const success = autograph_session_key_pair(keyPair)
   if (!success) {
-    throw new Error('Key generation failed')
+    throw new Error('Session key pair generation failed')
   }
   return keyPair
 }

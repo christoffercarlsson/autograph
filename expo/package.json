@@ -42,7 +42,10 @@
   "author": "Christoffer Carlsson <cc@christofferc.com> (https://github.com/christoffercarlsson)",
   "license": "MIT",
   "homepage": "https://github.com/christoffercarlsson/autograph#readme",
-  "dependencies": {},
+  "dependencies": {
+    "autograph-protocol": "^1.0.0-alpha.1",
+    "stedy": "^0.19.2"
+  },
   "devDependencies": {
     "@types/react": "^18.0.25",
     "expo-module-scripts": "^3.5.2",
