@@ -1,12 +1,16 @@
 import Clibautograph
 import Foundation
 
+func createTranscript() -> [UInt8] {
+    createBytes(autograph_transcript_size())
+}
+
 public func keyExchange(
-    isInitiator: Bool,
-    ourIdentityKeyPair: [UInt8],
-    ourSessionKeyPair: [UInt8],
-    theirIdentityKey: [UInt8],
-    theirSessionKey: [UInt8]
+    _ isInitiator: Bool,
+    _ ourIdentityKeyPair: [UInt8],
+    _ ourSessionKeyPair: [UInt8],
+    _ theirIdentityKey: [UInt8],
+    _ theirSessionKey: [UInt8]
 ) throws -> ([UInt8], [UInt8], [UInt8], [UInt8]) {
     var transcript = createTranscript()
     var ourSignature = createSignature()
@@ -30,10 +34,10 @@ public func keyExchange(
 }
 
 public func verifyKeyExchange(
-    transcript: [UInt8],
-    ourIdentityKeyPair: [UInt8],
-    theirIdentityKey: [UInt8],
-    theirSignature: [UInt8]
+    _ transcript: [UInt8],
+    _ ourIdentityKeyPair: [UInt8],
+    _ theirIdentityKey: [UInt8],
+    _ theirSignature: [UInt8]
 ) throws {
     let verified = autograph_verify_key_exchange(
         transcript,

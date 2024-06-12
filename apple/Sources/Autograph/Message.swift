@@ -1,6 +1,30 @@
 import Clibautograph
 import Foundation
 
+func createSecretKey() -> [UInt8] {
+    createBytes(autograph_secret_key_size())
+}
+
+public func generateSecretKey() throws -> [UInt8] {
+    var key = createSecretKey()
+    let success = autograph_generate_secret_key(&key)
+    if !success {
+        throw AutographError.keyGeneration
+    }
+    return key
+}
+
+func createNonce() -> [UInt8] {
+    createBytes(autograph_nonce_size())
+}
+
+public func createIndexes(_ count: UInt16?) -> [UInt32] {
+    [UInt32](
+        repeating: 0,
+        count: Int(count ?? autograph_skipped_indexes_count())
+    )
+}
+
 private func createCiphertext(_ plaintext: [UInt8]) -> [UInt8] {
     let size = autograph_ciphertext_size(plaintext.count)
     return createBytes(size)
@@ -16,9 +40,9 @@ private func resizePlaintext(_ plaintext: [UInt8], _ size: Int) -> [UInt8] {
 }
 
 public func encrypt(
-    key: [UInt8],
-    nonce: inout [UInt8],
-    plaintext: [UInt8]
+    _ key: [UInt8],
+    _ nonce: inout [UInt8],
+    _ plaintext: [UInt8]
 ) throws -> (UInt32, [UInt8]) {
     var ciphertext = createCiphertext(plaintext)
     var index: UInt32 = 0
@@ -37,10 +61,10 @@ public func encrypt(
 }
 
 public func decrypt(
-    key: [UInt8],
-    nonce: inout [UInt8],
-    skippedIndexes: inout [UInt32],
-    ciphertext: [UInt8]
+    _ key: [UInt8],
+    _ nonce: inout [UInt8],
+    _ skippedIndexes: inout [UInt32],
+    _ ciphertext: [UInt8]
 ) throws -> (UInt32, [UInt8]) {
     var plaintext = createPlaintext(ciphertext)
     var index: UInt32 = 0
