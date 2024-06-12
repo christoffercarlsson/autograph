@@ -92,10 +92,15 @@ export const autograph_identity_key_pair = (key_pair: Uint8Array) =>
 export const autograph_session_key_pair = (key_pair: Uint8Array) =>
   call('autograph_session_key_pair', 'boolean', key_pair) as boolean
 
-export const autograph_get_public_key = (
+export const autograph_get_identity_public_key = (
   public_key: Uint8Array,
   key_pair: Uint8Array
-) => call('autograph_get_public_key', null, public_key, key_pair)
+) => call('autograph_get_identity_public_key', null, public_key, key_pair)
+
+export const autograph_get_session_public_key = (
+  public_key: Uint8Array,
+  key_pair: Uint8Array
+) => call('autograph_get_session_public_key', null, public_key, key_pair)
 
 export const autograph_authenticate = (
   safety_number: Uint8Array,
@@ -184,6 +189,9 @@ export const autograph_verify_key_exchange = (
     their_signature
   ) as boolean
 
+export const autograph_generate_secret_key = (key: Uint8Array) =>
+  call('autograph_generate_secret_key', 'boolean', key) as boolean
+
 export const autograph_encrypt = (
   index: Uint32Array,
   ciphertext: Uint8Array,
@@ -231,14 +239,20 @@ export const autograph_decrypt = (
 export const autograph_skipped_indexes_count = () =>
   call('autograph_skipped_indexes_count', 'number') as number
 
-export const autograph_key_pair_size = () =>
-  call('autograph_key_pair_size', 'number') as number
+export const autograph_identity_key_pair_size = () =>
+  call('autograph_identity_key_pair_size', 'number') as number
+
+export const autograph_session_key_pair_size = () =>
+  call('autograph_session_key_pair_size', 'number') as number
+
+export const autograph_identity_public_key_size = () =>
+  call('autograph_identity_public_key_size', 'number') as number
+
+export const autograph_session_public_key_size = () =>
+  call('autograph_session_public_key_size', 'number') as number
 
 export const autograph_nonce_size = () =>
   call('autograph_nonce_size', 'number') as number
-
-export const autograph_public_key_size = () =>
-  call('autograph_public_key_size', 'number') as number
 
 export const autograph_safety_number_size = () =>
   call('autograph_safety_number_size', 'number') as number

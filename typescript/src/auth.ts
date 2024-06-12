@@ -1,5 +1,6 @@
-import { autograph_authenticate } from './clib'
-import { createSafetyNumber } from './support'
+import { autograph_authenticate, autograph_safety_number_size } from './clib'
+
+const createSafetyNumber = () => new Uint8Array(autograph_safety_number_size())
 
 const authenticate = (
   ourIdentityKeyPair: Uint8Array,
