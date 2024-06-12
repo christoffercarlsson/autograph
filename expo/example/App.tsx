@@ -1,4 +1,4 @@
-import * as ExpoAutograph from 'expo-autograph'
+import * as Autograph from 'expo-autograph'
 import { useState, useEffect } from 'react'
 import { StyleSheet, Text, View } from 'react-native'
 import { createFrom, ENCODING_BASE64_URLSAFE } from 'stedy'
@@ -7,7 +7,7 @@ function encodeSafetyNumber(safetyNumber: Uint8Array): string {
   const numbers = []
   const view = new DataView(safetyNumber.buffer)
   for (let i = 0; i < safetyNumber.length; i += 4) {
-    numbers.push(view.getUint32(i))
+    numbers.push(`${view.getUint32(i)}`.padStart(5, '0'))
   }
   return numbers.join(' ')
 }
@@ -18,50 +18,51 @@ export default function App() {
   const [s, setSafetyNumber] = useState<string>('')
 
   useEffect(() => {
-    ExpoAutograph.ready().then(() => {
-      const aliceIdentityKeyPair = ExpoAutograph.generateIdentityKeyPair()
-      const aliceSessionKeyPair = ExpoAutograph.generateSessionKeyPair()
+    Autograph.ready().then(
+      () => {
+        const aliceIdentityKeyPair = Autograph.generateIdentityKeyPair()
+        const aliceSessionKeyPair = Autograph.generateSessionKeyPair()
 
-      const bobIdentityKeyPair = ExpoAutograph.generateIdentityKeyPair()
-      const bobSessionKeyPair = ExpoAutograph.generateSessionKeyPair()
+        const bobIdentityKeyPair = Autograph.generateIdentityKeyPair()
+        const bobSessionKeyPair = Autograph.generateSessionKeyPair()
 
-      const [aliceIdentityKey, aliceSessionKey] = ExpoAutograph.getPublicKeys(
-        aliceIdentityKeyPair,
-        aliceSessionKeyPair
-      )
+        const { identityKey: aliceIdentityKey, sessionKey: aliceSessionKey } =
+          Autograph.getPublicKeys(aliceIdentityKeyPair, aliceSessionKeyPair)
 
-      const [bobIdentityKey, bobSessionKey] = ExpoAutograph.getPublicKeys(
-        bobIdentityKeyPair,
-        bobSessionKeyPair
-      )
+        const { identityKey: bobIdentityKey, sessionKey: bobSessionKey } =
+          Autograph.getPublicKeys(bobIdentityKeyPair, bobSessionKeyPair)
 
-      const a = new ExpoAutograph.Channel(
-        aliceIdentityKeyPair,
-        aliceSessionKeyPair,
-        bobIdentityKey,
-        bobSessionKey
-      )
+        const a = new Autograph.Channel(
+          aliceIdentityKeyPair,
+          aliceSessionKeyPair,
+          bobIdentityKey,
+          bobSessionKey
+        )
 
-      const b = new ExpoAutograph.Channel(
-        bobIdentityKeyPair,
-        bobSessionKeyPair,
-        aliceIdentityKey,
-        aliceSessionKey
-      )
+        const b = new Autograph.Channel(
+          bobIdentityKeyPair,
+          bobSessionKeyPair,
+          aliceIdentityKey,
+          aliceSessionKey
+        )
 
-      const handshakeAlice = a.keyExchange(true)
-      const handshakeBob = b.keyExchange(false)
+        const handshakeAlice = a.keyExchange(true)
+        const handshakeBob = b.keyExchange(false)
 
-      a.verifyKeyExchange(handshakeBob)
-      b.verifyKeyExchange(handshakeAlice)
+        a.verifyKeyExchange(handshakeBob)
+        b.verifyKeyExchange(handshakeAlice)
 
-      const safetyNumber = a.authenticate()
-      const [, ciphertext] = a.encrypt(g)
+        const safetyNumber = a.authenticate()
+        const { ciphertext } = a.encrypt(g)
 
-      setCiphertext(createFrom(ciphertext).toString(ENCODING_BASE64_URLSAFE))
-      setSafetyNumber(encodeSafetyNumber(safetyNumber))
-    })
-  }, [setGreeting, setCiphertext, setSafetyNumber])
+        setCiphertext(createFrom(ciphertext).toString(ENCODING_BASE64_URLSAFE))
+        setSafetyNumber(encodeSafetyNumber(safetyNumber))
+      },
+      (error) => {
+        console.error(error)
+      }
+    )
+  }, [])
 
   return (
     <View style={styles.container}>

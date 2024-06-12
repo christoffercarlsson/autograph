@@ -10,7 +10,7 @@ export function authenticate(
   ourIdentityKeyPair: Uint8Array | string,
   theirIdentityKey: Uint8Array | string
 ): Uint8Array {
-  const [success, safetyNumber] = ExpoAutographModule.authenticate(
+  const { success, safetyNumber } = ExpoAutographModule.authenticate(
     ensureBytes(ourIdentityKeyPair),
     ensureBytes(theirIdentityKey)
   )
@@ -25,7 +25,7 @@ export function certify(
   theirIdentityKey: Uint8Array | string,
   data?: Uint8Array | string
 ): Uint8Array {
-  const [success, signature] = ExpoAutographModule.certify(
+  const { success, signature } = ExpoAutographModule.certify(
     ensureBytes(ourIdentityKeyPair),
     ensureBytes(theirIdentityKey),
     ensureBytes(data)
@@ -63,8 +63,13 @@ export function keyExchange(
   ourSessionKeyPair: Uint8Array | string,
   theirIdentityKey: Uint8Array | string,
   theirSessionKey: Uint8Array | string
-): [Uint8Array, Uint8Array, Uint8Array, Uint8Array] {
-  const [success, transcript, ourSignature, sendingKey, receivingKey] =
+): {
+  transcript: Uint8Array
+  ourSignature: Uint8Array
+  sendingKey: Uint8Array
+  receivingKey: Uint8Array
+} {
+  const { success, transcript, ourSignature, sendingKey, receivingKey } =
     ExpoAutographModule.keyExchange(
       isInitiator,
       ensureBytes(ourIdentityKeyPair),
@@ -75,7 +80,7 @@ export function keyExchange(
   if (!success) {
     throw new Error('Key exchange failed')
   }
-  return [transcript, ourSignature, sendingKey, receivingKey]
+  return { transcript, ourSignature, sendingKey, receivingKey }
 }
 
 export function verifyKeyExchange(
@@ -96,7 +101,7 @@ export function verifyKeyExchange(
 }
 
 export function generateIdentityKeyPair(): Uint8Array {
-  const [success, keyPair] = ExpoAutographModule.generateIdentityKeyPair()
+  const { success, keyPair } = ExpoAutographModule.generateIdentityKeyPair()
   if (!success) {
     throw new Error('Identity key pair generation failed')
   }
@@ -104,7 +109,7 @@ export function generateIdentityKeyPair(): Uint8Array {
 }
 
 export function generateSessionKeyPair(): Uint8Array {
-  const [success, keyPair] = ExpoAutographModule.generateSessionKeyPair()
+  const { success, keyPair } = ExpoAutographModule.generateSessionKeyPair()
   if (!success) {
     throw new Error('Session key pair generation failed')
   }
@@ -122,16 +127,16 @@ export function getSessionPublicKey(keyPair: Uint8Array | string): Uint8Array {
 export function getPublicKeys(
   identityKeyPair: Uint8Array | string,
   sessionKeyPair: Uint8Array | string
-): [Uint8Array, Uint8Array] {
-  const [identityKey, sessionKey] = ExpoAutographModule.getPublicKeys(
+): { identityKey: Uint8Array; sessionKey: Uint8Array } {
+  const { identityKey, sessionKey } = ExpoAutographModule.getPublicKeys(
     ensureBytes(identityKeyPair),
     ensureBytes(sessionKeyPair)
   )
-  return [identityKey, sessionKey]
+  return { identityKey, sessionKey }
 }
 
 export function createNonce(): Uint8Array {
-  return ExpoAutographModule.createNonce()
+  return new Uint8Array(12)
 }
 
 export function createIndexes(count?: number): Uint32Array {
@@ -139,7 +144,7 @@ export function createIndexes(count?: number): Uint32Array {
 }
 
 export function generateSecretKey(): Uint8Array {
-  const [success, key] = ExpoAutographModule.generateSecretKey()
+  const { success, key } = ExpoAutographModule.generateSecretKey()
   if (!success) {
     throw new Error('Key generation failed')
   }
@@ -150,8 +155,8 @@ export function encrypt(
   key: Uint8Array | string,
   nonce: Uint8Array | string,
   plaintext: Uint8Array | string
-): [number, Uint8Array] {
-  const [success, index, ciphertext] = ExpoAutographModule.encrypt(
+): { index: number; ciphertext: Uint8Array } {
+  const { success, index, ciphertext } = ExpoAutographModule.encrypt(
     ensureBytes(key),
     ensureBytes(nonce),
     ensureBytes(plaintext)
@@ -159,7 +164,7 @@ export function encrypt(
   if (!success) {
     throw new Error('Encryption failed')
   }
-  return [index, ciphertext]
+  return { index, ciphertext }
 }
 
 export function decrypt(
@@ -167,8 +172,8 @@ export function decrypt(
   nonce: Uint8Array | string,
   skippedIndexes: Uint32Array,
   ciphertext: Uint8Array | string
-): [number, Uint8Array] {
-  const [success, index, plaintext] = ExpoAutographModule.decrypt(
+): { index: number; plaintext: Uint8Array } {
+  const { success, index, plaintext } = ExpoAutographModule.decrypt(
     ensureBytes(key),
     ensureBytes(nonce),
     new Uint8Array(skippedIndexes.buffer),
@@ -177,7 +182,7 @@ export function decrypt(
   if (!success) {
     throw new Error('Decryption failed')
   }
-  return [index, plaintext]
+  return { index, plaintext }
 }
 
 export class Channel {
@@ -227,7 +232,7 @@ export class Channel {
   }
 
   keyExchange(isInitiator: boolean) {
-    const [transcript, ourSignature, sendingKey, receivingKey] = keyExchange(
+    const { transcript, ourSignature, sendingKey, receivingKey } = keyExchange(
       isInitiator,
       this.ourIdentityKeyPair,
       this.ourSessionKeyPair,
@@ -261,22 +266,4 @@ export class Channel {
       ciphertext
     )
   }
-}
-
-export function hello(): string {
-  const safetyNumber = authenticate(
-    Uint8Array.from([
-      118, 164, 17, 240, 147, 79, 190, 38, 66, 93, 254, 238, 125, 202, 197, 2,
-      56, 252, 122, 177, 18, 187, 249, 208, 29, 149, 122, 103, 57, 199, 19, 17,
-      213, 153, 88, 124, 93, 136, 104, 111, 196, 208, 155, 156, 165, 31, 120,
-      186, 79, 205, 247, 175, 243, 184, 114, 80, 152, 243, 24, 225, 91, 220,
-      141, 150
-    ]),
-    Uint8Array.from([
-      177, 67, 45, 125, 158, 190, 181, 222, 101, 149, 224, 200, 223, 235, 222,
-      110, 67, 61, 200, 62, 29, 37, 150, 228, 137, 114, 143, 77, 115, 135, 143,
-      103
-    ])
-  )
-  return createFrom(safetyNumber).toString('base64url')
 }

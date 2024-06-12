@@ -1,44 +1,231 @@
+import Autograph
 import ExpoModulesCore
+import Foundation
+
+extension Data {
+    func toBytes() -> [UInt8] {
+        [UInt8](self)
+    }
+}
 
 public class ExpoAutographModule: Module {
-    // Each module class must implement the definition function. The definition
-    // consists of components
-    // that describes the module's functionality and behavior.
-    // See https://docs.expo.dev/modules/module-api for more details about
-    // available components.
     public func definition() -> ModuleDefinition {
-        // Sets the name of the module that JavaScript code will use to refer to
-        // the module. Takes a string as an argument.
-        // Can be inferred from module's class name, but it's recommended to set
-        // it explicitly for clarity.
-        // The module will be accessible from
-        // `requireNativeModule('ExpoAutograph')` in JavaScript.
         Name("ExpoAutograph")
 
-        // Sets constant properties on the module. Can take a dictionary or a
-        // closure that returns a dictionary.
-        Constants([
-            "PI": Double.pi,
-        ])
-
-        // Defines event names that the module can send to JavaScript.
-        Events("onChange")
-
-        // Defines a JavaScript synchronous function that runs the native code
-        // on the JavaScript thread.
-        Function("hello") {
-            "Hello world! 👋"
+        Function("authenticate") { (ourIdentityKeyPair: Data, theirIdentityKey: Data) -> [String: Any] in
+            do {
+                let safetyNumber = try Autograph.authenticate(
+                    ourIdentityKeyPair.toBytes(),
+                    theirIdentityKey.toBytes()
+                )
+                return [
+                    "success": true,
+                    "safetyNumber": Data(safetyNumber),
+                ]
+            } catch {
+                return [
+                    "success": false,
+                    "safetyNumber": Data(repeating: 0, count: 64),
+                ]
+            }
         }
 
-        // Defines a JavaScript function that always returns a Promise and whose
-        // native code
-        // is by default dispatched on the different thread than the JavaScript
-        // runtime runs on.
-        AsyncFunction("setValueAsync") { (value: String) in
-            // Send an event to JavaScript.
-            self.sendEvent("onChange", [
-                "value": value,
-            ])
+        Function("certify") { (ourIdentityKeyPair: Data, theirIdentityKey: Data, data: Data) -> [String: Any] in
+            do {
+                let signature = try Autograph.certify(
+                    ourIdentityKeyPair.toBytes(),
+                    theirIdentityKey.toBytes(),
+                    data.toBytes()
+                )
+                return ["success": true, "signature": Data(signature)]
+            } catch {
+                return [
+                    "success": false,
+                    "signature": Data(repeating: 0, count: 64),
+                ]
+            }
+        }
+
+        Function("verify") { (ownerIdentityKey: Data, certifierIdentityKey: Data, signature: Data, data: Data) in
+            Autograph.verify(
+                ownerIdentityKey.toBytes(),
+                certifierIdentityKey.toBytes(),
+                signature.toBytes(),
+                data.toBytes()
+            )
+        }
+
+        AsyncFunction("ready") { () -> Bool in
+            do {
+                try Autograph.ready()
+                return true
+            } catch {
+                return false
+            }
+        }
+
+        Function("keyExchange") { (isInitiator: Bool, ourIdentityKeyPair: Data, ourSessionKeyPair: Data, theirIdentityKey: Data, theirSessionKey: Data) -> [String: Any] in
+            do {
+                let (
+                    transcript,
+                    ourSignature,
+                    sendingKey,
+                    receivingKey
+                ) = try Autograph.keyExchange(
+                    isInitiator,
+                    ourIdentityKeyPair.toBytes(),
+                    ourSessionKeyPair.toBytes(),
+                    theirIdentityKey.toBytes(),
+                    theirSessionKey.toBytes()
+                )
+                return [
+                    "success": true,
+                    "transcript": Data(transcript),
+                    "ourSignature": Data(ourSignature),
+                    "sendingKey": Data(sendingKey),
+                    "receivingKey": Data(receivingKey),
+                ]
+            } catch {
+                return [
+                    "success": false,
+                    "transcript": Data(repeating: 0, count: 64),
+                    "ourSignature": Data(repeating: 0, count: 64),
+                    "sendingKey": Data(repeating: 0, count: 32),
+                    "receivingKey": Data(repeating: 0, count: 32),
+                ]
+            }
+        }
+
+        Function("verifyKeyExchange") { (transcript: Data, ourIdentityKeyPair: Data, theirIdentityKey: Data, theirSignature: Data) -> Bool in
+            do {
+                try Autograph.verifyKeyExchange(
+                    transcript.toBytes(),
+                    ourIdentityKeyPair.toBytes(),
+                    theirIdentityKey.toBytes(),
+                    theirSignature.toBytes()
+                )
+                return true
+            } catch {
+                return false
+            }
+        }
+
+        Function("generateIdentityKeyPair") { () -> [String: Any] in
+            do {
+                let keyPair = try Autograph.generateIdentityKeyPair()
+                return [
+                    "success": true,
+                    "keyPair": Data(keyPair),
+                ]
+            } catch {
+                return [
+                    "success": false,
+                    "keyPair": Data(repeating: 0, count: 64),
+                ]
+            }
+        }
+
+        Function("generateSessionKeyPair") { () -> [String: Any] in
+            do {
+                let keyPair = try Autograph.generateSessionKeyPair()
+                return [
+                    "success": true,
+                    "keyPair": Data(keyPair),
+                ]
+            } catch {
+                return [
+                    "success": false,
+                    "keyPair": Data(repeating: 0, count: 64),
+                ]
+            }
+        }
+
+        Function("getIdentityPublicKey") { (keyPair: Data) -> Data in
+            let publicKey = Autograph.getIdentityPublicKey(keyPair.toBytes())
+            return Data(publicKey)
+        }
+
+        Function("getSessionPublicKey") { (keyPair: Data) -> Data in
+            let publicKey = Autograph.getSessionPublicKey(keyPair.toBytes())
+            return Data(publicKey)
+        }
+
+        Function("getPublicKeys") { (identityKeyPair: Data, sessionKeyPair: Data) -> [String: Data] in
+            let (identityKey, sessionKey) = Autograph.getPublicKeys(
+                identityKeyPair.toBytes(),
+                sessionKeyPair.toBytes()
+            )
+            return [
+                "identityKey": Data(identityKey),
+                "sessionKey": Data(sessionKey),
+            ]
+        }
+
+        Function("createNonce") { () -> Data in
+            Data(repeating: 0, count: 12)
+        }
+
+        Function("generateSecretKey") { () -> [String: Any] in
+            do {
+                let key = try Autograph.generateSecretKey()
+                return [
+                    "success": true,
+                    "key": Data(key),
+                ]
+            } catch {
+                return [
+                    "success": false,
+                    "key": Data(repeating: 0, count: 32),
+                ]
+            }
+        }
+
+        Function("encrypt") { (key: Data, nonce: Data, plaintext: Data) -> [String: Any] in
+            do {
+                var n = nonce.toBytes()
+                let (index, ciphertext) = try Autograph.encrypt(
+                    key.toBytes(),
+                    &n,
+                    plaintext.toBytes()
+                )
+                return [
+                    "success": true,
+                    "index": index,
+                    "ciphertext": Data(ciphertext),
+                ]
+            } catch {
+                return [
+                    "success": false,
+                    "index": 0,
+                    "ciphertext": Data(repeating: 0,
+                                       count: plaintext.count + 16),
+                ]
+            }
+        }
+
+        Function("decrypt") { (key: Data, nonce: Data, _: Data, ciphertext: Data) -> [String: Any] in
+            do {
+                var n = nonce.toBytes()
+                var indexes: [UInt32] = [0, 0, 0]
+                let (index, plaintext) = try Autograph.decrypt(
+                    key.toBytes(),
+                    &n,
+                    &indexes,
+                    ciphertext.toBytes()
+                )
+                return [
+                    "success": true,
+                    "index": index,
+                    "plaintext": Data(plaintext),
+                ]
+            } catch {
+                return [
+                    "success": false,
+                    "index": 0,
+                    "plaintext": Data(repeating: 0,
+                                      count: ciphertext.count - 16),
+                ]
+            }
         }
     }
 }

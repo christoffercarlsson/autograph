@@ -3,15 +3,15 @@ import * as Autograph from 'autograph-protocol'
 const authenticate = (
   ourIdentityKeyPair: Uint8Array,
   theirIdentityKey: Uint8Array
-): [boolean, Uint8Array] => {
+): { success: boolean; safetyNumber: Uint8Array } => {
   try {
     const safetyNumber = Autograph.authenticate(
       ourIdentityKeyPair,
       theirIdentityKey
     )
-    return [true, safetyNumber]
+    return { success: true, safetyNumber }
   } catch {
-    return [false, new Uint8Array(64)]
+    return { success: false, safetyNumber: new Uint8Array(64) }
   }
 }
 
@@ -19,16 +19,16 @@ const certify = (
   ourIdentityKeyPair: Uint8Array,
   theirIdentityKey: Uint8Array,
   data?: Uint8Array
-): [boolean, Uint8Array] => {
+): { success: boolean; signature: Uint8Array } => {
   try {
     const signature = Autograph.certify(
       ourIdentityKeyPair,
       theirIdentityKey,
       data
     )
-    return [true, signature]
+    return { success: true, signature }
   } catch {
-    return [false, new Uint8Array(64)]
+    return { success: false, signature: new Uint8Array(64) }
   }
 }
 
@@ -66,7 +66,13 @@ const keyExchange = (
   ourSessionKeyPair: Uint8Array,
   theirIdentityKey: Uint8Array,
   theirSessionKey: Uint8Array
-): [boolean, Uint8Array, Uint8Array, Uint8Array, Uint8Array] => {
+): {
+  success: boolean
+  transcript: Uint8Array
+  ourSignature: Uint8Array
+  sendingKey: Uint8Array
+  receivingKey: Uint8Array
+} => {
   try {
     const [transcript, ourSignature, sendingKey, receivingKey] =
       Autograph.keyExchange(
@@ -76,15 +82,15 @@ const keyExchange = (
         theirIdentityKey,
         theirSessionKey
       )
-    return [true, transcript, ourSignature, sendingKey, receivingKey]
+    return { success: true, transcript, ourSignature, sendingKey, receivingKey }
   } catch {
-    return [
-      false,
-      new Uint8Array(64),
-      new Uint8Array(64),
-      new Uint8Array(32),
-      new Uint8Array(32)
-    ]
+    return {
+      success: false,
+      transcript: new Uint8Array(64),
+      ourSignature: new Uint8Array(64),
+      sendingKey: new Uint8Array(32),
+      receivingKey: new Uint8Array(32)
+    }
   }
 }
 
@@ -107,21 +113,27 @@ const verifyKeyExchange = (
   }
 }
 
-const generateIdentityKeyPair = (): [boolean, Uint8Array] => {
+const generateIdentityKeyPair = (): {
+  success: boolean
+  keyPair: Uint8Array
+} => {
   try {
     const keyPair = Autograph.generateIdentityKeyPair()
-    return [true, keyPair]
+    return { success: true, keyPair }
   } catch {
-    return [false, new Uint8Array(64)]
+    return { success: false, keyPair: new Uint8Array(64) }
   }
 }
 
-const generateSessionKeyPair = (): [boolean, Uint8Array] => {
+const generateSessionKeyPair = (): {
+  success: boolean
+  keyPair: Uint8Array
+} => {
   try {
     const keyPair = Autograph.generateSessionKeyPair()
-    return [true, keyPair]
+    return { success: true, keyPair }
   } catch {
-    return [false, new Uint8Array(64)]
+    return { success: false, keyPair: new Uint8Array(64) }
   }
 }
 
@@ -146,15 +158,15 @@ const getSessionPublicKey = (keyPair: Uint8Array): Uint8Array => {
 const getPublicKeys = (
   identityKeyPair: Uint8Array,
   sessionKeyPair: Uint8Array
-): [Uint8Array, Uint8Array] => {
+): { identityKey: Uint8Array; sessionKey: Uint8Array } => {
   try {
     const [identityKey, sessionKey] = Autograph.getPublicKeys(
       identityKeyPair,
       sessionKeyPair
     )
-    return [identityKey, sessionKey]
+    return { identityKey, sessionKey }
   } catch {
-    return [new Uint8Array(32), new Uint8Array(32)]
+    return { identityKey: new Uint8Array(32), sessionKey: new Uint8Array(32) }
   }
 }
 
@@ -167,12 +179,12 @@ const createNonce = (): Uint8Array => {
   }
 }
 
-const generateSecretKey = (): [boolean, Uint8Array] => {
+const generateSecretKey = (): { success: boolean; key: Uint8Array } => {
   try {
     const key = Autograph.generateSecretKey()
-    return [true, key]
+    return { success: true, key }
   } catch {
-    return [false, new Uint8Array(32)]
+    return { success: false, key: new Uint8Array(32) }
   }
 }
 
@@ -180,12 +192,16 @@ const encrypt = (
   key: Uint8Array,
   nonce: Uint8Array,
   plaintext: Uint8Array
-): [boolean, number, Uint8Array] => {
+): { success: boolean; index: number; ciphertext: Uint8Array } => {
   try {
     const [index, ciphertext] = Autograph.encrypt(key, nonce, plaintext)
-    return [true, index, ciphertext]
+    return { success: true, index, ciphertext }
   } catch {
-    return [false, 0, new Uint8Array(plaintext.length + 16)]
+    return {
+      success: false,
+      index: 0,
+      ciphertext: new Uint8Array(plaintext.length + 16)
+    }
   }
 }
 
@@ -194,7 +210,7 @@ const decrypt = (
   nonce: Uint8Array,
   skippedIndexes: Uint8Array,
   ciphertext: Uint8Array
-): [boolean, number, Uint8Array] => {
+): { success: boolean; index: number; plaintext: Uint8Array } => {
   try {
     const [index, plaintext] = Autograph.decrypt(
       key,
@@ -202,9 +218,13 @@ const decrypt = (
       new Uint32Array(skippedIndexes.buffer),
       ciphertext
     )
-    return [true, index, plaintext]
+    return { success: true, index, plaintext }
   } catch {
-    return [false, 0, new Uint8Array(ciphertext.length - 16)]
+    return {
+      success: false,
+      index: 0,
+      plaintext: new Uint8Array(ciphertext.length - 16)
+    }
   }
 }
 
