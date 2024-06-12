@@ -17,16 +17,12 @@ declare const verify: (
 ) => boolean
 
 declare class Channel {
-  constructor(skippedIndexesCount?: number)
-
-  isEstablished(): boolean
-
-  useKeyPairs(
+  constructor(
     ourIdentityKeyPair: Uint8Array,
-    ourSessionKeyPair: Uint8Array
-  ): [Uint8Array, Uint8Array]
-
-  usePublicKeys(theirIdentityKey: Uint8Array, theirSessionKey: Uint8Array): void
+    ourSessionKeyPair: Uint8Array,
+    theirIdentityKey: Uint8Array,
+    theirSessionKey: Uint8Array
+  )
 
   authenticate(): Uint8Array
 
@@ -45,15 +41,9 @@ declare class Channel {
   encrypt(plaintext: Uint8Array): [number, Uint8Array]
 
   decrypt(ciphertext: Uint8Array): [number, Uint8Array]
-
-  close(): void
 }
 
 declare const ready: () => Promise<void>
-
-declare const zeroize: (data: Uint8Array) => void
-
-declare const isZero: (data: Uint8Array) => boolean
 
 declare const keyExchange: (
   isInitiator: boolean,
@@ -74,7 +64,20 @@ declare const generateIdentityKeyPair: () => Uint8Array
 
 declare const generateSessionKeyPair: () => Uint8Array
 
-declare const getPublicKey: (keyPair: Uint8Array) => Uint8Array
+declare const getIdentityPublicKey: (keyPair: Uint8Array) => Uint8Array
+
+declare const getSessionPublicKey: (keyPair: Uint8Array) => Uint8Array
+
+declare const getPublicKeys: (
+  identityKeyPair: Uint8Array,
+  sessionKeyPair: Uint8Array
+) => [Uint8Array, Uint8Array]
+
+declare const createNonce: () => Uint8Array
+
+declare const createIndexes: (count?: number) => Uint32Array
+
+declare const generateSecretKey: () => Uint8Array
 
 declare const encrypt: (
   key: Uint8Array,
@@ -95,13 +98,16 @@ export {
   verify,
   Channel,
   ready,
-  zeroize,
-  isZero,
   keyExchange,
   verifyKeyExchange,
   generateIdentityKeyPair,
   generateSessionKeyPair,
-  getPublicKey,
+  getIdentityPublicKey,
+  getSessionPublicKey,
+  getPublicKeys,
+  createNonce,
+  createIndexes,
+  generateSecretKey,
   encrypt,
   decrypt
 }

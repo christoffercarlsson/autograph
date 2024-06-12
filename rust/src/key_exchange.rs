@@ -1,39 +1,49 @@
 use crate::{
     cert::{certify, verify},
-    constants::{
-        INFO, OKM_SIZE, PUBLIC_KEY_SIZE, SALT_SIZE, SECRET_KEY_SIZE, SHARED_SECRET_SIZE,
-        TRANSCRIPT_SIZE,
-    },
     error::Error,
-    external::{diffie_hellman, hkdf},
-    get_public_key,
-    types::{KeyPair, Okm, PublicKey, SecretKey, SharedSecret, Signature, Transcript},
+    key_pair::{get_identity_public_key, get_session_public_key},
+    message::create_secret_key,
+    primitives::{AEADPrimitive, DiffieHellmanPrimitive, KeyDerivationPrimitive, SigningPrimitive},
 };
+use alloc::{vec, vec::Vec};
 
-fn calculate_secret_keys(is_initiator: bool, okm: &Okm) -> (SecretKey, SecretKey) {
-    let mut sending_key = [0; SECRET_KEY_SIZE];
-    let mut receiving_key = [0; SECRET_KEY_SIZE];
+pub fn create_transcript<P: DiffieHellmanPrimitive>() -> Vec<u8> {
+    let size = P::SESSION_PUBLIC_KEY_SIZE * 2;
+    vec![0; size]
+}
+
+fn create_shared_secret<P: DiffieHellmanPrimitive>() -> Vec<u8> {
+    vec![0; P::SHARED_SECRET_SIZE]
+}
+
+fn create_okm<P: AEADPrimitive>() -> Vec<u8> {
+    let size = P::SECRET_KEY_SIZE * 2;
+    vec![0; size]
+}
+
+fn calculate_secret_keys<P: AEADPrimitive>(is_initiator: bool, okm: &[u8]) -> (Vec<u8>, Vec<u8>) {
+    let mut sending_key = create_secret_key::<P>();
+    let mut receiving_key = create_secret_key::<P>();
     if is_initiator {
-        sending_key.copy_from_slice(&okm[..SECRET_KEY_SIZE]);
-        receiving_key.copy_from_slice(&okm[SECRET_KEY_SIZE..]);
+        sending_key.copy_from_slice(&okm[..P::SECRET_KEY_SIZE]);
+        receiving_key.copy_from_slice(&okm[P::SECRET_KEY_SIZE..]);
     } else {
-        sending_key.copy_from_slice(&okm[SECRET_KEY_SIZE..]);
-        receiving_key.copy_from_slice(&okm[..SECRET_KEY_SIZE]);
+        sending_key.copy_from_slice(&okm[P::SECRET_KEY_SIZE..]);
+        receiving_key.copy_from_slice(&okm[..P::SECRET_KEY_SIZE]);
     }
     (sending_key, receiving_key)
 }
 
-fn derive_secret_keys(
+fn derive_secret_keys<P: DiffieHellmanPrimitive + KeyDerivationPrimitive + AEADPrimitive>(
     is_initiator: bool,
-    our_session_key_pair: &KeyPair,
-    their_session_key: &PublicKey,
-) -> Result<(SecretKey, SecretKey), Error> {
-    let mut shared_secret: SharedSecret = [0; SHARED_SECRET_SIZE];
-    let mut okm: Okm = [0; OKM_SIZE];
-    let dh_success = diffie_hellman(&mut shared_secret, our_session_key_pair, their_session_key);
-    let salt = [0; SALT_SIZE];
-    let kdf_success = hkdf(&mut okm, &shared_secret, &salt, &INFO);
-    let (sending_key, receiving_key) = calculate_secret_keys(is_initiator, &okm);
+    our_session_key_pair: &[u8],
+    their_session_key: &[u8],
+) -> Result<(Vec<u8>, Vec<u8>), Error> {
+    let mut shared_secret = create_shared_secret::<P>();
+    let mut okm = create_okm::<P>();
+    let dh_success = P::diffie_hellman(&mut shared_secret, our_session_key_pair, their_session_key);
+    let kdf_success = P::kdf(&mut okm, &shared_secret);
+    let (sending_key, receiving_key) = calculate_secret_keys::<P>(is_initiator, &okm);
     if dh_success && kdf_success {
         Ok((sending_key, receiving_key))
     } else {
@@ -41,45 +51,52 @@ fn derive_secret_keys(
     }
 }
 
-fn calculate_transcript(
+fn calculate_transcript<P: DiffieHellmanPrimitive>(
     is_initiator: bool,
-    our_session_key_pair: &KeyPair,
-    their_session_key: &PublicKey,
-) -> Transcript {
-    let mut transcript = [0; TRANSCRIPT_SIZE];
-    let our_session_key = get_public_key(our_session_key_pair);
+    our_session_key_pair: &[u8],
+    their_session_key: &[u8],
+) -> Vec<u8> {
+    let mut transcript = create_transcript::<P>();
+    let our_session_key = get_session_public_key::<P>(our_session_key_pair);
     if is_initiator {
-        transcript[..PUBLIC_KEY_SIZE].copy_from_slice(&our_session_key);
-        transcript[PUBLIC_KEY_SIZE..].copy_from_slice(their_session_key);
+        transcript[..P::SESSION_PUBLIC_KEY_SIZE].copy_from_slice(&our_session_key);
+        transcript[P::SESSION_PUBLIC_KEY_SIZE..].copy_from_slice(their_session_key);
     } else {
-        transcript[..PUBLIC_KEY_SIZE].copy_from_slice(their_session_key);
-        transcript[PUBLIC_KEY_SIZE..].copy_from_slice(&our_session_key);
+        transcript[..P::SESSION_PUBLIC_KEY_SIZE].copy_from_slice(their_session_key);
+        transcript[P::SESSION_PUBLIC_KEY_SIZE..].copy_from_slice(&our_session_key);
     }
     transcript
 }
 
-pub fn key_exchange(
+type Transcript = Vec<u8>;
+type Signature = Vec<u8>;
+type SecretKey = Vec<u8>;
+
+pub fn key_exchange<
+    P: SigningPrimitive + DiffieHellmanPrimitive + KeyDerivationPrimitive + AEADPrimitive,
+>(
     is_initiator: bool,
-    our_identity_key_pair: &KeyPair,
-    our_session_key_pair: &KeyPair,
-    their_identity_key: &PublicKey,
-    their_session_key: &PublicKey,
+    our_identity_key_pair: &[u8],
+    our_session_key_pair: &[u8],
+    their_identity_key: &[u8],
+    their_session_key: &[u8],
 ) -> Result<(Transcript, Signature, SecretKey, SecretKey), Error> {
-    let transcript = calculate_transcript(is_initiator, our_session_key_pair, their_session_key);
-    let signature = certify(our_identity_key_pair, their_identity_key, Some(&transcript))?;
+    let transcript =
+        calculate_transcript::<P>(is_initiator, our_session_key_pair, their_session_key);
+    let signature = certify::<P>(our_identity_key_pair, their_identity_key, Some(&transcript))?;
     let (sending_key, receiving_key) =
-        derive_secret_keys(is_initiator, our_session_key_pair, their_session_key)?;
+        derive_secret_keys::<P>(is_initiator, our_session_key_pair, their_session_key)?;
     Ok((transcript, signature, sending_key, receiving_key))
 }
 
-pub fn verify_key_exchange(
-    transcript: &Transcript,
-    our_identity_key_pair: &KeyPair,
-    their_identity_key: &PublicKey,
-    their_signature: &Signature,
+pub fn verify_key_exchange<P: SigningPrimitive>(
+    transcript: &[u8],
+    our_identity_key_pair: &[u8],
+    their_identity_key: &[u8],
+    their_signature: &[u8],
 ) -> Result<(), Error> {
-    let our_identity_key = get_public_key(our_identity_key_pair);
-    let verified = verify(
+    let our_identity_key = get_identity_public_key::<P>(our_identity_key_pair);
+    let verified = verify::<P>(
         &our_identity_key,
         their_identity_key,
         their_signature,

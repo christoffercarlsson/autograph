@@ -7,6 +7,7 @@ public enum AutographError: Swift.Error {
     case encryption
     case initialization
     case keyExchange
+    case keyGeneration
     case keyPair
     case session
 }

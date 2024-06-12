@@ -1,16 +1,24 @@
-import {
-  createTranscript,
-  createSecretKey,
-  createNonce,
-  createPublicKey,
-  createSkippedIndexes,
-  createKeyPair
-} from './support'
 import authenticate from './auth'
 import { certify, verify } from './cert'
-import { keyExchange, verifyKeyExchange } from './key-exchange'
+import {
+  createTranscript,
+  keyExchange,
+  verifyKeyExchange
+} from './key-exchange'
 import { autograph_use_key_pairs, autograph_use_public_keys } from './clib'
-import { decrypt, encrypt } from './message'
+import {
+  createIndexes,
+  createNonce,
+  createSecretKey,
+  decrypt,
+  encrypt
+} from './message'
+import {
+  createIdentityKeyPair,
+  createIdentityPublicKey,
+  createSessionKeyPair,
+  createSessionPublicKey
+} from './key-pair'
 
 export default class Channel {
   private ourIdentityKeyPair: Uint8Array
@@ -30,16 +38,16 @@ export default class Channel {
     theirIdentityKey: Uint8Array,
     theirSessionKey: Uint8Array
   ) {
-    this.ourIdentityKeyPair = createKeyPair()
-    this.ourSessionKeyPair = createKeyPair()
-    this.theirIdentityKey = createPublicKey()
-    this.theirSessionKey = createPublicKey()
+    this.ourIdentityKeyPair = createIdentityKeyPair()
+    this.ourSessionKeyPair = createSessionKeyPair()
+    this.theirIdentityKey = createIdentityPublicKey()
+    this.theirSessionKey = createSessionPublicKey()
     this.transcript = createTranscript()
     this.sendingKey = createSecretKey()
     this.receivingKey = createSecretKey()
     this.sendingNonce = createNonce()
     this.receivingNonce = createNonce()
-    this.skippedIndexes = createSkippedIndexes()
+    this.skippedIndexes = createIndexes()
     autograph_use_key_pairs(
       this.ourIdentityKeyPair,
       this.ourSessionKeyPair,
@@ -52,9 +60,6 @@ export default class Channel {
       theirIdentityKey,
       theirSessionKey
     )
-    this.sendingNonce = this.sendingNonce.fill(0)
-    this.receivingNonce = this.receivingNonce.fill(0)
-    this.skippedIndexes = this.skippedIndexes.fill(0)
   }
 
   authenticate() {

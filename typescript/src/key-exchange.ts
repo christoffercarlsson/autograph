@@ -1,5 +1,13 @@
-import { autograph_key_exchange, autograph_verify_key_exchange } from './clib'
-import { createSecretKey, createSignature, createTranscript } from './support'
+import { createSignature } from './cert'
+import {
+  autograph_key_exchange,
+  autograph_verify_key_exchange,
+  autograph_transcript_size
+} from './clib'
+import { createSecretKey } from './message'
+
+export const createTranscript = () =>
+  new Uint8Array(autograph_transcript_size())
 
 export const keyExchange = (
   isInitiator: boolean,

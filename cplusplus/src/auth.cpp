@@ -1,11 +1,19 @@
 #include <string.h>
 
 #include "autograph.h"
-#include "constants.h"
-#include "external.h"
-#include "support.h"
+#include "primitives.h"
+
+constexpr uint16_t FINGERPRINT_ITERATIONS = 5200;
+constexpr uint32_t FINGERPRINT_DIVISOR = 100000;
+constexpr uint8_t FINGERPRINT_SIZE = 32;
+constexpr uint8_t SAFETY_NUMBER_SIZE = FINGERPRINT_SIZE * 2;
 
 extern "C" {
+
+extern uint32_t get_uint32(const uint8_t *bytes, const size_t offset);
+
+extern void set_uint32(uint8_t *bytes, const size_t offset,
+                       const uint32_t number);
 
 void encode_fingerprint(uint8_t *fingerprint, const uint8_t *digest) {
   for (uint8_t i = 0; i < FINGERPRINT_SIZE; i += 4) {
@@ -15,16 +23,21 @@ void encode_fingerprint(uint8_t *fingerprint, const uint8_t *digest) {
 }
 
 bool calculate_fingerprint(uint8_t *fingerprint, const uint8_t *public_key) {
-  uint8_t a[DIGEST_SIZE];
-  uint8_t b[DIGEST_SIZE];
-  if (!hash(a, public_key, PUBLIC_KEY_SIZE)) {
+  size_t digest_size = autograph_primitive_digest_size();
+  if (digest_size < FINGERPRINT_SIZE) {
+    return false;
+  }
+  uint8_t a[digest_size];
+  uint8_t b[digest_size];
+  if (!autograph_primitive_hash(a, public_key,
+                                autograph_identity_public_key_size())) {
     return false;
   }
   for (uint16_t i = 1; i < FINGERPRINT_ITERATIONS; i++) {
-    if (!hash(b, a, DIGEST_SIZE)) {
+    if (!autograph_primitive_hash(b, a, digest_size)) {
       return false;
     }
-    memmove(a, b, DIGEST_SIZE);
+    memmove(a, b, digest_size);
   }
   encode_fingerprint(fingerprint, a);
   return true;
@@ -44,12 +57,12 @@ void calculate_safety_number(uint8_t *safety_number, uint8_t *our_fingerprint,
 }
 
 bool autograph_authenticate(uint8_t *safety_number,
-                            const uint8_t *identity_key_pair,
+                            const uint8_t *our_identity_key_pair,
                             const uint8_t *their_identity_key) {
   uint8_t our_fingerprint[FINGERPRINT_SIZE];
   uint8_t their_fingerprint[FINGERPRINT_SIZE];
-  uint8_t our_identity_key[PUBLIC_KEY_SIZE];
-  autograph_get_public_key(our_identity_key, identity_key_pair);
+  uint8_t our_identity_key[autograph_identity_public_key_size()];
+  autograph_get_identity_public_key(our_identity_key, our_identity_key_pair);
   if (!calculate_fingerprint(our_fingerprint, our_identity_key)) {
     return false;
   }
@@ -60,13 +73,15 @@ bool autograph_authenticate(uint8_t *safety_number,
   return true;
 }
 
+size_t autograph_safety_number_size() { return SAFETY_NUMBER_SIZE; }
+
 }  // extern "C"
 
 namespace Autograph {
 
-std::tuple<bool, SafetyNumber> authenticate(const KeyPair &ourIdentityKeyPair,
-                                            const PublicKey &theirIdentityKey) {
-  SafetyNumber safetyNumber;
+std::tuple<bool, Bytes> authenticate(const Bytes &ourIdentityKeyPair,
+                                     const Bytes &theirIdentityKey) {
+  Bytes safetyNumber(autograph_safety_number_size());
   bool success = autograph_authenticate(
       safetyNumber.data(), ourIdentityKeyPair.data(), theirIdentityKey.data());
   return {success, safetyNumber};

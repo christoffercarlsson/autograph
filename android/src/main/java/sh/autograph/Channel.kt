@@ -1,16 +1,16 @@
 package sh.autograph
 
 public class Channel {
-    private var ourIdentityKeyPair: ByteArray = Support.createKeyPair()
-    private var ourSessionKeyPair: ByteArray = Support.createKeyPair()
-    private var theirIdentityKey: ByteArray = Support.createPublicKey()
-    private var theirSessionKey: ByteArray = Support.createPublicKey()
-    private var transcript: ByteArray = Support.createTranscript()
-    private var sendingKey: ByteArray = Support.createSecretKey()
-    private var receivingKey: ByteArray = Support.createSecretKey()
-    private var sendingNonce: ByteArray = Support.createNonce()
-    private var receivingNonce: ByteArray = Support.createNonce()
-    private var skippedIndexes: IntArray = Support.createSkippedIndexes()
+    private var ourIdentityKeyPair: ByteArray = KeyPair.createIdentityKeyPair()
+    private var ourSessionKeyPair: ByteArray = KeyPair.createSessionKeyPair()
+    private var theirIdentityKey: ByteArray = KeyPair.createIdentityPublicKey()
+    private var theirSessionKey: ByteArray = KeyPair.createSessionPublicKey()
+    private var transcript: ByteArray = KeyExchange.createTranscript()
+    private var sendingKey: ByteArray = Message.createSecretKey()
+    private var receivingKey: ByteArray = Message.createSecretKey()
+    private var sendingNonce: ByteArray = Message.createNonce()
+    private var receivingNonce: ByteArray = Message.createNonce()
+    private var skippedIndexes: IntArray = Message.createIndexes(null)
 
     companion object {
         init {

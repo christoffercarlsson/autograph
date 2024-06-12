@@ -6,10 +6,17 @@ import { keyExchange, verifyKeyExchange } from './key-exchange'
 import {
   generateIdentityKeyPair,
   generateSessionKeyPair,
-  getPublicKey,
-  getPublicKeys
+  getIdentityPublicKey,
+  getPublicKeys,
+  getSessionPublicKey
 } from './key-pair'
-import { encrypt, decrypt } from './message'
+import {
+  encrypt,
+  decrypt,
+  createNonce,
+  generateSecretKey,
+  createIndexes
+} from './message'
 
 export {
   authenticate,
@@ -21,8 +28,12 @@ export {
   verifyKeyExchange,
   generateIdentityKeyPair,
   generateSessionKeyPair,
-  getPublicKey,
+  getIdentityPublicKey,
+  getSessionPublicKey,
   getPublicKeys,
+  createNonce,
+  createIndexes,
+  generateSecretKey,
   encrypt,
   decrypt
 }

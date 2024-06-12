@@ -186,33 +186,33 @@ final class ChannelTests: XCTestCase {
         try Autograph.ready()
 
         let (aliceIdentityKey, aliceSessionKey) = Autograph.getPublicKeys(
-            identityKeyPair: aliceIdentityKeyPair,
-            sessionKeyPair: aliceSessionKeyPair
+            aliceIdentityKeyPair,
+            aliceSessionKeyPair
         )
 
         let (bobIdentityKey, bobSessionKey) = Autograph.getPublicKeys(
-            identityKeyPair: bobIdentityKeyPair,
-            sessionKeyPair: bobSessionKeyPair
+            bobIdentityKeyPair,
+            bobSessionKeyPair
         )
 
         a = Autograph.Channel(
-            ourIdentityKeyPair: aliceIdentityKeyPair,
-            ourSessionKeyPair: aliceSessionKeyPair,
-            theirIdentityKey: bobIdentityKey, theirSessionKey: bobSessionKey
+            aliceIdentityKeyPair,
+            aliceSessionKeyPair,
+            bobIdentityKey, bobSessionKey
         )
 
         b = Autograph.Channel(
-            ourIdentityKeyPair: bobIdentityKeyPair,
-            ourSessionKeyPair: bobSessionKeyPair,
-            theirIdentityKey: aliceIdentityKey,
-            theirSessionKey: aliceSessionKey
+            bobIdentityKeyPair,
+            bobSessionKeyPair,
+            aliceIdentityKey,
+            aliceSessionKey
         )
 
-        handshakeAlice = try a.keyExchange(isInitiator: true)
-        handshakeBob = try b.keyExchange(isInitiator: false)
+        handshakeAlice = try a.keyExchange(true)
+        handshakeBob = try b.keyExchange(false)
 
-        try a.verifyKeyExchange(theirSignature: handshakeBob)
-        try b.verifyKeyExchange(theirSignature: handshakeAlice)
+        try a.verifyKeyExchange(handshakeBob)
+        try b.verifyKeyExchange(handshakeAlice)
     }
 
     // Should allow Alice and Bob to perform a key exchange
@@ -231,8 +231,8 @@ final class ChannelTests: XCTestCase {
 
     // Should allow Alice to send encrypted data to Bob
     func testAliceMessageToBob() throws {
-        let (encryptIndex, message) = try a.encrypt(plaintext: data)
-        let (decryptIndex, plaintext) = try b.decrypt(ciphertext: message)
+        let (encryptIndex, message) = try a.encrypt(data)
+        let (decryptIndex, plaintext) = try b.decrypt(message)
         XCTAssertEqual(encryptIndex, 1)
         XCTAssertEqual(decryptIndex, 1)
         XCTAssertEqual(message, aliceMessage)
@@ -241,8 +241,8 @@ final class ChannelTests: XCTestCase {
 
     // Should allow Bob to send encrypted data to Alice
     func testBobMessageToAlice() throws {
-        let (_, message) = try b.encrypt(plaintext: data)
-        let (_, plaintext) = try a.decrypt(ciphertext: message)
+        let (_, message) = try b.encrypt(data)
+        let (_, plaintext) = try a.decrypt(message)
         XCTAssertEqual(message, bobMessage)
         XCTAssertEqual(plaintext, data)
     }
@@ -250,26 +250,26 @@ final class ChannelTests: XCTestCase {
     // Should allow Bob to certify Alice's ownership of her identity key and
     // data
     func testBobCertifyAliceData() throws {
-        let signature = try b.certify(data: data)
+        let signature = try b.certify(data)
         XCTAssertEqual(signature, bobSignatureAliceData)
     }
 
     // Should allow Alice to certify Bob's ownership of his identity key and
     // data
     func testAliceCertifyBobData() throws {
-        let signature = try a.certify(data: data)
+        let signature = try a.certify(data)
         XCTAssertEqual(signature, aliceSignatureBobData)
     }
 
     // Should allow Bob to certify Alice's ownership of her identity key
     func testBobCertifyAliceIdentity() throws {
-        let signature = try b.certify(data: nil)
+        let signature = try b.certify(nil)
         XCTAssertEqual(signature, bobSignatureAliceIdentity)
     }
 
     // Should allow Alice to certify Bob's ownership of his identity key
     func testAliceCertifyBobIdentity() throws {
-        let signature = try a.certify(data: nil)
+        let signature = try a.certify(nil)
         XCTAssertEqual(signature, aliceSignatureBobIdentity)
     }
 
@@ -277,9 +277,9 @@ final class ChannelTests: XCTestCase {
     // based on Charlie's public key and signature
     func testBobVerifyAliceData() {
         let verified = b.verify(
-            certifierIdentityKey: charlieIdentityKey,
-            signature: charlieSignatureAliceData,
-            data: data
+            charlieIdentityKey,
+            charlieSignatureAliceData,
+            data
         )
         XCTAssertTrue(verified)
     }
@@ -288,9 +288,9 @@ final class ChannelTests: XCTestCase {
     // data based on Charlie's public key and signature
     func testAliceVerifyBobData() {
         let verified = a.verify(
-            certifierIdentityKey: charlieIdentityKey,
-            signature: charlieSignatureBobData,
-            data: data
+            charlieIdentityKey,
+            charlieSignatureBobData,
+            data
         )
         XCTAssertTrue(verified)
     }
@@ -299,9 +299,9 @@ final class ChannelTests: XCTestCase {
     // Charlie's public key and signature
     func testBobVerifyAliceIdentity() {
         let verified = b.verify(
-            certifierIdentityKey: charlieIdentityKey,
-            signature: charlieSignatureAliceIdentity,
-            data: nil
+            charlieIdentityKey,
+            charlieSignatureAliceIdentity,
+            nil
         )
         XCTAssertTrue(verified)
     }
@@ -310,9 +310,9 @@ final class ChannelTests: XCTestCase {
     // Charlie's public key and signature
     func testAliceVerifyBobIdentity() {
         let verified = a.verify(
-            certifierIdentityKey: charlieIdentityKey,
-            signature: charlieSignatureBobIdentity,
-            data: nil
+            charlieIdentityKey,
+            charlieSignatureBobIdentity,
+            nil
         )
         XCTAssertTrue(verified)
     }
@@ -323,14 +323,14 @@ final class ChannelTests: XCTestCase {
         let data2: [UInt8] = [4, 5, 6]
         let data3: [UInt8] = [7, 8, 9]
         let data4: [UInt8] = [10, 11, 12]
-        let (_, message1) = try a.encrypt(plaintext: data1)
-        let (_, message2) = try a.encrypt(plaintext: data2)
-        let (_, message3) = try a.encrypt(plaintext: data3)
-        let (_, message4) = try a.encrypt(plaintext: data4)
-        let (index4, plaintext4) = try b.decrypt(ciphertext: message4)
-        let (index2, plaintext2) = try b.decrypt(ciphertext: message2)
-        let (index3, plaintext3) = try b.decrypt(ciphertext: message3)
-        let (index1, plaintext1) = try b.decrypt(ciphertext: message1)
+        let (_, message1) = try a.encrypt(data1)
+        let (_, message2) = try a.encrypt(data2)
+        let (_, message3) = try a.encrypt(data3)
+        let (_, message4) = try a.encrypt(data4)
+        let (index4, plaintext4) = try b.decrypt(message4)
+        let (index2, plaintext2) = try b.decrypt(message2)
+        let (index3, plaintext3) = try b.decrypt(message3)
+        let (index1, plaintext1) = try b.decrypt(message1)
         XCTAssertEqual(index1, 1)
         XCTAssertEqual(index2, 2)
         XCTAssertEqual(index3, 3)

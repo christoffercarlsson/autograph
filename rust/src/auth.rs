@@ -1,33 +1,40 @@
 use crate::{
-    constants::{
-        DIGEST_SIZE, FINGERPRINT_DIVISOR, FINGERPRINT_ITERATIONS, FINGERPRINT_SIZE,
-        SAFETY_NUMBER_SIZE,
-    },
     error::Error,
-    external::hash,
-    key_pair::get_public_key,
-    support::{get_uint32, set_uint32},
-    types::{Digest, Fingerprint, PublicKey, SafetyNumber},
-    KeyPair,
+    key_pair::get_identity_public_key,
+    message::{get_uint32, set_uint32},
+    primitives::{HashingPrimitive, SigningPrimitive},
 };
+use alloc::{vec, vec::Vec};
 
-fn encode_fingerprint(digest: &Digest) -> Fingerprint {
+const FINGERPRINT_SIZE: usize = 32;
+const FINGERPRINT_ITERATIONS: u16 = 5200;
+const FINGERPRINT_DIVISOR: u32 = 100000;
+const SAFETY_NUMBER_SIZE: usize = FINGERPRINT_SIZE * 2;
+
+fn create_digest<P: HashingPrimitive>() -> Vec<u8> {
+    vec![0; P::DIGEST_SIZE]
+}
+
+fn encode_fingerprint(digest: &[u8]) -> Vec<u8> {
     let mut fingerprint = [0; FINGERPRINT_SIZE];
     for i in (0..FINGERPRINT_SIZE).step_by(4) {
         let n = get_uint32(digest, i);
         set_uint32(&mut fingerprint, i, n % FINGERPRINT_DIVISOR);
     }
-    fingerprint
+    fingerprint.to_vec()
 }
 
-fn calculate_fingerprint(public_key: &PublicKey) -> Result<Fingerprint, Error> {
-    let mut a = [0; DIGEST_SIZE];
-    let mut b = [0; DIGEST_SIZE];
-    if !hash(&mut a, public_key) {
+fn calculate_fingerprint<P: HashingPrimitive>(public_key: &[u8]) -> Result<Vec<u8>, Error> {
+    if P::DIGEST_SIZE < FINGERPRINT_SIZE {
+        return Err(Error::Authentication);
+    }
+    let mut a = create_digest::<P>();
+    let mut b = create_digest::<P>();
+    if !P::hash(&mut a, public_key) {
         return Err(Error::Authentication);
     }
     for _ in 1..FINGERPRINT_ITERATIONS {
-        if !hash(&mut b, &a) {
+        if !P::hash(&mut b, &a) {
             return Err(Error::Authentication);
         }
         a.copy_from_slice(&b);
@@ -35,10 +42,7 @@ fn calculate_fingerprint(public_key: &PublicKey) -> Result<Fingerprint, Error> {
     Ok(encode_fingerprint(&a))
 }
 
-fn calculate_safety_number(
-    our_fingerprint: &Fingerprint,
-    their_fingerprint: &Fingerprint,
-) -> SafetyNumber {
+fn calculate_safety_number(our_fingerprint: &[u8], their_fingerprint: &[u8]) -> Vec<u8> {
     let mut safety_number = [0; SAFETY_NUMBER_SIZE];
     if their_fingerprint > our_fingerprint {
         safety_number[..FINGERPRINT_SIZE].copy_from_slice(their_fingerprint);
@@ -47,16 +51,16 @@ fn calculate_safety_number(
         safety_number[..FINGERPRINT_SIZE].copy_from_slice(our_fingerprint);
         safety_number[FINGERPRINT_SIZE..].copy_from_slice(their_fingerprint);
     }
-    safety_number
+    safety_number.to_vec()
 }
 
-pub fn authenticate(
-    our_identity_key_pair: &KeyPair,
-    their_identity_key: &PublicKey,
-) -> Result<SafetyNumber, Error> {
-    let our_identity_key = get_public_key(our_identity_key_pair);
-    let our_fingerprint = calculate_fingerprint(&our_identity_key)?;
-    let their_fingerprint = calculate_fingerprint(their_identity_key)?;
+pub fn authenticate<P: SigningPrimitive + HashingPrimitive>(
+    our_identity_key_pair: &[u8],
+    their_identity_key: &[u8],
+) -> Result<Vec<u8>, Error> {
+    let our_identity_key = get_identity_public_key::<P>(our_identity_key_pair);
+    let our_fingerprint = calculate_fingerprint::<P>(&our_identity_key)?;
+    let their_fingerprint = calculate_fingerprint::<P>(their_identity_key)?;
     Ok(calculate_safety_number(
         &our_fingerprint,
         &their_fingerprint,

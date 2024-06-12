@@ -2,6 +2,12 @@
 
 #include "autograph.h"
 
+JNIEXPORT jint JNICALL
+Java_sh_autograph_Cert_00024Companion_autographSignatureSize(JNIEnv* env,
+                                                             jclass class) {
+  return (jint)autograph_signature_size();
+}
+
 JNIEXPORT jboolean JNICALL
 Java_sh_autograph_Cert_00024Companion_autographCertify(
     JNIEnv* env, jclass class, jbyteArray signature,

@@ -1,7 +1,4 @@
-#include <algorithm>
-
 #include "autograph.h"
-#include "constants.h"
 
 extern "C" {
 
@@ -9,54 +6,61 @@ void autograph_use_key_pairs(uint8_t *identity_key_pair,
                              uint8_t *session_key_pair,
                              const uint8_t *our_identity_key_pair,
                              const uint8_t *our_session_key_pair) {
-  memmove(identity_key_pair, our_identity_key_pair, KEY_PAIR_SIZE);
-  memmove(session_key_pair, our_session_key_pair, KEY_PAIR_SIZE);
+  memmove(identity_key_pair, our_identity_key_pair,
+          autograph_identity_key_pair_size());
+  memmove(session_key_pair, our_session_key_pair,
+          autograph_session_key_pair_size());
 }
 
 void autograph_use_public_keys(uint8_t *identity_key, uint8_t *session_key,
                                const uint8_t *their_identity_key,
                                const uint8_t *their_session_key) {
-  memmove(identity_key, their_identity_key, PUBLIC_KEY_SIZE);
-  memmove(session_key, their_session_key, PUBLIC_KEY_SIZE);
+  memmove(identity_key, their_identity_key,
+          autograph_identity_public_key_size());
+  memmove(session_key, their_session_key, autograph_session_public_key_size());
 }
 
 }  // extern "C"
 
 namespace Autograph {
 
-Channel::Channel(const KeyPair &ourIdentityKeyPair,
-                 const KeyPair &ourSessionKeyPair,
-                 const PublicKey &theirIdentityKey,
-                 const PublicKey &theirSessionKey)
-    : skippedIndexes(autograph_skipped_indexes_count()) {
+Channel::Channel(const Bytes &ourIdentityKeyPair,
+                 const Bytes &ourSessionKeyPair, const Bytes &theirIdentityKey,
+                 const Bytes &theirSessionKey)
+    : ourIdentityKeyPair(autograph_identity_key_pair_size()),
+      ourSessionKeyPair(autograph_session_key_pair_size()),
+      theirIdentityKey(autograph_identity_public_key_size()),
+      theirSessionKey(autograph_session_public_key_size()),
+      transcript(autograph_transcript_size()),
+      sendingKey(autograph_secret_key_size()),
+      receivingKey(autograph_secret_key_size()),
+      sendingNonce(createNonce()),
+      receivingNonce(createNonce()),
+      skippedIndexes(createIndexes(std::nullopt)) {
   autograph_use_key_pairs(this->ourIdentityKeyPair.data(),
                           this->ourSessionKeyPair.data(),
                           ourIdentityKeyPair.data(), ourSessionKeyPair.data());
   autograph_use_public_keys(this->theirIdentityKey.data(),
                             this->theirSessionKey.data(),
                             theirIdentityKey.data(), theirSessionKey.data());
-  sendingNonce.fill(0);
-  receivingNonce.fill(0);
-  std::fill(skippedIndexes.begin(), skippedIndexes.end(), 0);
 }
 
-std::tuple<bool, SafetyNumber> Channel::authenticate() const {
+std::tuple<bool, Bytes> Channel::authenticate() const {
   return Autograph::authenticate(ourIdentityKeyPair, theirIdentityKey);
 }
 
-std::tuple<bool, Signature> Channel::certify(
+std::tuple<bool, Bytes> Channel::certify(
     const std::optional<Bytes> &data) const {
   return Autograph::certify(ourIdentityKeyPair, theirIdentityKey, data);
 }
 
-bool Channel::verify(const PublicKey &certifierIdentityKey,
-                     const Signature &signature,
+bool Channel::verify(const Bytes &certifierIdentityKey, const Bytes &signature,
                      const std::optional<Bytes> &data) const {
   return Autograph::verify(theirIdentityKey, certifierIdentityKey, signature,
                            data);
 }
 
-std::tuple<bool, Signature> Channel::keyExchange(const bool isInitiator) {
+std::tuple<bool, Bytes> Channel::keyExchange(const bool isInitiator) {
   auto [success, transcript, signature, sendingKey, receivingKey] =
       Autograph::keyExchange(isInitiator, ourIdentityKeyPair, ourSessionKeyPair,
                              theirIdentityKey, theirSessionKey);
@@ -66,7 +70,7 @@ std::tuple<bool, Signature> Channel::keyExchange(const bool isInitiator) {
   return {success, signature};
 }
 
-bool Channel::verifyKeyExchange(const Signature &theirSignature) {
+bool Channel::verifyKeyExchange(const Bytes &theirSignature) {
   return Autograph::verifyKeyExchange(transcript, ourIdentityKeyPair,
                                       theirIdentityKey, theirSignature);
 }

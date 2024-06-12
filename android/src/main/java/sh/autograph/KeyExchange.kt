@@ -6,6 +6,8 @@ internal class KeyExchange {
             System.loadLibrary("autograph")
         }
 
+        private external fun autographTranscriptSize(): Int
+
         private external fun autographKeyExchange(
             transcript: ByteArray,
             ourSignature: ByteArray,
@@ -25,6 +27,8 @@ internal class KeyExchange {
             theirSignature: ByteArray,
         ): Boolean
 
+        fun createTranscript(): ByteArray = ByteArray(autographTranscriptSize())
+
         fun keyExchange(
             isInitiator: Boolean,
             ourIdentityKeyPair: ByteArray,
@@ -32,10 +36,10 @@ internal class KeyExchange {
             theirIdentityKey: ByteArray,
             theirSessionKey: ByteArray,
         ): Array<ByteArray> {
-            var transcript = Support.createTranscript()
-            var ourSignature = Support.createSignature()
-            var sendingKey = Support.createSecretKey()
-            var receivingKey = Support.createSecretKey()
+            var transcript = createTranscript()
+            var ourSignature = Cert.createSignature()
+            var sendingKey = Message.createSecretKey()
+            var receivingKey = Message.createSecretKey()
             val success =
                 autographKeyExchange(
                     transcript,
