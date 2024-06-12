@@ -4,7 +4,8 @@ Autograph is an open, modular cryptographic protocol that implements a
 decentralized credential management system. It is efficient enough to run on
 virtually any type of device, completely offline.
 
-> ⚠️ The security of this protocol has been analyzed together with researchers
+> [!WARNING]\
+> The security of this protocol has been analyzed together with researchers
 > from Chalmers University of Technology. It is currently in the process of
 > being peer-reviewed and the source code has yet to be independently audited.
 > The protocol specification has been successfully verified using Verifpal, an
@@ -13,9 +14,9 @@ virtually any type of device, completely offline.
 > fit for you.
 
 Currently, there are three native implementations of the protocol written in
-[C/C++](./cplusplus), [Go](./go), and [Rust](./rust). The C/C++ implementation
-has bindings to [Kotlin](./android), [Swift](./apple), and
-[TypeScript](./typescript).
+[C](./cplusplus), [Go](./go), and [Rust](./rust). The C implementation
+has bindings to [C++](./cplusplus), [Kotlin](./android), [Swift](./apple),
+and [TypeScript](./typescript).
 
 ## License
 
