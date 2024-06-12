@@ -3,6 +3,33 @@
 #include "autograph.h"
 
 JNIEXPORT jint JNICALL
+Java_sh_autograph_Message_00024Companion_autographSecretKeySize(JNIEnv* env,
+                                                                jclass class) {
+  return (jint)autograph_secret_key_size();
+}
+
+JNIEXPORT jboolean JNICALL
+Java_sh_autograph_Message_00024Companion_autographGenerateSecretKey(
+    JNIEnv* env, jclass class, jbyteArray key) {
+  jbyte* elements = (*env)->GetByteArrayElements(env, key, NULL);
+  bool success = autograph_generate_secret_key((uint8_t*)elements);
+  (*env)->ReleaseByteArrayElements(env, key, elements, 0);
+  return success ? JNI_TRUE : JNI_FALSE;
+}
+
+JNIEXPORT jint JNICALL
+Java_sh_autograph_Message_00024Companion_autographNonceSize(JNIEnv* env,
+                                                            jclass class) {
+  return (jint)autograph_nonce_size();
+}
+
+JNIEXPORT jint JNICALL
+Java_sh_autograph_Message_00024Companion_autographSkippedIndexesCount(
+    JNIEnv* env, jclass class) {
+  return (jint)autograph_skipped_indexes_count();
+}
+
+JNIEXPORT jint JNICALL
 Java_sh_autograph_Message_00024Companion_autographCiphertextSize(
     JNIEnv* env, jclass class, jint plaintext_size) {
   size_t size = autograph_ciphertext_size((size_t)plaintext_size);

@@ -6,6 +6,14 @@ internal class Message {
             System.loadLibrary("autograph")
         }
 
+        private external fun autographSecretKeySize(): Int
+
+        private external fun autographGenerateSecretKey(key: ByteArray): Boolean
+
+        private external fun autographNonceSize(): Int
+
+        private external fun autographSkippedIndexesCount(): Int
+
         private external fun autographCiphertextSize(plaintextSize: Int): Int
 
         private external fun autographPlaintextSize(ciphertextSize: Int): Int
@@ -27,6 +35,26 @@ internal class Message {
             skippedIndexes: IntArray,
             ciphertext: ByteArray,
         ): Boolean
+
+        fun createSecretKey(): ByteArray = ByteArray(autographSecretKeySize())
+
+        fun generateSecretKey(): ByteArray {
+            val key = createSecretKey()
+            val success = autographGenerateSecretKey(key)
+            if (!success) {
+                throw RuntimeException("Key generation failed")
+            }
+            return key
+        }
+
+        fun createNonce(): ByteArray = ByteArray(autographNonceSize())
+
+        fun createIndexes(count: Int?): IntArray {
+            if (count != null && count > 0 && count <= 65535) {
+                return IntArray(count)
+            }
+            return IntArray(autographSkippedIndexesCount())
+        }
 
         private fun createCiphertext(plaintext: ByteArray): ByteArray {
             val size = autographCiphertextSize(plaintext.size)
@@ -68,6 +96,18 @@ internal class Message {
             return Pair(index[0], plaintext.copyOf(plaintextSize[0]))
         }
     }
+}
+
+public fun generateSecretKey(): ByteArray {
+    return Message.generateSecretKey()
+}
+
+public fun createNonce(): ByteArray {
+    return Message.createNonce()
+}
+
+public fun createIndexes(count: Int?): IntArray {
+    return Message.createIndexes(count)
 }
 
 public fun encrypt(

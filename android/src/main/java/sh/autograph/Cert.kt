@@ -6,6 +6,8 @@ internal class Cert {
             System.loadLibrary("autograph")
         }
 
+        private external fun autographSignatureSize(): Int
+
         private external fun autographCertify(
             signature: ByteArray,
             ourIdentityKeyPair: ByteArray,
@@ -20,12 +22,14 @@ internal class Cert {
             data: ByteArray,
         ): Boolean
 
+        fun createSignature(): ByteArray = ByteArray(autographSignatureSize())
+
         fun certify(
             ourIdentityKeyPair: ByteArray,
             theirIdentityKey: ByteArray,
             data: ByteArray?,
         ): ByteArray {
-            val signature = Support.createSignature()
+            val signature = createSignature()
             val success =
                 autographCertify(
                     signature,
