@@ -2,41 +2,246 @@ package expo.modules.autograph
 
 import expo.modules.kotlin.modules.Module
 import expo.modules.kotlin.modules.ModuleDefinition
+import sh.autograph.authenticate
+import sh.autograph.certify
+import sh.autograph.decrypt
+import sh.autograph.encrypt
+import sh.autograph.generateIdentityKeyPair
+import sh.autograph.generateSecretKey
+import sh.autograph.generateSessionKeyPair
+import sh.autograph.getIdentityPublicKey
+import sh.autograph.getPublicKeys
+import sh.autograph.getSessionPublicKey
+import sh.autograph.keyExchange
+import sh.autograph.ready
+import sh.autograph.verify
+import sh.autograph.verifyKeyExchange
 
 class ExpoAutographModule : Module() {
-    // Each module class must implement the definition function. The definition consists of components
-    // that describes the module's functionality and behavior.
-    // See https://docs.expo.dev/modules/module-api for more details about available components.
     override fun definition() =
         ModuleDefinition {
-            // Sets the name of the module that JavaScript code will use to refer to the module. Takes a string as an argument.
-            // Can be inferred from module's class name, but it's recommended to set it explicitly for clarity.
-            // The module will be accessible from `requireNativeModule('ExpoAutograph')` in JavaScript.
             Name("ExpoAutograph")
 
-            // Sets constant properties on the module. Can take a dictionary or a closure that returns a dictionary.
-            Constants(
-                "PI" to Math.PI,
-            )
-
-            // Defines event names that the module can send to JavaScript.
-            Events("onChange")
-
-            // Defines a JavaScript synchronous function that runs the native code on the JavaScript thread.
-            Function("hello") {
-                "Hello world! 👋"
+            Function("authenticate") { ourIdentityKeyPair: ByteArray, theirIdentityKey: ByteArray ->
+                try {
+                    val safetyNumber =
+                        authenticate(
+                            ourIdentityKeyPair,
+                            theirIdentityKey,
+                        )
+                    mapOf(
+                        "success" to true,
+                        "safetyNumber" to safetyNumber,
+                    )
+                } catch (e: Exception) {
+                    mapOf(
+                        "success" to false,
+                        "safetyNumber" to ByteArray(64) { 0 },
+                    )
+                }
             }
 
-            // Defines a JavaScript function that always returns a Promise and whose native code
-            // is by default dispatched on the different thread than the JavaScript runtime runs on.
-            AsyncFunction("setValueAsync") { value: String ->
-                // Send an event to JavaScript.
-                sendEvent(
-                    "onChange",
+            Function("certify") { ourIdentityKeyPair: ByteArray, theirIdentityKey: ByteArray, data: ByteArray ->
+                try {
+                    val signature =
+                        certify(
+                            ourIdentityKeyPair,
+                            theirIdentityKey,
+                            data,
+                        )
                     mapOf(
-                        "value" to value,
-                    ),
+                        "success" to true,
+                        "signature" to signature,
+                    )
+                } catch (e: Exception) {
+                    mapOf(
+                        "success" to false,
+                        "signature" to ByteArray(64) { 0 },
+                    )
+                }
+            }
+
+            Function("verify") { ownerIdentityKey: ByteArray, certifierIdentityKey: ByteArray, signature: ByteArray, data: ByteArray ->
+                verify(
+                    ownerIdentityKey,
+                    certifierIdentityKey,
+                    signature,
+                    data,
                 )
+            }
+
+            AsyncFunction("ready") {
+                try {
+                    ready()
+                    true
+                } catch (e: Exception) {
+                    false
+                }
+            }
+
+            Function(
+                "keyExchange",
+            ) { isInitiator: Boolean, ourIdentityKeyPair: ByteArray, ourSessionKeyPair: ByteArray, theirIdentityKey: ByteArray, theirSessionKey: ByteArray ->
+                try {
+                    val (transcript, ourSignature, sendingKey, receivingKey) =
+                        keyExchange(
+                            isInitiator,
+                            ourIdentityKeyPair,
+                            ourSessionKeyPair,
+                            theirIdentityKey,
+                            theirSessionKey,
+                        )
+                    mapOf(
+                        "success" to true,
+                        "transcript" to transcript,
+                        "ourSignature" to ourSignature,
+                        "sendingKey" to sendingKey,
+                        "receivingKey" to receivingKey,
+                    )
+                } catch (e: Exception) {
+                    mapOf(
+                        "success" to false,
+                        "transcript" to ByteArray(64) { 0 },
+                        "ourSignature" to ByteArray(64) { 0 },
+                        "sendingKey" to ByteArray(32) { 0 },
+                        "receivingKey" to ByteArray(32) { 0 },
+                    )
+                }
+            }
+
+            Function(
+                "verifyKeyExchange",
+            ) { transcript: ByteArray, ourIdentityKeyPair: ByteArray, theirIdentityKey: ByteArray, theirSignature: ByteArray ->
+                try {
+                    verifyKeyExchange(
+                        transcript,
+                        ourIdentityKeyPair,
+                        theirIdentityKey,
+                        theirSignature,
+                    )
+                    true
+                } catch (e: Exception) {
+                    false
+                }
+            }
+
+            Function("generateIdentityKeyPair") {
+                try {
+                    val keyPair = generateIdentityKeyPair()
+                    mapOf(
+                        "success" to true,
+                        "keyPair" to keyPair,
+                    )
+                } catch (e: Exception) {
+                    mapOf(
+                        "success" to false,
+                        "keyPair" to ByteArray(64) { 0 },
+                    )
+                }
+            }
+
+            Function("generateSessionKeyPair") {
+                try {
+                    val keyPair = generateSessionKeyPair()
+                    mapOf(
+                        "success" to true,
+                        "keyPair" to keyPair,
+                    )
+                } catch (e: Exception) {
+                    mapOf(
+                        "success" to false,
+                        "keyPair" to ByteArray(64) { 0 },
+                    )
+                }
+            }
+
+            Function("getIdentityPublicKey") { keyPair: ByteArray ->
+                val publicKey = getIdentityPublicKey(keyPair)
+                publicKey
+            }
+
+            Function("getSessionPublicKey") { keyPair: ByteArray ->
+                val publicKey = getSessionPublicKey(keyPair)
+                publicKey
+            }
+
+            Function("getPublicKeys") { identityKeyPair: ByteArray, sessionKeyPair: ByteArray ->
+                val (identityKey, sessionKey) =
+                    getPublicKeys(
+                        identityKeyPair,
+                        sessionKeyPair,
+                    )
+                mapOf(
+                    "identityKey" to identityKey,
+                    "sessionKey" to sessionKey,
+                )
+            }
+
+            Function("createNonce") {
+                ByteArray(12) { 0 }
+            }
+
+            Function("generateSecretKey") {
+                try {
+                    val key = generateSecretKey()
+                    mapOf(
+                        "success" to true,
+                        "key" to key,
+                    )
+                } catch (e: Exception) {
+                    mapOf(
+                        "success" to false,
+                        "key" to ByteArray(32) { 0 },
+                    )
+                }
+            }
+
+            Function("encrypt") { key: ByteArray, nonce: ByteArray, plaintext: ByteArray ->
+                try {
+                    var n = nonce
+                    val (index, ciphertext) =
+                        encrypt(
+                            key,
+                            n,
+                            plaintext,
+                        )
+                    mapOf(
+                        "success" to true,
+                        "index" to index,
+                        "ciphertext" to ciphertext,
+                    )
+                } catch (e: Exception) {
+                    mapOf(
+                        "success" to false,
+                        "index" to 0,
+                        "ciphertext" to ByteArray(plaintext.size + 16) { 0 },
+                    )
+                }
+            }
+
+            Function("decrypt") { key: ByteArray, nonce: ByteArray, _: ByteArray, ciphertext: ByteArray ->
+                try {
+                    var n = nonce
+                    val indexes = IntArray(3)
+                    val (index, plaintext) =
+                        decrypt(
+                            key,
+                            n,
+                            indexes,
+                            ciphertext,
+                        )
+                    mapOf(
+                        "success" to true,
+                        "index" to index,
+                        "plaintext" to plaintext,
+                    )
+                } catch (e: Exception) {
+                    mapOf(
+                        "success" to false,
+                        "index" to 0,
+                        "plaintext" to ByteArray(ciphertext.size - 16) { 0 },
+                    )
+                }
             }
         }
 }
