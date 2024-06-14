@@ -12,7 +12,7 @@ const authenticate = (
     )
     return { success: true, safetyNumber }
   } catch {
-    return { success: false, safetyNumber: new Uint8Array(64) }
+    return { success: false, safetyNumber: new Uint8Array() }
   }
 }
 
@@ -29,7 +29,7 @@ const certify = (
     )
     return { success: true, signature }
   } catch {
-    return { success: false, signature: new Uint8Array(64) }
+    return { success: false, signature: new Uint8Array() }
   }
 }
 
@@ -78,10 +78,10 @@ const keyExchange = (
   } catch {
     return {
       success: false,
-      transcript: new Uint8Array(64),
-      ourSignature: new Uint8Array(64),
-      sendingKey: new Uint8Array(32),
-      receivingKey: new Uint8Array(32)
+      transcript: new Uint8Array(),
+      ourSignature: new Uint8Array(),
+      sendingKey: new Uint8Array(),
+      receivingKey: new Uint8Array()
     }
   }
 }
@@ -113,7 +113,7 @@ const generateIdentityKeyPair = (): {
     const keyPair = Autograph.generateIdentityKeyPair()
     return { success: true, keyPair }
   } catch {
-    return { success: false, keyPair: new Uint8Array(64) }
+    return { success: false, keyPair: new Uint8Array() }
   }
 }
 
@@ -125,49 +125,7 @@ const generateSessionKeyPair = (): {
     const keyPair = Autograph.generateSessionKeyPair()
     return { success: true, keyPair }
   } catch {
-    return { success: false, keyPair: new Uint8Array(64) }
-  }
-}
-
-const getIdentityPublicKey = (keyPair: Uint8Array): Uint8Array => {
-  try {
-    const publicKey = Autograph.getIdentityPublicKey(keyPair)
-    return publicKey
-  } catch {
-    return new Uint8Array(32)
-  }
-}
-
-const getSessionPublicKey = (keyPair: Uint8Array): Uint8Array => {
-  try {
-    const publicKey = Autograph.getSessionPublicKey(keyPair)
-    return publicKey
-  } catch {
-    return new Uint8Array(32)
-  }
-}
-
-const getPublicKeys = (
-  identityKeyPair: Uint8Array,
-  sessionKeyPair: Uint8Array
-): { identityKey: Uint8Array; sessionKey: Uint8Array } => {
-  try {
-    const [identityKey, sessionKey] = Autograph.getPublicKeys(
-      identityKeyPair,
-      sessionKeyPair
-    )
-    return { identityKey, sessionKey }
-  } catch {
-    return { identityKey: new Uint8Array(32), sessionKey: new Uint8Array(32) }
-  }
-}
-
-const createNonce = (): Uint8Array => {
-  try {
-    const nonce = Autograph.createNonce()
-    return nonce
-  } catch {
-    return new Uint8Array(12)
+    return { success: false, keyPair: new Uint8Array() }
   }
 }
 
@@ -176,7 +134,7 @@ const generateSecretKey = (): { success: boolean; key: Uint8Array } => {
     const key = Autograph.generateSecretKey()
     return { success: true, key }
   } catch {
-    return { success: false, key: new Uint8Array(32) }
+    return { success: false, key: new Uint8Array() }
   }
 }
 
@@ -184,15 +142,21 @@ const encrypt = (
   key: Uint8Array,
   nonce: Uint8Array,
   plaintext: Uint8Array
-): { success: boolean; index: number; ciphertext: Uint8Array } => {
+): {
+  success: boolean
+  nonce: Uint8Array
+  index: number
+  ciphertext: Uint8Array
+} => {
   try {
     const [index, ciphertext] = Autograph.encrypt(key, nonce, plaintext)
-    return { success: true, index, ciphertext }
+    return { success: true, nonce, index, ciphertext }
   } catch {
     return {
       success: false,
+      nonce: new Uint8Array(),
       index: 0,
-      ciphertext: new Uint8Array(plaintext.length + 16)
+      ciphertext: new Uint8Array()
     }
   }
 }
@@ -202,7 +166,13 @@ const decrypt = (
   nonce: Uint8Array,
   skippedIndexes: Uint8Array,
   ciphertext: Uint8Array
-): { success: boolean; index: number; plaintext: Uint8Array } => {
+): {
+  success: boolean
+  nonce: Uint8Array
+  skippedIndexes: Uint8Array
+  index: number
+  plaintext: Uint8Array
+} => {
   try {
     const [index, plaintext] = Autograph.decrypt(
       key,
@@ -210,12 +180,14 @@ const decrypt = (
       new Uint32Array(skippedIndexes.buffer),
       ciphertext
     )
-    return { success: true, index, plaintext }
+    return { success: true, nonce, skippedIndexes, index, plaintext }
   } catch {
     return {
       success: false,
+      nonce: new Uint8Array(),
+      skippedIndexes: new Uint8Array(),
       index: 0,
-      plaintext: new Uint8Array(ciphertext.length - 16)
+      plaintext: new Uint8Array()
     }
   }
 }
@@ -234,10 +206,6 @@ export default {
   verifyKeyExchange,
   generateIdentityKeyPair,
   generateSessionKeyPair,
-  getIdentityPublicKey,
-  getSessionPublicKey,
-  getPublicKeys,
-  createNonce,
   generateSecretKey,
   encrypt,
   decrypt

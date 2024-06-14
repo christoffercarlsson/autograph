@@ -43,8 +43,7 @@
   "license": "MIT",
   "homepage": "https://github.com/christoffercarlsson/autograph#readme",
   "dependencies": {
-    "autograph-protocol": "^1.0.0-alpha.1",
-    "stedy": "^0.19.2"
+    "autograph-protocol": "^1.0.0-alpha.1"
   },
   "devDependencies": {
     "@types/react": "^18.0.25",

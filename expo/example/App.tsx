@@ -26,11 +26,15 @@ export default function App() {
       const bobIdentityKeyPair = Autograph.generateIdentityKeyPair()
       const bobSessionKeyPair = Autograph.generateSessionKeyPair()
 
-      const { identityKey: aliceIdentityKey, sessionKey: aliceSessionKey } =
-        Autograph.getPublicKeys(aliceIdentityKeyPair, aliceSessionKeyPair)
+      const [aliceIdentityKey, aliceSessionKey] = Autograph.getPublicKeys(
+        aliceIdentityKeyPair,
+        aliceSessionKeyPair
+      )
 
-      const { identityKey: bobIdentityKey, sessionKey: bobSessionKey } =
-        Autograph.getPublicKeys(bobIdentityKeyPair, bobSessionKeyPair)
+      const [bobIdentityKey, bobSessionKey] = Autograph.getPublicKeys(
+        bobIdentityKeyPair,
+        bobSessionKeyPair
+      )
 
       const a = new Autograph.Channel(
         aliceIdentityKeyPair,
@@ -53,7 +57,7 @@ export default function App() {
       b.verifyKeyExchange(handshakeAlice)
 
       const safetyNumber = a.authenticate()
-      const { ciphertext } = a.encrypt(greeting)
+      const [, ciphertext] = a.encrypt(createFrom(greeting))
 
       setCiphertext(createFrom(ciphertext).toString(ENCODING_BASE64_URLSAFE))
       setSafetyNumber(encodeSafetyNumber(safetyNumber))

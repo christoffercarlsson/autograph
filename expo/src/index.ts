@@ -1,9 +1,15 @@
 import {
+  createNonce as allocNonce,
+  createIndexes as allocIndexes,
+  getPublicKeys as getKeys,
+  getIdentityPublicKey as getIdentityKey,
+  getSessionPublicKey as getSessionKey
+} from 'autograph-protocol'
+import {
   NativeModulesProxy,
   EventEmitter,
   Subscription
 } from 'expo-modules-core'
-import { createFrom, ENCODING_BASE64_URLSAFE } from 'stedy'
 
 import ExpoAutographModule from './ExpoAutographModule'
 
@@ -15,18 +21,13 @@ export function addReadyListener(listener: () => void): Subscription {
   return emitter.addListener('onReady', listener)
 }
 
-function ensureBytes(data: Uint8Array | string | undefined): Uint8Array {
-  const bytes = createFrom(data, ENCODING_BASE64_URLSAFE)
-  return new Uint8Array(bytes)
-}
-
 export function authenticate(
-  ourIdentityKeyPair: Uint8Array | string,
-  theirIdentityKey: Uint8Array | string
+  ourIdentityKeyPair: Uint8Array,
+  theirIdentityKey: Uint8Array
 ): Uint8Array {
   const { success, safetyNumber } = ExpoAutographModule.authenticate(
-    ensureBytes(ourIdentityKeyPair),
-    ensureBytes(theirIdentityKey)
+    ourIdentityKeyPair,
+    theirIdentityKey
   )
   if (!success) {
     throw new Error('Authentication failed')
@@ -35,14 +36,14 @@ export function authenticate(
 }
 
 export function certify(
-  ourIdentityKeyPair: Uint8Array | string,
-  theirIdentityKey: Uint8Array | string,
-  data?: Uint8Array | string
+  ourIdentityKeyPair: Uint8Array,
+  theirIdentityKey: Uint8Array,
+  data?: Uint8Array
 ): Uint8Array {
   const { success, signature } = ExpoAutographModule.certify(
-    ensureBytes(ourIdentityKeyPair),
-    ensureBytes(theirIdentityKey),
-    ensureBytes(data)
+    ourIdentityKeyPair,
+    theirIdentityKey,
+    data
   )
   if (!success) {
     throw new Error('Certification failed')
@@ -51,56 +52,51 @@ export function certify(
 }
 
 export function verify(
-  ownerIdentityKey: Uint8Array | string,
-  certifierIdentityKey: Uint8Array | string,
-  signature: Uint8Array | string,
-  data?: Uint8Array | string
+  ownerIdentityKey: Uint8Array,
+  certifierIdentityKey: Uint8Array,
+  signature: Uint8Array,
+  data?: Uint8Array
 ): boolean {
   return ExpoAutographModule.verify(
-    ensureBytes(ownerIdentityKey),
-    ensureBytes(certifierIdentityKey),
-    ensureBytes(signature),
-    ensureBytes(data)
+    ownerIdentityKey,
+    certifierIdentityKey,
+    signature,
+    data
   )
 }
 
 export function keyExchange(
   isInitiator: boolean,
-  ourIdentityKeyPair: Uint8Array | string,
-  ourSessionKeyPair: Uint8Array | string,
-  theirIdentityKey: Uint8Array | string,
-  theirSessionKey: Uint8Array | string
-): {
-  transcript: Uint8Array
-  ourSignature: Uint8Array
-  sendingKey: Uint8Array
-  receivingKey: Uint8Array
-} {
+  ourIdentityKeyPair: Uint8Array,
+  ourSessionKeyPair: Uint8Array,
+  theirIdentityKey: Uint8Array,
+  theirSessionKey: Uint8Array
+): [Uint8Array, Uint8Array, Uint8Array, Uint8Array] {
   const { success, transcript, ourSignature, sendingKey, receivingKey } =
     ExpoAutographModule.keyExchange(
       isInitiator,
-      ensureBytes(ourIdentityKeyPair),
-      ensureBytes(ourSessionKeyPair),
-      ensureBytes(theirIdentityKey),
-      ensureBytes(theirSessionKey)
+      ourIdentityKeyPair,
+      ourSessionKeyPair,
+      theirIdentityKey,
+      theirSessionKey
     )
   if (!success) {
     throw new Error('Key exchange failed')
   }
-  return { transcript, ourSignature, sendingKey, receivingKey }
+  return [transcript, ourSignature, sendingKey, receivingKey]
 }
 
 export function verifyKeyExchange(
-  transcript: Uint8Array | string,
-  ourIdentityKeyPair: Uint8Array | string,
-  theirIdentityKey: Uint8Array | string,
-  theirSignature: Uint8Array | string
+  transcript: Uint8Array,
+  ourIdentityKeyPair: Uint8Array,
+  theirIdentityKey: Uint8Array,
+  theirSignature: Uint8Array
 ) {
   const verified = ExpoAutographModule.verifyKeyExchange(
-    ensureBytes(transcript),
-    ensureBytes(ourIdentityKeyPair),
-    ensureBytes(theirIdentityKey),
-    ensureBytes(theirSignature)
+    transcript,
+    ourIdentityKeyPair,
+    theirIdentityKey,
+    theirSignature
   )
   if (!verified) {
     throw new Error('Key exchange verification failed')
@@ -123,31 +119,27 @@ export function generateSessionKeyPair(): Uint8Array {
   return keyPair
 }
 
-export function getIdentityPublicKey(keyPair: Uint8Array | string): Uint8Array {
-  return ExpoAutographModule.getIdentityPublicKey(ensureBytes(keyPair))
+export function getIdentityPublicKey(keyPair: Uint8Array): Uint8Array {
+  return getIdentityKey(keyPair)
 }
 
-export function getSessionPublicKey(keyPair: Uint8Array | string): Uint8Array {
-  return ExpoAutographModule.getSessionPublicKey(ensureBytes(keyPair))
+export function getSessionPublicKey(keyPair: Uint8Array): Uint8Array {
+  return getSessionKey(keyPair)
 }
 
 export function getPublicKeys(
-  identityKeyPair: Uint8Array | string,
-  sessionKeyPair: Uint8Array | string
-): { identityKey: Uint8Array; sessionKey: Uint8Array } {
-  const { identityKey, sessionKey } = ExpoAutographModule.getPublicKeys(
-    ensureBytes(identityKeyPair),
-    ensureBytes(sessionKeyPair)
-  )
-  return { identityKey, sessionKey }
+  identityKeyPair: Uint8Array,
+  sessionKeyPair: Uint8Array
+): [Uint8Array, Uint8Array] {
+  return getKeys(identityKeyPair, sessionKeyPair)
 }
 
 export function createNonce(): Uint8Array {
-  return new Uint8Array(12)
+  return allocNonce()
 }
 
 export function createIndexes(count?: number): Uint32Array {
-  return new Uint32Array(count && count > 0 && count <= 65535 ? count : 128)
+  return allocIndexes(count)
 }
 
 export function generateSecretKey(): Uint8Array {
@@ -159,37 +151,47 @@ export function generateSecretKey(): Uint8Array {
 }
 
 export function encrypt(
-  key: Uint8Array | string,
-  nonce: Uint8Array | string,
-  plaintext: Uint8Array | string
-): { index: number; ciphertext: Uint8Array } {
-  const { success, index, ciphertext } = ExpoAutographModule.encrypt(
-    ensureBytes(key),
-    ensureBytes(nonce),
-    ensureBytes(plaintext)
-  )
+  key: Uint8Array,
+  nonce: Uint8Array,
+  plaintext: Uint8Array
+): [number, Uint8Array] {
+  const {
+    success,
+    // nonce: n,
+    index,
+    ciphertext
+  } = ExpoAutographModule.encrypt(key, nonce, plaintext)
   if (!success) {
     throw new Error('Encryption failed')
   }
-  return { index, ciphertext }
+  // nonce.set(n)
+  return [index, ciphertext]
 }
 
 export function decrypt(
-  key: Uint8Array | string,
-  nonce: Uint8Array | string,
+  key: Uint8Array,
+  nonce: Uint8Array,
   skippedIndexes: Uint32Array,
-  ciphertext: Uint8Array | string
-): { index: number; plaintext: Uint8Array } {
-  const { success, index, plaintext } = ExpoAutographModule.decrypt(
-    ensureBytes(key),
-    ensureBytes(nonce),
+  ciphertext: Uint8Array
+): [number, Uint8Array] {
+  const {
+    success,
+    // nonce: n,
+    // skippedIndexes: indexes,
+    index,
+    plaintext
+  } = ExpoAutographModule.decrypt(
+    key,
+    nonce,
     new Uint8Array(skippedIndexes.buffer),
-    ensureBytes(ciphertext)
+    ciphertext
   )
   if (!success) {
     throw new Error('Decryption failed')
   }
-  return { index, plaintext }
+  // nonce.set(n)
+  // skippedIndexes.set(new Uint32Array(indexes.buffer))
+  return [index, plaintext]
 }
 
 export class Channel {
@@ -197,26 +199,23 @@ export class Channel {
   private ourSessionKeyPair: Uint8Array
   private theirIdentityKey: Uint8Array
   private theirSessionKey: Uint8Array
-  private transcript: Uint8Array
-  private sendingKey: Uint8Array
-  private receivingKey: Uint8Array
+  private transcript?: Uint8Array
+  private sendingKey?: Uint8Array
+  private receivingKey?: Uint8Array
   private sendingNonce: Uint8Array
   private receivingNonce: Uint8Array
   private skippedIndexes: Uint32Array
 
   constructor(
-    ourIdentityKeyPair: Uint8Array | string,
-    ourSessionKeyPair: Uint8Array | string,
-    theirIdentityKey: Uint8Array | string,
-    theirSessionKey: Uint8Array | string
+    ourIdentityKeyPair: Uint8Array,
+    ourSessionKeyPair: Uint8Array,
+    theirIdentityKey: Uint8Array,
+    theirSessionKey: Uint8Array
   ) {
-    this.ourIdentityKeyPair = ensureBytes(ourIdentityKeyPair)
-    this.ourSessionKeyPair = ensureBytes(ourSessionKeyPair)
-    this.theirIdentityKey = ensureBytes(theirIdentityKey)
-    this.theirSessionKey = ensureBytes(theirSessionKey)
-    this.transcript = new Uint8Array(64)
-    this.sendingKey = new Uint8Array(32)
-    this.receivingKey = new Uint8Array(32)
+    this.ourIdentityKeyPair = ourIdentityKeyPair
+    this.ourSessionKeyPair = ourSessionKeyPair
+    this.theirIdentityKey = theirIdentityKey
+    this.theirSessionKey = theirSessionKey
     this.sendingNonce = createNonce()
     this.receivingNonce = createNonce()
     this.skippedIndexes = createIndexes()
@@ -226,20 +225,20 @@ export class Channel {
     return authenticate(this.ourIdentityKeyPair, this.theirIdentityKey)
   }
 
-  certify(data?: Uint8Array | string) {
+  certify(data?: Uint8Array) {
     return certify(this.ourIdentityKeyPair, this.theirIdentityKey, data)
   }
 
   verify(
-    certifierIdentityKey: Uint8Array | string,
-    signature: Uint8Array | string,
-    data?: Uint8Array | string
+    certifierIdentityKey: Uint8Array,
+    signature: Uint8Array,
+    data?: Uint8Array
   ) {
     return verify(this.theirIdentityKey, certifierIdentityKey, signature, data)
   }
 
   keyExchange(isInitiator: boolean) {
-    const { transcript, ourSignature, sendingKey, receivingKey } = keyExchange(
+    const [transcript, ourSignature, sendingKey, receivingKey] = keyExchange(
       isInitiator,
       this.ourIdentityKeyPair,
       this.ourSessionKeyPair,
@@ -252,25 +251,37 @@ export class Channel {
     return ourSignature
   }
 
-  verifyKeyExchange(theirSignature: Uint8Array | string) {
-    verifyKeyExchange(
-      this.transcript,
-      this.ourIdentityKeyPair,
-      this.theirIdentityKey,
-      theirSignature
-    )
+  verifyKeyExchange(theirSignature: Uint8Array) {
+    if (this.transcript) {
+      verifyKeyExchange(
+        this.transcript,
+        this.ourIdentityKeyPair,
+        this.theirIdentityKey,
+        theirSignature
+      )
+    } else {
+      throw new Error('Key exchange not performed')
+    }
   }
 
-  encrypt(plaintext: Uint8Array | string) {
-    return encrypt(this.sendingKey, this.sendingNonce, plaintext)
+  encrypt(plaintext: Uint8Array) {
+    if (this.sendingKey) {
+      return encrypt(this.sendingKey, this.sendingNonce, plaintext)
+    } else {
+      throw new Error('Key exchange not performed')
+    }
   }
 
-  decrypt(ciphertext: Uint8Array | string) {
-    return decrypt(
-      this.receivingKey,
-      this.receivingNonce,
-      this.skippedIndexes,
-      ciphertext
-    )
+  decrypt(ciphertext: Uint8Array) {
+    if (this.receivingKey) {
+      return decrypt(
+        this.receivingKey,
+        this.receivingNonce,
+        this.skippedIndexes,
+        ciphertext
+      )
+    } else {
+      throw new Error('Key exchange not performed')
+    }
   }
 }

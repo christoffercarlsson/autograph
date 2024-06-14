@@ -6,6 +6,32 @@ extension Data {
     func toBytes() -> [UInt8] {
         [UInt8](self)
     }
+
+    func toIndexes() -> [UInt32] {
+        guard count % MemoryLayout<UInt32>.size == 0 else {
+            return Array()
+        }
+        return withUnsafeBytes { rawPointer in
+            let pointer = rawPointer.bindMemory(to: UInt32.self)
+            return Array(pointer)
+        }
+    }
+}
+
+extension Array where Element == UInt32 {
+    func toBytes() -> [UInt8] {
+        var bytes = [UInt8]()
+        for value in self {
+            let chunk = [
+                UInt8((value >> 24) & 0xFF),
+                UInt8((value >> 16) & 0xFF),
+                UInt8((value >> 8) & 0xFF),
+                UInt8(value & 0xFF),
+            ]
+            bytes.append(contentsOf: chunk)
+        }
+        return bytes
+    }
 }
 
 public class ExpoAutographModule: Module {
@@ -34,7 +60,7 @@ public class ExpoAutographModule: Module {
             } catch {
                 return [
                     "success": false,
-                    "safetyNumber": Data(repeating: 0, count: 64),
+                    "safetyNumber": Data(),
                 ]
             }
         }
@@ -50,7 +76,7 @@ public class ExpoAutographModule: Module {
             } catch {
                 return [
                     "success": false,
-                    "signature": Data(repeating: 0, count: 64),
+                    "signature": Data(),
                 ]
             }
         }
@@ -64,7 +90,12 @@ public class ExpoAutographModule: Module {
             )
         }
 
-        Function("keyExchange") { (isInitiator: Bool, ourIdentityKeyPair: Data, ourSessionKeyPair: Data, theirIdentityKey: Data, theirSessionKey: Data) -> [String: Any?] in
+        Function("keyExchange") { (
+            isInitiator: Bool,
+            ourIdentityKeyPair: Data,
+            ourSessionKeyPair: Data,
+            theirIdentityKey: Data,
+            theirSessionKey: Data) -> [String: Any?] in
             do {
                 let (
                     transcript,
@@ -88,15 +119,19 @@ public class ExpoAutographModule: Module {
             } catch {
                 return [
                     "success": false,
-                    "transcript": Data(repeating: 0, count: 64),
-                    "ourSignature": Data(repeating: 0, count: 64),
-                    "sendingKey": Data(repeating: 0, count: 32),
-                    "receivingKey": Data(repeating: 0, count: 32),
+                    "transcript": Data(),
+                    "ourSignature": Data(),
+                    "sendingKey": Data(),
+                    "receivingKey": Data(),
                 ]
             }
         }
 
-        Function("verifyKeyExchange") { (transcript: Data, ourIdentityKeyPair: Data, theirIdentityKey: Data, theirSignature: Data) -> Bool in
+        Function("verifyKeyExchange") { (
+            transcript: Data,
+            ourIdentityKeyPair: Data,
+            theirIdentityKey: Data,
+            theirSignature: Data) -> Bool in
             do {
                 try Autograph.verifyKeyExchange(
                     transcript.toBytes(),
@@ -120,7 +155,7 @@ public class ExpoAutographModule: Module {
             } catch {
                 return [
                     "success": false,
-                    "keyPair": Data(repeating: 0, count: 64),
+                    "keyPair": Data(),
                 ]
             }
         }
@@ -135,30 +170,9 @@ public class ExpoAutographModule: Module {
             } catch {
                 return [
                     "success": false,
-                    "keyPair": Data(repeating: 0, count: 64),
+                    "keyPair": Data(),
                 ]
             }
-        }
-
-        Function("getIdentityPublicKey") { (keyPair: Data) -> Data in
-            let publicKey = Autograph.getIdentityPublicKey(keyPair.toBytes())
-            return Data(publicKey)
-        }
-
-        Function("getSessionPublicKey") { (keyPair: Data) -> Data in
-            let publicKey = Autograph.getSessionPublicKey(keyPair.toBytes())
-            return Data(publicKey)
-        }
-
-        Function("getPublicKeys") { (identityKeyPair: Data, sessionKeyPair: Data) -> [String: Any?] in
-            let (identityKey, sessionKey) = Autograph.getPublicKeys(
-                identityKeyPair.toBytes(),
-                sessionKeyPair.toBytes()
-            )
-            return [
-                "identityKey": Data(identityKey),
-                "sessionKey": Data(sessionKey),
-            ]
         }
 
         Function("generateSecretKey") { () -> [String: Any?] in
@@ -171,7 +185,7 @@ public class ExpoAutographModule: Module {
             } catch {
                 return [
                     "success": false,
-                    "key": Data(repeating: 0, count: 32),
+                    "key": Data(),
                 ]
             }
         }
@@ -186,15 +200,16 @@ public class ExpoAutographModule: Module {
                 )
                 return [
                     "success": true,
+                    "nonce": Data(n),
                     "index": index,
                     "ciphertext": Data(ciphertext),
                 ]
             } catch {
                 return [
                     "success": false,
+                    "nonce": Data(),
                     "index": 0,
-                    "ciphertext": Data(repeating: 0,
-                                       count: plaintext.count + 16),
+                    "ciphertext": Data(),
                 ]
             }
         }
@@ -202,7 +217,7 @@ public class ExpoAutographModule: Module {
         Function("decrypt") { (key: Data, nonce: Data, _: Data, ciphertext: Data) -> [String: Any?] in
             do {
                 var n = nonce.toBytes()
-                var indexes: [UInt32] = [0, 0, 0]
+                var indexes = []
                 let (index, plaintext) = try Autograph.decrypt(
                     key.toBytes(),
                     &n,
@@ -211,15 +226,18 @@ public class ExpoAutographModule: Module {
                 )
                 return [
                     "success": true,
+                    "nonce": Data(n),
+                    "skippedIndexes": Data(),
                     "index": index,
                     "plaintext": Data(plaintext),
                 ]
             } catch {
                 return [
                     "success": false,
+                    "nonce": Data(),
+                    "skippedIndexes": Data(),
                     "index": 0,
-                    "plaintext": Data(repeating: 0,
-                                      count: ciphertext.count - 16),
+                    "plaintext": Data(),
                 ]
             }
         }

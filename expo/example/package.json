@@ -14,7 +14,8 @@
     "react-native": "0.74.2",
     "react-native-web": "~0.19.10",
     "react-dom": "18.2.0",
-    "@expo/metro-runtime": "~3.2.1"
+    "@expo/metro-runtime": "~3.2.1",
+    "stedy": "^0.19.2"
   },
   "devDependencies": {
     "@babel/core": "^7.20.0",
