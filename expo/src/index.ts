@@ -16,7 +16,8 @@ export function addReadyListener(listener: () => void): Subscription {
 }
 
 function ensureBytes(data: Uint8Array | string | undefined): Uint8Array {
-  return createFrom(data, ENCODING_BASE64_URLSAFE)
+  const bytes = createFrom(data, ENCODING_BASE64_URLSAFE)
+  return new Uint8Array(bytes)
 }
 
 export function authenticate(
