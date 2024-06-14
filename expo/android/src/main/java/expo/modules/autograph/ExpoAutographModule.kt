@@ -22,6 +22,16 @@ class ExpoAutographModule : Module() {
         ModuleDefinition {
             Name("ExpoAutograph")
 
+            Events("onReady")
+
+            OnStartObserving {
+                try {
+                    ready()
+                    sendEvent("onReady")
+                } catch (e: Exception) {
+                }
+            }
+
             Function("authenticate") { ourIdentityKeyPair: ByteArray, theirIdentityKey: ByteArray ->
                 try {
                     val safetyNumber =
@@ -68,15 +78,6 @@ class ExpoAutographModule : Module() {
                     signature,
                     data,
                 )
-            }
-
-            AsyncFunction("ready") {
-                try {
-                    ready()
-                    true
-                } catch (e: Exception) {
-                    false
-                }
             }
 
             Function(
@@ -175,10 +176,6 @@ class ExpoAutographModule : Module() {
                     "identityKey" to identityKey,
                     "sessionKey" to sessionKey,
                 )
-            }
-
-            Function("createNonce") {
-                ByteArray(12) { 0 }
             }
 
             Function("generateSecretKey") {

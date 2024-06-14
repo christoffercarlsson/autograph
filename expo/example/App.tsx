@@ -13,60 +13,57 @@ function encodeSafetyNumber(safetyNumber: Uint8Array): string {
 }
 
 export default function App() {
-  const [g, setGreeting] = useState<string>('Hello World 👋')
+  const greeting = 'Hello World 👋'
+
   const [c, setCiphertext] = useState<string>('')
   const [s, setSafetyNumber] = useState<string>('')
 
   useEffect(() => {
-    Autograph.ready().then(
-      () => {
-        const aliceIdentityKeyPair = Autograph.generateIdentityKeyPair()
-        const aliceSessionKeyPair = Autograph.generateSessionKeyPair()
+    const sub = Autograph.addReadyListener(() => {
+      const aliceIdentityKeyPair = Autograph.generateIdentityKeyPair()
+      const aliceSessionKeyPair = Autograph.generateSessionKeyPair()
 
-        const bobIdentityKeyPair = Autograph.generateIdentityKeyPair()
-        const bobSessionKeyPair = Autograph.generateSessionKeyPair()
+      const bobIdentityKeyPair = Autograph.generateIdentityKeyPair()
+      const bobSessionKeyPair = Autograph.generateSessionKeyPair()
 
-        const { identityKey: aliceIdentityKey, sessionKey: aliceSessionKey } =
-          Autograph.getPublicKeys(aliceIdentityKeyPair, aliceSessionKeyPair)
+      const { identityKey: aliceIdentityKey, sessionKey: aliceSessionKey } =
+        Autograph.getPublicKeys(aliceIdentityKeyPair, aliceSessionKeyPair)
 
-        const { identityKey: bobIdentityKey, sessionKey: bobSessionKey } =
-          Autograph.getPublicKeys(bobIdentityKeyPair, bobSessionKeyPair)
+      const { identityKey: bobIdentityKey, sessionKey: bobSessionKey } =
+        Autograph.getPublicKeys(bobIdentityKeyPair, bobSessionKeyPair)
 
-        const a = new Autograph.Channel(
-          aliceIdentityKeyPair,
-          aliceSessionKeyPair,
-          bobIdentityKey,
-          bobSessionKey
-        )
+      const a = new Autograph.Channel(
+        aliceIdentityKeyPair,
+        aliceSessionKeyPair,
+        bobIdentityKey,
+        bobSessionKey
+      )
 
-        const b = new Autograph.Channel(
-          bobIdentityKeyPair,
-          bobSessionKeyPair,
-          aliceIdentityKey,
-          aliceSessionKey
-        )
+      const b = new Autograph.Channel(
+        bobIdentityKeyPair,
+        bobSessionKeyPair,
+        aliceIdentityKey,
+        aliceSessionKey
+      )
 
-        const handshakeAlice = a.keyExchange(true)
-        const handshakeBob = b.keyExchange(false)
+      const handshakeAlice = a.keyExchange(true)
+      const handshakeBob = b.keyExchange(false)
 
-        a.verifyKeyExchange(handshakeBob)
-        b.verifyKeyExchange(handshakeAlice)
+      a.verifyKeyExchange(handshakeBob)
+      b.verifyKeyExchange(handshakeAlice)
 
-        const safetyNumber = a.authenticate()
-        const { ciphertext } = a.encrypt(g)
+      const safetyNumber = a.authenticate()
+      const { ciphertext } = a.encrypt(greeting)
 
-        setCiphertext(createFrom(ciphertext).toString(ENCODING_BASE64_URLSAFE))
-        setSafetyNumber(encodeSafetyNumber(safetyNumber))
-      },
-      (error) => {
-        console.error(error)
-      }
-    )
+      setCiphertext(createFrom(ciphertext).toString(ENCODING_BASE64_URLSAFE))
+      setSafetyNumber(encodeSafetyNumber(safetyNumber))
+    })
+    return () => sub.remove()
   }, [])
 
   return (
     <View style={styles.container}>
-      <Text style={styles.greeting}>{g}</Text>
+      <Text style={styles.greeting}>{greeting}</Text>
       <Text style={styles.mono}>{s}</Text>
       <Text style={styles.mono}>{c}</Text>
     </View>

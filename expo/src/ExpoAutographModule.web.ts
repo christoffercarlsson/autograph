@@ -1,3 +1,4 @@
+import { EventEmitter } from 'expo-modules-core'
 import * as Autograph from 'autograph-protocol'
 
 const authenticate = (
@@ -46,15 +47,6 @@ const verify = (
       data
     )
     return verified
-  } catch {
-    return false
-  }
-}
-
-const ready = async (): Promise<boolean> => {
-  try {
-    await Autograph.ready()
-    return true
   } catch {
     return false
   }
@@ -228,11 +220,16 @@ const decrypt = (
   }
 }
 
+const emitter = new EventEmitter({} as any)
+
+Autograph.ready().then(() => {
+  emitter.emit('onReady')
+})
+
 export default {
   authenticate,
   certify,
   verify,
-  ready,
   keyExchange,
   verifyKeyExchange,
   generateIdentityKeyPair,

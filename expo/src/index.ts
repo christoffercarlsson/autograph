@@ -1,6 +1,19 @@
+import {
+  NativeModulesProxy,
+  EventEmitter,
+  Subscription
+} from 'expo-modules-core'
 import { createFrom, ENCODING_BASE64_URLSAFE } from 'stedy'
 
 import ExpoAutographModule from './ExpoAutographModule'
+
+const emitter = new EventEmitter(
+  ExpoAutographModule ?? NativeModulesProxy.ExpoAutograph
+)
+
+export function addReadyListener(listener: () => void): Subscription {
+  return emitter.addListener('onReady', listener)
+}
 
 function ensureBytes(data: Uint8Array | string | undefined): Uint8Array {
   return createFrom(data, ENCODING_BASE64_URLSAFE)
@@ -48,13 +61,6 @@ export function verify(
     ensureBytes(signature),
     ensureBytes(data)
   )
-}
-
-export async function ready(): Promise<void> {
-  const initialized = await ExpoAutographModule.ready()
-  if (!initialized) {
-    throw new Error('Initialization failed')
-  }
 }
 
 export function keyExchange(

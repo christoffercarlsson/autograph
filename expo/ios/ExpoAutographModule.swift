@@ -12,7 +12,16 @@ public class ExpoAutographModule: Module {
     public func definition() -> ModuleDefinition {
         Name("ExpoAutograph")
 
-        Function("authenticate") { (ourIdentityKeyPair: Data, theirIdentityKey: Data) -> [String: Any] in
+        Events("onReady")
+
+        OnStartObserving {
+            do {
+                try Autograph.ready()
+                sendEvent("onReady")
+            } catch {}
+        }
+
+        Function("authenticate") { (ourIdentityKeyPair: Data, theirIdentityKey: Data) -> [String: Any?] in
             do {
                 let safetyNumber = try Autograph.authenticate(
                     ourIdentityKeyPair.toBytes(),
@@ -30,7 +39,7 @@ public class ExpoAutographModule: Module {
             }
         }
 
-        Function("certify") { (ourIdentityKeyPair: Data, theirIdentityKey: Data, data: Data) -> [String: Any] in
+        Function("certify") { (ourIdentityKeyPair: Data, theirIdentityKey: Data, data: Data) -> [String: Any?] in
             do {
                 let signature = try Autograph.certify(
                     ourIdentityKeyPair.toBytes(),
@@ -55,16 +64,7 @@ public class ExpoAutographModule: Module {
             )
         }
 
-        AsyncFunction("ready") { () -> Bool in
-            do {
-                try Autograph.ready()
-                return true
-            } catch {
-                return false
-            }
-        }
-
-        Function("keyExchange") { (isInitiator: Bool, ourIdentityKeyPair: Data, ourSessionKeyPair: Data, theirIdentityKey: Data, theirSessionKey: Data) -> [String: Any] in
+        Function("keyExchange") { (isInitiator: Bool, ourIdentityKeyPair: Data, ourSessionKeyPair: Data, theirIdentityKey: Data, theirSessionKey: Data) -> [String: Any?] in
             do {
                 let (
                     transcript,
@@ -110,7 +110,7 @@ public class ExpoAutographModule: Module {
             }
         }
 
-        Function("generateIdentityKeyPair") { () -> [String: Any] in
+        Function("generateIdentityKeyPair") { () -> [String: Any?] in
             do {
                 let keyPair = try Autograph.generateIdentityKeyPair()
                 return [
@@ -125,7 +125,7 @@ public class ExpoAutographModule: Module {
             }
         }
 
-        Function("generateSessionKeyPair") { () -> [String: Any] in
+        Function("generateSessionKeyPair") { () -> [String: Any?] in
             do {
                 let keyPair = try Autograph.generateSessionKeyPair()
                 return [
@@ -150,7 +150,7 @@ public class ExpoAutographModule: Module {
             return Data(publicKey)
         }
 
-        Function("getPublicKeys") { (identityKeyPair: Data, sessionKeyPair: Data) -> [String: Data] in
+        Function("getPublicKeys") { (identityKeyPair: Data, sessionKeyPair: Data) -> [String: Any?] in
             let (identityKey, sessionKey) = Autograph.getPublicKeys(
                 identityKeyPair.toBytes(),
                 sessionKeyPair.toBytes()
@@ -161,11 +161,7 @@ public class ExpoAutographModule: Module {
             ]
         }
 
-        Function("createNonce") { () -> Data in
-            Data(repeating: 0, count: 12)
-        }
-
-        Function("generateSecretKey") { () -> [String: Any] in
+        Function("generateSecretKey") { () -> [String: Any?] in
             do {
                 let key = try Autograph.generateSecretKey()
                 return [
@@ -180,7 +176,7 @@ public class ExpoAutographModule: Module {
             }
         }
 
-        Function("encrypt") { (key: Data, nonce: Data, plaintext: Data) -> [String: Any] in
+        Function("encrypt") { (key: Data, nonce: Data, plaintext: Data) -> [String: Any?] in
             do {
                 var n = nonce.toBytes()
                 let (index, ciphertext) = try Autograph.encrypt(
@@ -203,7 +199,7 @@ public class ExpoAutographModule: Module {
             }
         }
 
-        Function("decrypt") { (key: Data, nonce: Data, _: Data, ciphertext: Data) -> [String: Any] in
+        Function("decrypt") { (key: Data, nonce: Data, _: Data, ciphertext: Data) -> [String: Any?] in
             do {
                 var n = nonce.toBytes()
                 var indexes: [UInt32] = [0, 0, 0]
