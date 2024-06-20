@@ -75,7 +75,7 @@ declare const getPublicKeys: (
 
 declare const createNonce: () => Uint8Array
 
-declare const createIndexes: (count?: number) => Uint32Array
+declare const createSkippedIndexes: (count?: number) => Uint8Array
 
 declare const generateSecretKey: () => Uint8Array
 
@@ -88,7 +88,7 @@ declare const encrypt: (
 declare const decrypt: (
   key: Uint8Array,
   nonce: Uint8Array,
-  skippedIndexes: Uint32Array,
+  skippedIndexes: Uint8Array,
   ciphertext: Uint8Array
 ) => [number, Uint8Array]
 
@@ -106,7 +106,7 @@ export {
   getSessionPublicKey,
   getPublicKeys,
   createNonce,
-  createIndexes,
+  createSkippedIndexes,
   generateSecretKey,
   encrypt,
   decrypt

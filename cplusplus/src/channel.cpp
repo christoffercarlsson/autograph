@@ -36,7 +36,7 @@ Channel::Channel(const Bytes &ourIdentityKeyPair,
       receivingKey(autograph_secret_key_size()),
       sendingNonce(createNonce()),
       receivingNonce(createNonce()),
-      skippedIndexes(createIndexes(std::nullopt)) {
+      skippedIndexes(createSkippedIndexes(std::nullopt)) {
   autograph_use_key_pairs(this->ourIdentityKeyPair.data(),
                           this->ourSessionKeyPair.data(),
                           ourIdentityKeyPair.data(), ourSessionKeyPair.data());

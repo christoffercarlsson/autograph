@@ -7,9 +7,9 @@ import {
 } from './key-exchange'
 import { autograph_use_key_pairs, autograph_use_public_keys } from './clib'
 import {
-  createIndexes,
   createNonce,
   createSecretKey,
+  createSkippedIndexes,
   decrypt,
   encrypt
 } from './message'
@@ -30,7 +30,7 @@ export default class Channel {
   private receivingKey: Uint8Array
   private sendingNonce: Uint8Array
   private receivingNonce: Uint8Array
-  private skippedIndexes: Uint32Array
+  private skippedIndexes: Uint8Array
 
   constructor(
     ourIdentityKeyPair: Uint8Array,
@@ -47,7 +47,7 @@ export default class Channel {
     this.receivingKey = createSecretKey()
     this.sendingNonce = createNonce()
     this.receivingNonce = createNonce()
-    this.skippedIndexes = createIndexes()
+    this.skippedIndexes = createSkippedIndexes()
     autograph_use_key_pairs(
       this.ourIdentityKeyPair,
       this.ourSessionKeyPair,

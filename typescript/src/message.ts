@@ -6,7 +6,7 @@ import {
   autograph_nonce_size,
   autograph_plaintext_size,
   autograph_secret_key_size,
-  autograph_skipped_indexes_count
+  autograph_skipped_indexes_size
 } from './clib'
 
 export const createSecretKey = () => new Uint8Array(autograph_secret_key_size())
@@ -22,9 +22,9 @@ export const generateSecretKey = () => {
 
 export const createNonce = () => new Uint8Array(autograph_nonce_size())
 
-export const createIndexes = (count?: number) =>
-  new Uint32Array(
-    count > 0 && count <= 65535 ? count : autograph_skipped_indexes_count()
+export const createSkippedIndexes = (count?: number) =>
+  new Uint8Array(
+    autograph_skipped_indexes_size(count > 0 && count <= 65535 ? count : 0)
   )
 
 const createCiphertext = (plaintext: Uint8Array) => {
@@ -61,7 +61,7 @@ export const encrypt = (
 export const decrypt = (
   key: Uint8Array,
   nonce: Uint8Array,
-  skippedIndexes: Uint32Array,
+  skippedIndexes: Uint8Array,
   ciphertext: Uint8Array
 ): [number, Uint8Array] => {
   const plaintext = createPlaintext(ciphertext)

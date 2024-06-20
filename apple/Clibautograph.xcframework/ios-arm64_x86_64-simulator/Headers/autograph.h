@@ -55,11 +55,9 @@ bool autograph_encrypt(uint32_t *index, uint8_t *ciphertext, const uint8_t *key,
 
 bool autograph_decrypt(uint32_t *index, uint8_t *plaintext,
                        size_t *plaintext_size, const uint8_t *key,
-                       uint8_t *nonce, uint32_t *skipped_indexes,
-                       const uint16_t skipped_indexes_count,
+                       uint8_t *nonce, uint8_t *skipped_indexes,
+                       const size_t skipped_indexes_size,
                        const uint8_t *ciphertext, const size_t ciphertext_size);
-
-uint16_t autograph_skipped_indexes_count();
 
 size_t autograph_identity_key_pair_size();
 
@@ -76,6 +74,8 @@ size_t autograph_safety_number_size();
 size_t autograph_secret_key_size();
 
 size_t autograph_signature_size();
+
+size_t autograph_skipped_indexes_size(const uint16_t count);
 
 size_t autograph_transcript_size();
 
@@ -102,7 +102,6 @@ void autograph_use_public_keys(uint8_t *identity_key, uint8_t *session_key,
 namespace Autograph {
 
 using Bytes = std::vector<uint8_t>;
-using Indexes = std::vector<uint32_t>;
 
 bool ready();
 
@@ -140,13 +139,13 @@ std::tuple<bool, Bytes> generateSecretKey();
 
 Bytes createNonce();
 
-Indexes createIndexes(const std::optional<uint16_t> count);
+Bytes createSkippedIndexes(const std::optional<uint16_t> count);
 
 std::tuple<bool, uint32_t, Bytes> encrypt(const Bytes &key, Bytes &nonce,
                                           const Bytes &plaintext);
 
 std::tuple<bool, uint32_t, Bytes> decrypt(const Bytes &key, Bytes &nonce,
-                                          Indexes &skippedIndexes,
+                                          Bytes &skippedIndexes,
                                           const Bytes &ciphertext);
 
 class Channel {
@@ -179,7 +178,7 @@ class Channel {
   Bytes receivingKey;
   Bytes sendingNonce;
   Bytes receivingNonce;
-  Indexes skippedIndexes;
+  Bytes skippedIndexes;
 };
 
 }  // namespace Autograph

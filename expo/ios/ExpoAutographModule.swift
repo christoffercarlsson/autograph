@@ -6,32 +6,6 @@ extension Data {
     func toBytes() -> [UInt8] {
         [UInt8](self)
     }
-
-    func toIndexes() -> [UInt32] {
-        guard count % MemoryLayout<UInt32>.size == 0 else {
-            return Array()
-        }
-        return withUnsafeBytes { rawPointer in
-            let pointer = rawPointer.bindMemory(to: UInt32.self)
-            return Array(pointer)
-        }
-    }
-}
-
-extension Array where Element == UInt32 {
-    func toBytes() -> [UInt8] {
-        var bytes = [UInt8]()
-        for value in self {
-            let chunk = [
-                UInt8((value >> 24) & 0xFF),
-                UInt8((value >> 16) & 0xFF),
-                UInt8((value >> 8) & 0xFF),
-                UInt8(value & 0xFF),
-            ]
-            bytes.append(contentsOf: chunk)
-        }
-        return bytes
-    }
 }
 
 public class ExpoAutographModule: Module {
@@ -175,6 +149,37 @@ public class ExpoAutographModule: Module {
             }
         }
 
+        Function("getIdentityPublicKey") { (keyPair: Data) -> Data in
+            let publicKey = Autograph.getIdentityPublicKey(keyPair.toBytes())
+            return Data(publicKey)
+        }
+
+        Function("getSessionPublicKey") { (keyPair: Data) -> Data in
+            let publicKey = Autograph.getSessionPublicKey(keyPair.toBytes())
+            return Data(publicKey)
+        }
+
+        Function("getPublicKeys") { (identityKeyPair: Data, sessionKeyPair: Data) -> [String: Data] in
+            let identityKey = Autograph
+                .getIdentityPublicKey(identityKeyPair.toBytes())
+            let sessionKey = Autograph
+                .getSessionPublicKey(sessionKeyPair.toBytes())
+            return [
+                "identityKey": Data(identityKey),
+                "sessionKey": Data(sessionKey),
+            ]
+        }
+
+        Function("createNonce") { () -> Data in
+            let nonce = Autograph.createNonce()
+            return Data(nonce)
+        }
+
+        Function("createSkippedIndexes") { (count: UInt16) -> Data in
+            let indexes = Autograph.createSkippedIndexes(count)
+            return Data(indexes)
+        }
+
         Function("generateSecretKey") { () -> [String: Any?] in
             do {
                 let key = try Autograph.generateSecretKey()
@@ -214,10 +219,10 @@ public class ExpoAutographModule: Module {
             }
         }
 
-        Function("decrypt") { (key: Data, nonce: Data, _: Data, ciphertext: Data) -> [String: Any?] in
+        Function("decrypt") { (key: Data, nonce: Data, skippedIndexes: Data, ciphertext: Data) -> [String: Any?] in
             do {
                 var n = nonce.toBytes()
-                var indexes = []
+                var indexes = skippedIndexes.toBytes()
                 let (index, plaintext) = try Autograph.decrypt(
                     key.toBytes(),
                     &n,
@@ -227,7 +232,7 @@ public class ExpoAutographModule: Module {
                 return [
                     "success": true,
                     "nonce": Data(n),
-                    "skippedIndexes": Data(),
+                    "skippedIndexes": Data(indexes),
                     "index": index,
                     "plaintext": Data(plaintext),
                 ]

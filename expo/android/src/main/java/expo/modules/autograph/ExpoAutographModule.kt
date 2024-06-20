@@ -4,48 +4,19 @@ import expo.modules.kotlin.modules.Module
 import expo.modules.kotlin.modules.ModuleDefinition
 import sh.autograph.authenticate
 import sh.autograph.certify
+import sh.autograph.createNonce
+import sh.autograph.createSkippedIndexes
 import sh.autograph.decrypt
 import sh.autograph.encrypt
 import sh.autograph.generateIdentityKeyPair
 import sh.autograph.generateSecretKey
 import sh.autograph.generateSessionKeyPair
 import sh.autograph.getIdentityPublicKey
-import sh.autograph.getPublicKeys
 import sh.autograph.getSessionPublicKey
 import sh.autograph.keyExchange
 import sh.autograph.ready
 import sh.autograph.verify
 import sh.autograph.verifyKeyExchange
-
-fun ByteArray.toIndexes(): IntArray {
-    if (this.size % 4 > 0) {
-        return IntArray()
-    }
-    val indexes = IntArray(this.size / 4)
-    for (i in indexes.indices) {
-        val offset = i * 4
-        val value =
-            (this[offset].toInt() and 0xFF shl 24) or
-                (this[offset + 1].toInt() and 0xFF shl 16) or
-                (this[offset + 2].toInt() and 0xFF shl 8) or
-                (this[offset + 3].toInt() and 0xFF)
-        indexes[i] = value
-    }
-    return indexes
-}
-
-fun IntArray.toBytes(): ByteArray {
-    val bytes = ByteArray(this.size * 4)
-    for (i in this.indices) {
-        val offset = i * 4
-        val value = this[i]
-        bytes[offset] = ((value shr 24) and 0xFF).toByte()
-        bytes[offset + 1] = ((value shr 16) and 0xFF).toByte()
-        bytes[offset + 2] = ((value shr 8) and 0xFF).toByte()
-        bytes[offset + 3] = (value and 0xFF).toByte()
-    }
-    return bytes
-}
 
 class ExpoAutographModule : Module() {
     override fun definition() =
@@ -76,7 +47,7 @@ class ExpoAutographModule : Module() {
                 } catch (e: Exception) {
                     mapOf(
                         "success" to false,
-                        "safetyNumber" to ByteArray(),
+                        "safetyNumber" to ByteArray(0),
                     )
                 }
             }
@@ -96,7 +67,7 @@ class ExpoAutographModule : Module() {
                 } catch (e: Exception) {
                     mapOf(
                         "success" to false,
-                        "signature" to ByteArray(),
+                        "signature" to ByteArray(0),
                     )
                 }
             }
@@ -138,10 +109,10 @@ class ExpoAutographModule : Module() {
                 } catch (e: Exception) {
                     mapOf(
                         "success" to false,
-                        "transcript" to ByteArray(),
-                        "ourSignature" to ByteArray(),
-                        "sendingKey" to ByteArray(),
-                        "receivingKey" to ByteArray(),
+                        "transcript" to ByteArray(0),
+                        "ourSignature" to ByteArray(0),
+                        "sendingKey" to ByteArray(0),
+                        "receivingKey" to ByteArray(0),
                     )
                 }
             }
@@ -172,7 +143,7 @@ class ExpoAutographModule : Module() {
                 } catch (e: Exception) {
                     mapOf(
                         "success" to false,
-                        "keyPair" to ByteArray(),
+                        "keyPair" to ByteArray(0),
                     )
                 }
             }
@@ -187,10 +158,35 @@ class ExpoAutographModule : Module() {
                 } catch (e: Exception) {
                     mapOf(
                         "success" to false,
-                        "keyPair" to ByteArray(),
+                        "keyPair" to ByteArray(0),
                     )
                 }
-            } 
+            }
+
+            Function("getIdentityPublicKey") { keyPair: ByteArray ->
+                getIdentityPublicKey(keyPair)
+            }
+
+            Function("getSessionPublicKey") { keyPair: ByteArray ->
+                getSessionPublicKey(keyPair)
+            }
+
+            Function("getPublicKeys") { identityKeyPair: ByteArray, sessionKeyPair: ByteArray ->
+                val identityKey = getIdentityPublicKey(identityKeyPair)
+                val sessionKey = getSessionPublicKey(sessionKeyPair)
+                mapOf(
+                    "identityKey" to identityKey,
+                    "sessionKey" to sessionKey,
+                )
+            }
+
+            Function("createNonce") {
+                createNonce()
+            }
+
+            Function("createSkippedIndexes") { count: Int ->
+                createSkippedIndexes(count)
+            }
 
             Function("generateSecretKey") {
                 try {
@@ -202,61 +198,58 @@ class ExpoAutographModule : Module() {
                 } catch (e: Exception) {
                     mapOf(
                         "success" to false,
-                        "key" to ByteArray(),
+                        "key" to ByteArray(0),
                     )
                 }
             }
 
-            Function("encrypt") { key: ByteArray, nonce: ByteArray, plaintext: ByteArray ->
+            AsyncFunction("encrypt") { key: ByteArray, nonce: ByteArray, plaintext: ByteArray ->
                 try {
-                    var n = nonce
                     val (index, ciphertext) =
                         encrypt(
                             key,
-                            n,
+                            nonce,
                             plaintext,
                         )
                     mapOf(
                         "success" to true,
-                        "nonce" to ByteArray(),
+                        "nonce" to nonce,
                         "index" to index,
                         "ciphertext" to ciphertext,
                     )
                 } catch (e: Exception) {
                     mapOf(
                         "success" to false,
-                        "nonce" to ByteArray(),
+                        "nonce" to ByteArray(0),
                         "index" to 0,
-                        "ciphertext" to ByteArray(),
+                        "ciphertext" to ByteArray(0),
                     )
                 }
             }
 
-            Function("decrypt") { key: ByteArray, nonce: ByteArray, skippedIndexes: ByteArray, ciphertext: ByteArray ->
+            AsyncFunction("decrypt") { key: ByteArray, nonce: ByteArray, skippedIndexes: ByteArray, ciphertext: ByteArray ->
                 try {
-                    var n = nonce
-                    val indexes = IntArray(1)
                     val (index, plaintext) =
                         decrypt(
                             key,
-                            n,
-                            indexes,
+                            nonce,
+                            skippedIndexes,
                             ciphertext,
                         )
                     mapOf(
                         "success" to true,
-                        "nonce" to ByteArray(),
-                        "skippedIndexes" to ByteArray(),
+                        "nonce" to nonce,
+                        "skippedIndexes" to skippedIndexes,
                         "index" to index,
                         "plaintext" to plaintext,
                     )
                 } catch (e: Exception) {
                     mapOf(
                         "success" to false,
-                        "nonce" to ByteArray(),
-                        "skippedIndexes" to ByteArray(),
+                        "nonce" to ByteArray(0),
+                        "skippedIndexes" to ByteArray(0),
                         "index" to 0,
-                        "plaintext" to ByteArray(),
+                        "plaintext" to ByteArray(0),
                     )
                 }
             }

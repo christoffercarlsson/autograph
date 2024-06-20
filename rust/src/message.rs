@@ -14,8 +14,8 @@ pub fn create_nonce<P: AEADPrimitive>() -> Vec<u8> {
     vec![0; P::NONCE_SIZE]
 }
 
-pub fn create_indexes(count: Option<u16>) -> Vec<u32> {
-    let size = count.unwrap_or(DEFAULT_SKIPPED_INDEXES_COUNT);
+pub fn create_skipped_indexes(count: Option<u16>) -> Vec<u8> {
+    let size = count.unwrap_or(DEFAULT_SKIPPED_INDEXES_COUNT) * 4;
     vec![0; size as usize]
 }
 
@@ -137,29 +137,32 @@ fn decrypt_ciphertext<P: AEADPrimitive>(
 
 fn decrypt_skipped<P: AEADPrimitive>(
     key: &[u8],
-    skipped_indexes: &mut [u32],
+    skipped_indexes: &mut [u8],
     ciphertext: &[u8],
 ) -> Result<(u32, Vec<u8>), Error> {
     let mut nonce = create_nonce::<P>();
-    for i in skipped_indexes.iter_mut() {
-        if *i == 0 {
-            continue;
+    let mut index;
+    for offset in (0..skipped_indexes.len()).step_by(4) {
+        index = get_uint32(skipped_indexes, offset);
+        if index == 0 {
+            continue; // TODO: Order skipped indexes so that we can break as soon as
+                      // possible
         }
-        set_index::<P>(&mut nonce, *i);
+        set_index::<P>(&mut nonce, index);
         let result = decrypt_ciphertext::<P>(key, &nonce, ciphertext);
         if result.is_ok() {
-            *i = 0;
+            set_uint32(skipped_indexes, offset, 0);
             return result;
         }
     }
     Err(Error::Decryption)
 }
 
-fn skip_index<P: AEADPrimitive>(skipped_indexes: &mut [u32], nonce: &[u8]) -> Result<(), Error> {
+fn skip_index<P: AEADPrimitive>(skipped_indexes: &mut [u8], nonce: &[u8]) -> Result<(), Error> {
     let index = get_index::<P>(nonce);
-    for i in skipped_indexes.iter_mut() {
-        if *i == 0 {
-            *i = index;
+    for i in (0..skipped_indexes.len()).step_by(4) {
+        if get_uint32(skipped_indexes, i) == 0 {
+            set_uint32(skipped_indexes, i, index);
             return Ok(());
         }
     }
@@ -169,7 +172,7 @@ fn skip_index<P: AEADPrimitive>(skipped_indexes: &mut [u32], nonce: &[u8]) -> Re
 pub fn decrypt<P: AEADPrimitive>(
     key: &[u8],
     nonce: &mut [u8],
-    skipped_indexes: &mut [u32],
+    skipped_indexes: &mut [u8],
     ciphertext: &[u8],
 ) -> Result<(u32, Vec<u8>), Error> {
     let mut result = decrypt_skipped::<P>(key, skipped_indexes, ciphertext);

@@ -36,7 +36,7 @@
   "main": "./typescript/dist/src/autograph.cjs",
   "files": [
     "typescript/dist/src/**/*.{js,cjs}",
-    "autograph.d.ts"
+    "typescript/types.d.ts"
   ],
   "homepage": "https://github.com/christoffercarlsson/autograph#readme",
   "keywords": [
@@ -71,5 +71,5 @@
   },
   "sideEffects": false,
   "type": "module",
-  "types": "autograph.d.ts"
+  "types": "typescript/types.d.ts"
 }

@@ -94,7 +94,7 @@ pub fn encrypt(key: &[u8], nonce: &mut [u8], plaintext: &[u8]) -> Result<(u32, V
 pub fn decrypt(
     key: &[u8],
     nonce: &mut [u8],
-    skipped_indexes: &mut [u32],
+    skipped_indexes: &mut [u8],
     ciphertext: &[u8],
 ) -> Result<(u32, Vec<u8>), Error> {
     message::decrypt::<CorePrimitives>(key, nonce, skipped_indexes, ciphertext)

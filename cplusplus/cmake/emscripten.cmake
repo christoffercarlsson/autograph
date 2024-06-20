@@ -16,12 +16,12 @@ set(AUTOGRAPH_EXPORTED_FUNCTIONS
     autograph_generate_secret_key
     autograph_encrypt
     autograph_decrypt
-    autograph_skipped_indexes_count
     autograph_identity_key_pair_size
     autograph_session_key_pair_size
     autograph_identity_public_key_size
     autograph_session_public_key_size
     autograph_nonce_size
+    autograph_skipped_indexes_size
     autograph_safety_number_size
     autograph_secret_key_size
     autograph_signature_size

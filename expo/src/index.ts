@@ -1,11 +1,4 @@
 import {
-  createNonce as allocNonce,
-  createIndexes as allocIndexes,
-  getPublicKeys as getKeys,
-  getIdentityPublicKey as getIdentityKey,
-  getSessionPublicKey as getSessionKey
-} from 'autograph-protocol'
-import {
   NativeModulesProxy,
   EventEmitter,
   Subscription
@@ -120,26 +113,30 @@ export function generateSessionKeyPair(): Uint8Array {
 }
 
 export function getIdentityPublicKey(keyPair: Uint8Array): Uint8Array {
-  return getIdentityKey(keyPair)
+  return ExpoAutographModule.getIdentityPublicKey(keyPair)
 }
 
 export function getSessionPublicKey(keyPair: Uint8Array): Uint8Array {
-  return getSessionKey(keyPair)
+  return ExpoAutographModule.getSessionPublicKey(keyPair)
 }
 
 export function getPublicKeys(
   identityKeyPair: Uint8Array,
   sessionKeyPair: Uint8Array
 ): [Uint8Array, Uint8Array] {
-  return getKeys(identityKeyPair, sessionKeyPair)
+  const { identityKey, sessionKey } = ExpoAutographModule.getPublicKeys(
+    identityKeyPair,
+    sessionKeyPair
+  )
+  return [identityKey, sessionKey]
 }
 
 export function createNonce(): Uint8Array {
-  return allocNonce()
+  return ExpoAutographModule.createNonce()
 }
 
-export function createIndexes(count?: number): Uint32Array {
-  return allocIndexes(count)
+export function createSkippedIndexes(count?: number): Uint8Array {
+  return ExpoAutographModule.createSkippedIndexes(count || 0)
 }
 
 export function generateSecretKey(): Uint8Array {
@@ -150,47 +147,42 @@ export function generateSecretKey(): Uint8Array {
   return key
 }
 
-export function encrypt(
+export async function encrypt(
   key: Uint8Array,
   nonce: Uint8Array,
   plaintext: Uint8Array
-): [number, Uint8Array] {
+): Promise<[number, Uint8Array]> {
   const {
     success,
-    // nonce: n,
+    nonce: n,
     index,
     ciphertext
-  } = ExpoAutographModule.encrypt(key, nonce, plaintext)
+  } = await ExpoAutographModule.encrypt(key, nonce, plaintext)
   if (!success) {
     throw new Error('Encryption failed')
   }
-  // nonce.set(n)
+  nonce.set(n)
   return [index, ciphertext]
 }
 
-export function decrypt(
+export async function decrypt(
   key: Uint8Array,
   nonce: Uint8Array,
-  skippedIndexes: Uint32Array,
+  skippedIndexes: Uint8Array,
   ciphertext: Uint8Array
-): [number, Uint8Array] {
+): Promise<[number, Uint8Array]> {
   const {
     success,
-    // nonce: n,
-    // skippedIndexes: indexes,
+    nonce: n,
+    skippedIndexes: indexes,
     index,
     plaintext
-  } = ExpoAutographModule.decrypt(
-    key,
-    nonce,
-    new Uint8Array(skippedIndexes.buffer),
-    ciphertext
-  )
+  } = await ExpoAutographModule.decrypt(key, nonce, skippedIndexes, ciphertext)
   if (!success) {
     throw new Error('Decryption failed')
   }
-  // nonce.set(n)
-  // skippedIndexes.set(new Uint32Array(indexes.buffer))
+  nonce.set(n)
+  skippedIndexes.set(indexes)
   return [index, plaintext]
 }
 
@@ -204,7 +196,7 @@ export class Channel {
   private receivingKey?: Uint8Array
   private sendingNonce: Uint8Array
   private receivingNonce: Uint8Array
-  private skippedIndexes: Uint32Array
+  private skippedIndexes: Uint8Array
 
   constructor(
     ourIdentityKeyPair: Uint8Array,
@@ -218,7 +210,7 @@ export class Channel {
     this.theirSessionKey = theirSessionKey
     this.sendingNonce = createNonce()
     this.receivingNonce = createNonce()
-    this.skippedIndexes = createIndexes()
+    this.skippedIndexes = createSkippedIndexes()
   }
 
   authenticate() {

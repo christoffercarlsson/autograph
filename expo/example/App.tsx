@@ -56,11 +56,18 @@ export default function App() {
       a.verifyKeyExchange(handshakeBob)
       b.verifyKeyExchange(handshakeAlice)
 
-      const safetyNumber = a.authenticate()
-      const [, ciphertext] = a.encrypt(createFrom(greeting))
+      const run = async () => {
+        const safetyNumber = a.authenticate()
+        const [, ciphertext] = await a.encrypt(
+          new Uint8Array(createFrom(greeting))
+        )
+        await b.decrypt(ciphertext)
 
-      setCiphertext(createFrom(ciphertext).toString(ENCODING_BASE64_URLSAFE))
-      setSafetyNumber(encodeSafetyNumber(safetyNumber))
+        setCiphertext(createFrom(ciphertext).toString(ENCODING_BASE64_URLSAFE))
+        setSafetyNumber(encodeSafetyNumber(safetyNumber))
+      }
+
+      run()
     })
     return () => sub.remove()
   }, [])

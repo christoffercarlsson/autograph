@@ -1,5 +1,5 @@
-import { EventEmitter } from 'expo-modules-core'
 import * as Autograph from 'autograph-protocol'
+import { EventEmitter } from 'expo-modules-core'
 
 const authenticate = (
   ourIdentityKeyPair: Uint8Array,
@@ -129,6 +129,30 @@ const generateSessionKeyPair = (): {
   }
 }
 
+const getIdentityPublicKey = (keyPair: Uint8Array): Uint8Array => {
+  return Autograph.getIdentityPublicKey(keyPair)
+}
+
+const getSessionPublicKey = (keyPair: Uint8Array): Uint8Array => {
+  return Autograph.getSessionPublicKey(keyPair)
+}
+
+const getPublicKeys = (
+  identityKeyPair: Uint8Array,
+  sessionKeyPair: Uint8Array
+): { identityKey: Uint8Array; sessionKey: Uint8Array } => {
+  const [identityKey, sessionKey] = Autograph.getPublicKeys(
+    identityKeyPair,
+    sessionKeyPair
+  )
+  return { identityKey, sessionKey }
+}
+
+const createNonce = () => Autograph.createNonce()
+
+const createSkippedIndexes = (count?: number) =>
+  Autograph.createSkippedIndexes(count || 0)
+
 const generateSecretKey = (): { success: boolean; key: Uint8Array } => {
   try {
     const key = Autograph.generateSecretKey()
@@ -177,7 +201,7 @@ const decrypt = (
     const [index, plaintext] = Autograph.decrypt(
       key,
       nonce,
-      new Uint32Array(skippedIndexes.buffer),
+      skippedIndexes,
       ciphertext
     )
     return { success: true, nonce, skippedIndexes, index, plaintext }
@@ -206,6 +230,11 @@ export default {
   verifyKeyExchange,
   generateIdentityKeyPair,
   generateSessionKeyPair,
+  getIdentityPublicKey,
+  getSessionPublicKey,
+  getPublicKeys,
+  createNonce,
+  createSkippedIndexes,
   generateSecretKey,
   encrypt,
   decrypt
