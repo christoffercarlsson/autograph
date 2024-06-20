@@ -25,4 +25,4 @@ pub use core::{
     get_session_public_key, key_exchange, verify, verify_key_exchange,
 };
 pub use error::Error;
-pub use message::create_indexes;
+pub use message::create_skipped_indexes;

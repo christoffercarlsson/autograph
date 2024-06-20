@@ -6,7 +6,7 @@ use crate::{
         create_identity_key_pair, create_identity_public_key, create_session_key_pair,
         create_session_public_key,
     },
-    message::{create_indexes, create_nonce, create_secret_key},
+    message::{create_nonce, create_secret_key, create_skipped_indexes},
     primitives::CorePrimitives,
 };
 use alloc::vec::Vec;
@@ -21,7 +21,7 @@ pub struct Channel {
     receiving_key: Vec<u8>,
     sending_nonce: Vec<u8>,
     receiving_nonce: Vec<u8>,
-    skipped_indexes: Vec<u32>,
+    skipped_indexes: Vec<u8>,
 }
 
 impl Channel {
@@ -49,7 +49,7 @@ impl Channel {
             receiving_key: create_secret_key::<CorePrimitives>(),
             sending_nonce: create_nonce::<CorePrimitives>(),
             receiving_nonce: create_nonce::<CorePrimitives>(),
-            skipped_indexes: create_indexes(None),
+            skipped_indexes: create_skipped_indexes(None),
         }
     }
 

@@ -15,7 +15,7 @@ import {
   decrypt,
   createNonce,
   generateSecretKey,
-  createIndexes
+  createSkippedIndexes
 } from './message'
 
 export {
@@ -32,7 +32,7 @@ export {
   getSessionPublicKey,
   getPublicKeys,
   createNonce,
-  createIndexes,
+  createSkippedIndexes,
   generateSecretKey,
   encrypt,
   decrypt

@@ -24,7 +24,7 @@ pub fn benchmark(c: &mut Criterion) {
     c.bench_function("decrypt", |b| {
         b.iter(|| {
             let mut nonce = [0; 12];
-            let mut skipped_indexes = vec![0];
+            let mut skipped_indexes = vec![0; 512];
             decrypt(
                 &key,
                 black_box(&mut nonce),

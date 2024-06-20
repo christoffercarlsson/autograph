@@ -44,7 +44,7 @@ static void decrypt(benchmark::State& benchmarkState) {
 
   Autograph::Bytes nonce(12);
 
-  Autograph::Indexes skippedIndexes(128);
+  Autograph::Bytes skippedIndexes(4);
 
   Autograph::Bytes ciphertext = {253, 199, 105, 203, 139, 136, 132, 228,
                                  198, 157, 65,  140, 116, 90,  212, 112,

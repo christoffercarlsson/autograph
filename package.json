@@ -1,6 +1,6 @@
 {
   "name": "autograph-protocol",
-  "version": "1.0.0-alpha",
+  "version": "1.0.0-alpha.2",
   "description": "A TypeScript implementation of the Autograph protocol",
   "author": "Christoffer Carlsson <cc@christofferc.com>",
   "bugs": {
@@ -36,7 +36,7 @@
   "main": "./typescript/dist/src/autograph.cjs",
   "files": [
     "typescript/dist/src/**/*.{js,cjs}",
-    "autograph.d.ts"
+    "typescript/types.d.ts"
   ],
   "homepage": "https://github.com/christoffercarlsson/autograph#readme",
   "keywords": [
@@ -71,5 +71,5 @@
   },
   "sideEffects": false,
   "type": "module",
-  "types": "autograph.d.ts"
+  "types": "typescript/types.d.ts"
 }

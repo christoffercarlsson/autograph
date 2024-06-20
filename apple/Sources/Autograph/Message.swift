@@ -14,15 +14,12 @@ public func generateSecretKey() throws -> [UInt8] {
     return key
 }
 
-func createNonce() -> [UInt8] {
+public func createNonce() -> [UInt8] {
     createBytes(autograph_nonce_size())
 }
 
-public func createIndexes(_ count: UInt16?) -> [UInt32] {
-    [UInt32](
-        repeating: 0,
-        count: Int(count ?? autograph_skipped_indexes_count())
-    )
+public func createSkippedIndexes(_ count: UInt16?) -> [UInt8] {
+    createBytes(autograph_skipped_indexes_size(count ?? 0))
 }
 
 private func createCiphertext(_ plaintext: [UInt8]) -> [UInt8] {
@@ -63,7 +60,7 @@ public func encrypt(
 public func decrypt(
     _ key: [UInt8],
     _ nonce: inout [UInt8],
-    _ skippedIndexes: inout [UInt32],
+    _ skippedIndexes: inout [UInt8],
     _ ciphertext: [UInt8]
 ) throws -> (UInt32, [UInt8]) {
     var plaintext = createPlaintext(ciphertext)
@@ -76,7 +73,7 @@ public func decrypt(
         key,
         &nonce,
         &skippedIndexes,
-        UInt16(skippedIndexes.count),
+        skippedIndexes.count,
         ciphertext,
         ciphertext.count
     )

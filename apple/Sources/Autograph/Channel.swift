@@ -11,7 +11,7 @@ public class Channel {
     var receivingKey: [UInt8]
     var sendingNonce: [UInt8]
     var receivingNonce: [UInt8]
-    var skippedIndexes: [UInt32]
+    var skippedIndexes: [UInt8]
 
     public init(
         _ ourIdentityKeyPair: [UInt8],
@@ -28,7 +28,7 @@ public class Channel {
         receivingKey = createSecretKey()
         sendingNonce = createNonce()
         receivingNonce = createNonce()
-        skippedIndexes = createIndexes(nil)
+        skippedIndexes = createSkippedIndexes(nil)
         autograph_use_key_pairs(
             &self.ourIdentityKeyPair,
             &self.ourSessionKeyPair,

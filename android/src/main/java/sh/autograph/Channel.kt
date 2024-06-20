@@ -10,7 +10,7 @@ public class Channel {
     private var receivingKey: ByteArray = Message.createSecretKey()
     private var sendingNonce: ByteArray = Message.createNonce()
     private var receivingNonce: ByteArray = Message.createNonce()
-    private var skippedIndexes: IntArray = Message.createIndexes(null)
+    private var skippedIndexes: ByteArray = Message.createSkippedIndexes(null)
 
     companion object {
         init {

@@ -12,7 +12,7 @@ internal class Message {
 
         private external fun autographNonceSize(): Int
 
-        private external fun autographSkippedIndexesCount(): Int
+        private external fun autographSkippedIndexesSize(count: Int): Int
 
         private external fun autographCiphertextSize(plaintextSize: Int): Int
 
@@ -32,7 +32,7 @@ internal class Message {
             plaintextSize: IntArray,
             key: ByteArray,
             nonce: ByteArray,
-            skippedIndexes: IntArray,
+            skippedIndexes: ByteArray,
             ciphertext: ByteArray,
         ): Boolean
 
@@ -49,11 +49,11 @@ internal class Message {
 
         fun createNonce(): ByteArray = ByteArray(autographNonceSize())
 
-        fun createIndexes(count: Int?): IntArray {
+        fun createSkippedIndexes(count: Int?): ByteArray {
             if (count != null && count > 0 && count <= 65535) {
-                return IntArray(count)
+                return ByteArray(autographSkippedIndexesSize(count))
             }
-            return IntArray(autographSkippedIndexesCount())
+            return ByteArray(autographSkippedIndexesSize(0))
         }
 
         private fun createCiphertext(plaintext: ByteArray): ByteArray {
@@ -83,7 +83,7 @@ internal class Message {
         fun decrypt(
             key: ByteArray,
             nonce: ByteArray,
-            skippedIndexes: IntArray,
+            skippedIndexes: ByteArray,
             ciphertext: ByteArray,
         ): Pair<Int, ByteArray> {
             val index = IntArray(1)
@@ -106,8 +106,8 @@ public fun createNonce(): ByteArray {
     return Message.createNonce()
 }
 
-public fun createIndexes(count: Int?): IntArray {
-    return Message.createIndexes(count)
+public fun createSkippedIndexes(count: Int?): ByteArray {
+    return Message.createSkippedIndexes(count)
 }
 
 public fun encrypt(
@@ -121,7 +121,7 @@ public fun encrypt(
 public fun decrypt(
     key: ByteArray,
     nonce: ByteArray,
-    skippedIndexes: IntArray,
+    skippedIndexes: ByteArray,
     ciphertext: ByteArray,
 ): Pair<Int, ByteArray> {
     return Message.decrypt(key, nonce, skippedIndexes, ciphertext)

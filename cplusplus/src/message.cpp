@@ -129,33 +129,34 @@ bool decrypt_ciphertext(uint8_t *plaintext, size_t *plaintext_size,
 
 bool decrypt_skipped(uint32_t *index, uint8_t *plaintext,
                      size_t *plaintext_size, const uint8_t *key,
-                     uint32_t *skipped_indexes,
-                     const uint16_t skipped_indexes_count,
+                     uint8_t *skipped_indexes,
+                     const size_t skipped_indexes_size,
                      const uint8_t *ciphertext, const size_t ciphertext_size) {
   size_t nonce_size = autograph_primitive_nonce_size();
   uint8_t nonce[nonce_size];
   zeroize(nonce, nonce_size);
-  for (uint16_t i = 0; i < skipped_indexes_count; i++) {
-    if (skipped_indexes[i] == 0) {
-      continue;
+  for (size_t offset = 0; offset < skipped_indexes_size; offset += 4) {
+    *index = get_uint32(skipped_indexes, offset);
+    if (*index == 0) {
+      continue;  // TODO: Order skipped indexes so that we can break as soon as
+                 // possible
     }
-    set_index(nonce, skipped_indexes[i]);
+    set_index(nonce, *index);
     if (decrypt_ciphertext(plaintext, plaintext_size, key, nonce, ciphertext,
                            ciphertext_size)) {
-      *index = skipped_indexes[i];
-      skipped_indexes[i] = 0;
+      set_uint32(skipped_indexes, offset, 0);
       return true;
     }
   }
   return false;
 }
 
-bool skip_index(uint32_t *skipped_indexes, const uint16_t skipped_indexes_count,
+bool skip_index(uint8_t *skipped_indexes, const size_t skipped_indexes_size,
                 const uint8_t *nonce) {
   uint32_t index = get_index(nonce);
-  for (uint16_t i = 0; i < skipped_indexes_count; i++) {
-    if (skipped_indexes[i] == 0) {
-      skipped_indexes[i] = index;
+  for (size_t offset = 0; offset < skipped_indexes_size; offset += 4) {
+    if (get_uint32(skipped_indexes, offset) == 0) {
+      set_uint32(skipped_indexes, offset, index);
       return true;
     }
   }
@@ -164,13 +165,13 @@ bool skip_index(uint32_t *skipped_indexes, const uint16_t skipped_indexes_count,
 
 bool autograph_decrypt(uint32_t *index, uint8_t *plaintext,
                        size_t *plaintext_size, const uint8_t *key,
-                       uint8_t *nonce, uint32_t *skipped_indexes,
-                       const uint16_t skipped_indexes_count,
+                       uint8_t *nonce, uint8_t *skipped_indexes,
+                       const size_t skipped_indexes_size,
                        const uint8_t *ciphertext,
                        const size_t ciphertext_size) {
   bool success =
       decrypt_skipped(index, plaintext, plaintext_size, key, skipped_indexes,
-                      skipped_indexes_count, ciphertext, ciphertext_size);
+                      skipped_indexes_size, ciphertext, ciphertext_size);
   while (!success) {
     if (!increment_nonce(nonce)) {
       return false;
@@ -178,8 +179,7 @@ bool autograph_decrypt(uint32_t *index, uint8_t *plaintext,
     *index = get_index(nonce);
     success = decrypt_ciphertext(plaintext, plaintext_size, key, nonce,
                                  ciphertext, ciphertext_size);
-    if (!success &&
-        !skip_index(skipped_indexes, skipped_indexes_count, nonce)) {
+    if (!success && !skip_index(skipped_indexes, skipped_indexes_size, nonce)) {
       return false;
     }
   }
@@ -192,8 +192,8 @@ size_t autograph_secret_key_size() {
 
 size_t autograph_nonce_size() { return autograph_primitive_nonce_size(); }
 
-uint16_t autograph_skipped_indexes_count() {
-  return DEFAULT_SKIPPED_INDEXES_COUNT;
+size_t autograph_skipped_indexes_size(const uint16_t count) {
+  return (count == 0 ? DEFAULT_SKIPPED_INDEXES_COUNT : count) * 4;
 }
 
 }  // extern "C"
@@ -217,9 +217,9 @@ Bytes createNonce() {
   return nonce;
 }
 
-Indexes createIndexes(const std::optional<uint16_t> count) {
-  Indexes indexes(count ? *count : autograph_skipped_indexes_count());
-  std::fill(indexes.begin(), indexes.end(), 0);
+Bytes createSkippedIndexes(const std::optional<uint16_t> count) {
+  Bytes indexes(autograph_skipped_indexes_size(count ? *count : 0));
+  zeroize(indexes.data(), indexes.size());
   return indexes;
 }
 
@@ -246,7 +246,7 @@ std::tuple<bool, uint32_t, Bytes> encrypt(const Bytes &key, Bytes &nonce,
 }
 
 std::tuple<bool, uint32_t, Bytes> decrypt(const Bytes &key, Bytes &nonce,
-                                          Indexes &skippedIndexes,
+                                          Bytes &skippedIndexes,
                                           const Bytes &ciphertext) {
   uint32_t index = 0;
   Bytes plaintext = createPlaintext(ciphertext);

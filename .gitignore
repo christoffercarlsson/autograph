@@ -4,6 +4,8 @@
 *~
 *.log
 *.tgz
+*.swp
+*.swo
 .cache/
 
 # Android-specific files

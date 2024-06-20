@@ -217,7 +217,7 @@ export const autograph_decrypt = (
   plaintext_size: Uint32Array,
   key: Uint8Array,
   nonce: Uint8Array,
-  skipped_indexes: Uint32Array,
+  skipped_indexes: Uint8Array,
   skipped_indexes_size: number,
   ciphertext: Uint8Array,
   ciphertext_size: number
@@ -236,8 +236,8 @@ export const autograph_decrypt = (
     ciphertext_size
   ) as boolean
 
-export const autograph_skipped_indexes_count = () =>
-  call('autograph_skipped_indexes_count', 'number') as number
+export const autograph_skipped_indexes_size = (count: number) =>
+  call('autograph_skipped_indexes_size', 'number', count) as number
 
 export const autograph_identity_key_pair_size = () =>
   call('autograph_identity_key_pair_size', 'number') as number
