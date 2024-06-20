@@ -1,6 +1,6 @@
 {
   "name": "expo-autograph",
-  "version": "0.1.0",
+  "version": "1.0.0-alpha.2",
   "description": "The Autograph protocol for Expo",
   "main": "build/index.js",
   "types": "build/index.d.ts",
@@ -43,7 +43,7 @@
   "license": "MIT",
   "homepage": "https://github.com/christoffercarlsson/autograph#readme",
   "dependencies": {
-    "autograph-protocol": "^1.0.0-alpha.1"
+    "autograph-protocol": "^1.0.0-alpha.2"
   },
   "devDependencies": {
     "@types/react": "^18.0.25",
