@@ -213,12 +213,24 @@ export class Channel {
     this.skippedIndexes = createSkippedIndexes()
   }
 
+  getPublicKeys(): [Uint8Array, Uint8Array] {
+    return getPublicKeys(this.ourIdentityKeyPair, this.ourSessionKeyPair)
+  }
+
+  getOurPublicKeys() {
+    return this.getPublicKeys()
+  }
+
+  usePublicKeys(theirIdentityKey: Uint8Array, theirSessionKey: Uint8Array) {
+    this.theirIdentityKey = theirIdentityKey
+    this.theirSessionKey = theirSessionKey
+  }
+
   useTheirPublicKeys(
     theirIdentityKey: Uint8Array,
     theirSessionKey: Uint8Array
   ) {
-    this.theirIdentityKey = theirIdentityKey
-    this.theirSessionKey = theirSessionKey
+    return this.usePublicKeys(theirIdentityKey, theirSessionKey)
   }
 
   authenticate() {
