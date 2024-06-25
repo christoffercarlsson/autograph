@@ -1,4 +1,4 @@
-use autograph_protocol::{get_public_keys, Channel};
+use autograph_protocol::Channel;
 
 #[test]
 fn test_channel() {
@@ -109,39 +109,31 @@ fn test_channel() {
         114, 143, 77, 115, 135, 143, 103,
     ];
 
-    let alice_ephemeral_key_pair = vec![
+    let alice_session_key_pair = vec![
         201, 142, 54, 248, 151, 150, 224, 79, 30, 126, 207, 157, 118, 85, 9, 212, 148, 156, 73,
         176, 107, 107, 47, 111, 95, 98, 33, 192, 80, 223, 48, 221, 35, 16, 23, 37, 205, 131, 166,
         97, 13, 81, 136, 246, 193, 253, 139, 193, 230, 155, 222, 221, 37, 114, 190, 87, 104, 44,
         210, 144, 127, 176, 198, 45,
     ];
 
-    let bob_ephemeral_key_pair = vec![
+    let bob_session_key_pair = vec![
         74, 233, 106, 152, 76, 212, 181, 144, 132, 237, 223, 58, 122, 173, 99, 100, 152, 219, 214,
         210, 213, 72, 171, 73, 167, 92, 199, 196, 176, 66, 213, 208, 88, 115, 171, 4, 34, 181, 120,
         21, 10, 39, 204, 215, 158, 210, 177, 243, 28, 138, 52, 91, 236, 55, 30, 117, 10, 125, 87,
         232, 80, 6, 232, 93,
     ];
 
+    let mut a = Channel::new();
+    let mut b = Channel::new();
+
     let (alice_identity_key, alice_session_key) =
-        get_public_keys(&alice_identity_key_pair, &alice_ephemeral_key_pair);
+        a.use_key_pairs(&alice_identity_key_pair, &alice_session_key_pair);
 
     let (bob_identity_key, bob_session_key) =
-        get_public_keys(&bob_identity_key_pair, &bob_ephemeral_key_pair);
+        b.use_key_pairs(&bob_identity_key_pair, &bob_session_key_pair);
 
-    let mut a = Channel::new(
-        &alice_identity_key_pair,
-        &alice_ephemeral_key_pair,
-        &bob_identity_key,
-        &bob_session_key,
-    );
-
-    let mut b = Channel::new(
-        &bob_identity_key_pair,
-        &bob_ephemeral_key_pair,
-        &alice_identity_key,
-        &alice_session_key,
-    );
+    a.use_public_keys(&bob_identity_key, &bob_session_key);
+    b.use_public_keys(&alice_identity_key, &alice_session_key);
 
     test_key_exchange(&mut a, &mut b, &alice_handshake, &bob_handshake);
     test_authenticate(&a, &b, &safety_number);
