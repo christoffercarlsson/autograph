@@ -201,16 +201,24 @@ export class Channel {
   constructor(
     ourIdentityKeyPair: Uint8Array,
     ourSessionKeyPair: Uint8Array,
-    theirIdentityKey: Uint8Array,
-    theirSessionKey: Uint8Array
+    theirIdentityKey?: Uint8Array,
+    theirSessionKey?: Uint8Array
   ) {
     this.ourIdentityKeyPair = ourIdentityKeyPair
     this.ourSessionKeyPair = ourSessionKeyPair
-    this.theirIdentityKey = theirIdentityKey
-    this.theirSessionKey = theirSessionKey
+    this.theirIdentityKey = theirIdentityKey || new Uint8Array()
+    this.theirSessionKey = theirSessionKey || new Uint8Array()
     this.sendingNonce = createNonce()
     this.receivingNonce = createNonce()
     this.skippedIndexes = createSkippedIndexes()
+  }
+
+  useTheirPublicKeys(
+    theirIdentityKey: Uint8Array,
+    theirSessionKey: Uint8Array
+  ) {
+    this.theirIdentityKey = theirIdentityKey
+    this.theirSessionKey = theirSessionKey
   }
 
   authenticate() {
