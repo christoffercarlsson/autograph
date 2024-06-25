@@ -203,7 +203,7 @@ class ExpoAutographModule : Module() {
                 }
             }
 
-            AsyncFunction("encrypt") { key: ByteArray, nonce: ByteArray, plaintext: ByteArray ->
+            Function("encrypt") { key: ByteArray, nonce: ByteArray, plaintext: ByteArray ->
                 try {
                     val (index, ciphertext) =
                         encrypt(
@@ -213,7 +213,7 @@ class ExpoAutographModule : Module() {
                         )
                     mapOf(
                         "success" to true,
-                        "nonce" to nonce,
+                        "nonce" to nonce.copyOf(),
                         "index" to index,
                         "ciphertext" to ciphertext,
                     )
@@ -227,7 +227,7 @@ class ExpoAutographModule : Module() {
                 }
             }
 
-            AsyncFunction("decrypt") { key: ByteArray, nonce: ByteArray, skippedIndexes: ByteArray, ciphertext: ByteArray ->
+            Function("decrypt") { key: ByteArray, nonce: ByteArray, skippedIndexes: ByteArray, ciphertext: ByteArray ->
                 try {
                     val (index, plaintext) =
                         decrypt(
@@ -238,8 +238,8 @@ class ExpoAutographModule : Module() {
                         )
                     mapOf(
                         "success" to true,
-                        "nonce" to nonce,
-                        "skippedIndexes" to skippedIndexes,
+                        "nonce" to nonce.copyOf(),
+                        "skippedIndexes" to skippedIndexes.copyOf(),
                         "index" to index,
                         "plaintext" to plaintext,
                     )

@@ -147,17 +147,17 @@ export function generateSecretKey(): Uint8Array {
   return key
 }
 
-export async function encrypt(
+export function encrypt(
   key: Uint8Array,
   nonce: Uint8Array,
   plaintext: Uint8Array
-): Promise<[number, Uint8Array]> {
+): [number, Uint8Array] {
   const {
     success,
     nonce: n,
     index,
     ciphertext
-  } = await ExpoAutographModule.encrypt(key, nonce, plaintext)
+  } = ExpoAutographModule.encrypt(key, nonce, plaintext)
   if (!success) {
     throw new Error('Encryption failed')
   }
@@ -165,19 +165,19 @@ export async function encrypt(
   return [index, ciphertext]
 }
 
-export async function decrypt(
+export function decrypt(
   key: Uint8Array,
   nonce: Uint8Array,
   skippedIndexes: Uint8Array,
   ciphertext: Uint8Array
-): Promise<[number, Uint8Array]> {
+): [number, Uint8Array] {
   const {
     success,
     nonce: n,
     skippedIndexes: indexes,
     index,
     plaintext
-  } = await ExpoAutographModule.decrypt(key, nonce, skippedIndexes, ciphertext)
+  } = ExpoAutographModule.decrypt(key, nonce, skippedIndexes, ciphertext)
   if (!success) {
     throw new Error('Decryption failed')
   }

@@ -1,5 +1,5 @@
 PODS:
-  - AutographProtocol (1.0.0-alpha.1)
+  - AutographProtocol (1.0.0-alpha.2)
   - boost (1.83.0)
   - DoubleConversion (1.1.6)
   - EXConstants (16.0.2):
@@ -9,7 +9,7 @@ PODS:
   - ExpoAsset (10.0.9):
     - ExpoModulesCore
   - ExpoAutograph (0.1.0):
-    - AutographProtocol (= 1.0.0-alpha.1)
+    - AutographProtocol (= 1.0.0-alpha.2)
     - ExpoModulesCore
   - ExpoFileSystem (17.0.1):
     - ExpoModulesCore
@@ -1405,13 +1405,13 @@ EXTERNAL SOURCES:
     :path: "../node_modules/react-native/ReactCommon/yoga"
 
 SPEC CHECKSUMS:
-  AutographProtocol: 26b55b736ab267212305c3bdff70f265c4d854e0
+  AutographProtocol: 30e8866f1810f93c7eeeecf8d98a0ce9a60446b9
   boost: d3f49c53809116a5d38da093a8aa78bf551aed09
   DoubleConversion: 76ab83afb40bddeeee456813d9c04f67f78771b5
   EXConstants: 409690fbfd5afea964e5e9d6c4eb2c2b59222c59
   Expo: 9c87c876b45a6934894ba5e9353ee94fdba48125
   ExpoAsset: 39e60dc31b16e204a9949caf3edb6dcda322e667
-  ExpoAutograph: 4802fe3d1a1d000b607993f6fe070b213c5e56a1
+  ExpoAutograph: bb1635b2626392488895ce27232ffb7e7a49a70a
   ExpoFileSystem: 80bfe850b1f9922c16905822ecbf97acd711dc51
   ExpoFont: 43b69559cef3d773db57c7ae7edd3cb0aa0dc610
   ExpoKeepAwake: 3b8815d9dd1d419ee474df004021c69fdd316d08
