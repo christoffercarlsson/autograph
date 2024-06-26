@@ -150,8 +150,13 @@ std::tuple<bool, uint32_t, Bytes> decrypt(const Bytes &key, Bytes &nonce,
 
 class Channel {
  public:
-  Channel(const Bytes &ourIdentityKeyPair, const Bytes &ourSessionKeyPair,
-          const Bytes &theirIdentityKey, const Bytes &theirSessionKey);
+  Channel();
+
+  std::tuple<Bytes, Bytes> useKeyPairs(const Bytes &ourIdentityKeyPair,
+                                       const Bytes &ourSessionKeyPair);
+
+  void usePublicKeys(const Bytes &theirIdentityKey,
+                     const Bytes &theirSessionKey);
 
   std::tuple<bool, Bytes> authenticate() const;
 
