@@ -185,28 +185,21 @@ final class ChannelTests: XCTestCase {
 
         try Autograph.ready()
 
-        let (aliceIdentityKey, aliceSessionKey) = Autograph.getPublicKeys(
+        a = Autograph.Channel()
+        b = Autograph.Channel()
+
+        let (aliceIdentityKey, aliceSessionKey) = a.useKeyPairs(
             aliceIdentityKeyPair,
             aliceSessionKeyPair
         )
 
-        let (bobIdentityKey, bobSessionKey) = Autograph.getPublicKeys(
+        let (bobIdentityKey, bobSessionKey) = b.useKeyPairs(
             bobIdentityKeyPair,
             bobSessionKeyPair
         )
 
-        a = Autograph.Channel(
-            aliceIdentityKeyPair,
-            aliceSessionKeyPair,
-            bobIdentityKey, bobSessionKey
-        )
-
-        b = Autograph.Channel(
-            bobIdentityKeyPair,
-            bobSessionKeyPair,
-            aliceIdentityKey,
-            aliceSessionKey
-        )
+        a.usePublicKeys(bobIdentityKey, bobSessionKey)
+        b.usePublicKeys(aliceIdentityKey, aliceSessionKey)
 
         handshakeAlice = try a.keyExchange(true)
         handshakeBob = try b.keyExchange(false)

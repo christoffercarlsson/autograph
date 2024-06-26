@@ -13,28 +13,36 @@ public class Channel {
     var receivingNonce: [UInt8]
     var skippedIndexes: [UInt8]
 
-    public init(
-        _ ourIdentityKeyPair: [UInt8],
-        _ ourSessionKeyPair: [UInt8],
-        _ theirIdentityKey: [UInt8],
-        _ theirSessionKey: [UInt8]
-    ) {
-        self.ourIdentityKeyPair = createIdentityKeyPair()
-        self.ourSessionKeyPair = createSessionKeyPair()
-        self.theirIdentityKey = createIdentityPublicKey()
-        self.theirSessionKey = createSessionPublicKey()
+    public init() {
+        ourIdentityKeyPair = createIdentityKeyPair()
+        ourSessionKeyPair = createSessionKeyPair()
+        theirIdentityKey = createIdentityPublicKey()
+        theirSessionKey = createSessionPublicKey()
         transcript = createTranscript()
         sendingKey = createSecretKey()
         receivingKey = createSecretKey()
         sendingNonce = createNonce()
         receivingNonce = createNonce()
         skippedIndexes = createSkippedIndexes(nil)
+    }
+
+    public func useKeyPairs(
+        _ ourIdentityKeyPair: [UInt8],
+        _ ourSessionKeyPair: [UInt8]
+    ) -> ([UInt8], [UInt8]) {
         autograph_use_key_pairs(
             &self.ourIdentityKeyPair,
             &self.ourSessionKeyPair,
             ourIdentityKeyPair,
             ourSessionKeyPair
         )
+        return getPublicKeys(ourIdentityKeyPair, ourSessionKeyPair)
+    }
+
+    public func usePublicKeys(
+        _ theirIdentityKey: [UInt8],
+        _ theirSessionKey: [UInt8]
+    ) {
         autograph_use_public_keys(
             &self.theirIdentityKey,
             &self.theirSessionKey,
