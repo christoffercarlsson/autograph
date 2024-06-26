@@ -32,18 +32,23 @@ public class Channel {
         )
     }
 
-    constructor(
+    fun useKeyPairs(
         ourIdentityKeyPair: ByteArray,
         ourSessionKeyPair: ByteArray,
-        theirIdentityKey: ByteArray,
-        theirSessionKey: ByteArray,
-    ) {
+    ): Pair<ByteArray, ByteArray> {
         autographUseKeyPairs(
             this.ourIdentityKeyPair,
             this.ourSessionKeyPair,
             ourIdentityKeyPair,
             ourSessionKeyPair,
         )
+        return KeyPair.getPublicKeys(ourIdentityKeyPair, ourSessionKeyPair)
+    }
+
+    fun usePublicKeys(
+        theirIdentityKey: ByteArray,
+        theirSessionKey: ByteArray,
+    ) {
         autographUsePublicKeys(
             this.theirIdentityKey,
             this.theirSessionKey,
