@@ -24,9 +24,7 @@ void autograph_use_public_keys(uint8_t *identity_key, uint8_t *session_key,
 
 namespace Autograph {
 
-Channel::Channel(const Bytes &ourIdentityKeyPair,
-                 const Bytes &ourSessionKeyPair, const Bytes &theirIdentityKey,
-                 const Bytes &theirSessionKey)
+Channel::Channel()
     : ourIdentityKeyPair(autograph_identity_key_pair_size()),
       ourSessionKeyPair(autograph_session_key_pair_size()),
       theirIdentityKey(autograph_identity_public_key_size()),
@@ -36,10 +34,18 @@ Channel::Channel(const Bytes &ourIdentityKeyPair,
       receivingKey(autograph_secret_key_size()),
       sendingNonce(createNonce()),
       receivingNonce(createNonce()),
-      skippedIndexes(createSkippedIndexes(std::nullopt)) {
+      skippedIndexes(createSkippedIndexes(std::nullopt)) {}
+
+std::tuple<Bytes, Bytes> Channel::useKeyPairs(const Bytes &ourIdentityKeyPair,
+                                              const Bytes &ourSessionKeyPair) {
   autograph_use_key_pairs(this->ourIdentityKeyPair.data(),
                           this->ourSessionKeyPair.data(),
                           ourIdentityKeyPair.data(), ourSessionKeyPair.data());
+  return Autograph::getPublicKeys(ourIdentityKeyPair, ourSessionKeyPair);
+}
+
+void Channel::usePublicKeys(const Bytes &theirIdentityKey,
+                            const Bytes &theirSessionKey) {
   autograph_use_public_keys(this->theirIdentityKey.data(),
                             this->theirSessionKey.data(),
                             theirIdentityKey.data(), theirSessionKey.data());
