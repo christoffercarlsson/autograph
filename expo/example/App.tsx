@@ -26,29 +26,21 @@ export default function App() {
       const bobIdentityKeyPair = Autograph.generateIdentityKeyPair()
       const bobSessionKeyPair = Autograph.generateSessionKeyPair()
 
-      const [aliceIdentityKey, aliceSessionKey] = Autograph.getPublicKeys(
+      const a = new Autograph.Channel()
+      const b = new Autograph.Channel()
+
+      const [aliceIdentityKey, aliceSessionKey] = a.useKeyPairs(
         aliceIdentityKeyPair,
         aliceSessionKeyPair
       )
 
-      const [bobIdentityKey, bobSessionKey] = Autograph.getPublicKeys(
+      const [bobIdentityKey, bobSessionKey] = b.useKeyPairs(
         bobIdentityKeyPair,
         bobSessionKeyPair
       )
 
-      const a = new Autograph.Channel(
-        aliceIdentityKeyPair,
-        aliceSessionKeyPair,
-        bobIdentityKey,
-        bobSessionKey
-      )
-
-      const b = new Autograph.Channel(
-        bobIdentityKeyPair,
-        bobSessionKeyPair,
-        aliceIdentityKey,
-        aliceSessionKey
-      )
+      a.usePublicKeys(bobIdentityKey, bobSessionKey)
+      b.usePublicKeys(aliceIdentityKey, aliceSessionKey)
 
       const handshakeAlice = a.keyExchange(true)
       const handshakeBob = b.keyExchange(false)

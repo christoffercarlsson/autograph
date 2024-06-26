@@ -1,5 +1,8 @@
 use crate::{
-    core::{authenticate, certify, decrypt, encrypt, key_exchange, verify, verify_key_exchange},
+    core::{
+        authenticate, certify, decrypt, encrypt, get_public_keys, key_exchange, verify,
+        verify_key_exchange,
+    },
     error::Error,
     key_exchange::create_transcript,
     key_pair::{
@@ -25,25 +28,12 @@ pub struct Channel {
 }
 
 impl Channel {
-    pub fn new(
-        identity_key_pair: &[u8],
-        session_key_pair: &[u8],
-        identity_key: &[u8],
-        session_key: &[u8],
-    ) -> Self {
-        let mut our_identity_key_pair = create_identity_key_pair::<CorePrimitives>();
-        let mut our_session_key_pair = create_session_key_pair::<CorePrimitives>();
-        let mut their_identity_key = create_identity_public_key::<CorePrimitives>();
-        let mut their_session_key = create_session_public_key::<CorePrimitives>();
-        our_identity_key_pair.copy_from_slice(identity_key_pair);
-        our_session_key_pair.copy_from_slice(session_key_pair);
-        their_identity_key.copy_from_slice(identity_key);
-        their_session_key.copy_from_slice(session_key);
+    pub fn new() -> Self {
         Self {
-            our_identity_key_pair,
-            our_session_key_pair,
-            their_identity_key,
-            their_session_key,
+            our_identity_key_pair: create_identity_key_pair::<CorePrimitives>(),
+            our_session_key_pair: create_session_key_pair::<CorePrimitives>(),
+            their_identity_key: create_identity_public_key::<CorePrimitives>(),
+            their_session_key: create_session_public_key::<CorePrimitives>(),
             transcript: create_transcript::<CorePrimitives>(),
             sending_key: create_secret_key::<CorePrimitives>(),
             receiving_key: create_secret_key::<CorePrimitives>(),
@@ -51,6 +41,27 @@ impl Channel {
             receiving_nonce: create_nonce::<CorePrimitives>(),
             skipped_indexes: create_skipped_indexes(None),
         }
+    }
+
+    pub fn use_key_pairs(
+        &mut self,
+        our_identity_key_pair: &[u8],
+        our_session_key_pair: &[u8],
+    ) -> (Vec<u8>, Vec<u8>) {
+        self.our_identity_key_pair
+            .copy_from_slice(our_identity_key_pair);
+        self.our_session_key_pair
+            .copy_from_slice(our_session_key_pair);
+        get_public_keys(our_identity_key_pair, our_session_key_pair)
+    }
+
+    pub fn use_public_keys(&mut self, their_identity_key: &[u8], their_session_key: &[u8]) {
+        self.their_identity_key.copy_from_slice(their_identity_key);
+        self.their_session_key.copy_from_slice(their_session_key);
+    }
+
+    pub fn use_their_public_keys(&mut self, their_identity_key: &[u8], their_session_key: &[u8]) {
+        self.use_public_keys(their_identity_key, their_session_key);
     }
 
     pub fn authenticate(&self) -> Result<Vec<u8>, Error> {

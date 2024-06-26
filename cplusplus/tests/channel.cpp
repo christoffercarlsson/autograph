@@ -130,15 +130,16 @@ TEST_CASE("Channel", "[channel]") {
 
   REQUIRE(initialized == true);
 
-  auto [aliceIdentityKey, aliceSessionKey] =
-      Autograph::getPublicKeys(aliceIdentityKeyPair, aliceSessionKeyPair);
-  auto [bobIdentityKey, bobSessionKey] =
-      Autograph::getPublicKeys(bobIdentityKeyPair, bobSessionKeyPair);
+  Autograph::Channel a;
+  Autograph::Channel b;
 
-  Autograph::Channel a(aliceIdentityKeyPair, aliceSessionKeyPair,
-                       bobIdentityKey, bobSessionKey);
-  Autograph::Channel b(bobIdentityKeyPair, bobSessionKeyPair, aliceIdentityKey,
-                       aliceSessionKey);
+  auto [aliceIdentityKey, aliceSessionKey] =
+      a.useKeyPairs(aliceIdentityKeyPair, aliceSessionKeyPair);
+  auto [bobIdentityKey, bobSessionKey] =
+      b.useKeyPairs(bobIdentityKeyPair, bobSessionKeyPair);
+
+  a.usePublicKeys(bobIdentityKey, bobSessionKey);
+  b.usePublicKeys(aliceIdentityKey, aliceSessionKey);
 
   auto [aliceKeyExchange, handshakeAlice] = a.keyExchange(true);
   auto [bobKeyExchange, handshakeBob] = b.keyExchange(false);

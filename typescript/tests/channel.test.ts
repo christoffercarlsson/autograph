@@ -138,28 +138,21 @@ describe('Channel', () => {
       93
     ])
 
-    const [aliceIdentityKey, aliceSessionKey] = getPublicKeys(
+    a = new Channel()
+    b = new Channel()
+
+    const [aliceIdentityKey, aliceSessionKey] = a.useKeyPairs(
       aliceIdentityKeyPair,
       aliceSessionKeyPair
     )
 
-    const [bobIdentityKey, bobSessionKey] = getPublicKeys(
+    const [bobIdentityKey, bobSessionKey] = b.useKeyPairs(
       bobIdentityKeyPair,
       bobSessionKeyPair
     )
 
-    a = new Channel(
-      aliceIdentityKeyPair,
-      aliceSessionKeyPair,
-      bobIdentityKey,
-      bobSessionKey
-    )
-    b = new Channel(
-      bobIdentityKeyPair,
-      bobSessionKeyPair,
-      aliceIdentityKey,
-      aliceSessionKey
-    )
+    a.usePublicKeys(bobIdentityKey, bobSessionKey)
+    b.usePublicKeys(aliceIdentityKey, aliceSessionKey)
 
     handshakeAlice = a.keyExchange(true)
     handshakeBob = b.keyExchange(false)
