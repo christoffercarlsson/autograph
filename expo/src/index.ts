@@ -191,46 +191,35 @@ export class Channel {
   private ourSessionKeyPair: Uint8Array
   private theirIdentityKey: Uint8Array
   private theirSessionKey: Uint8Array
-  private transcript?: Uint8Array
-  private sendingKey?: Uint8Array
-  private receivingKey?: Uint8Array
+  private transcript: Uint8Array
+  private sendingKey: Uint8Array
+  private receivingKey: Uint8Array
   private sendingNonce: Uint8Array
   private receivingNonce: Uint8Array
   private skippedIndexes: Uint8Array
 
-  constructor(
-    ourIdentityKeyPair: Uint8Array,
-    ourSessionKeyPair: Uint8Array,
-    theirIdentityKey?: Uint8Array,
-    theirSessionKey?: Uint8Array
-  ) {
-    this.ourIdentityKeyPair = ourIdentityKeyPair
-    this.ourSessionKeyPair = ourSessionKeyPair
-    this.theirIdentityKey = theirIdentityKey || new Uint8Array()
-    this.theirSessionKey = theirSessionKey || new Uint8Array()
+  constructor() {
+    this.ourIdentityKeyPair = new Uint8Array()
+    this.ourSessionKeyPair = new Uint8Array()
+    this.theirIdentityKey = new Uint8Array()
+    this.theirSessionKey = new Uint8Array()
+    this.transcript = new Uint8Array()
+    this.sendingKey = new Uint8Array()
+    this.receivingKey = new Uint8Array()
     this.sendingNonce = createNonce()
     this.receivingNonce = createNonce()
     this.skippedIndexes = createSkippedIndexes()
   }
 
-  getPublicKeys(): [Uint8Array, Uint8Array] {
-    return getPublicKeys(this.ourIdentityKeyPair, this.ourSessionKeyPair)
-  }
-
-  getOurPublicKeys() {
-    return this.getPublicKeys()
+  useKeyPairs(ourIdentityKeyPair: Uint8Array, ourSessionKeyPair: Uint8Array) {
+    this.ourIdentityKeyPair = ourIdentityKeyPair
+    this.ourSessionKeyPair = ourSessionKeyPair
+    return getPublicKeys(ourIdentityKeyPair, ourSessionKeyPair)
   }
 
   usePublicKeys(theirIdentityKey: Uint8Array, theirSessionKey: Uint8Array) {
     this.theirIdentityKey = theirIdentityKey
     this.theirSessionKey = theirSessionKey
-  }
-
-  useTheirPublicKeys(
-    theirIdentityKey: Uint8Array,
-    theirSessionKey: Uint8Array
-  ) {
-    return this.usePublicKeys(theirIdentityKey, theirSessionKey)
   }
 
   authenticate() {
@@ -264,36 +253,24 @@ export class Channel {
   }
 
   verifyKeyExchange(theirSignature: Uint8Array) {
-    if (this.transcript) {
-      verifyKeyExchange(
-        this.transcript,
-        this.ourIdentityKeyPair,
-        this.theirIdentityKey,
-        theirSignature
-      )
-    } else {
-      throw new Error('Key exchange not performed')
-    }
+    verifyKeyExchange(
+      this.transcript,
+      this.ourIdentityKeyPair,
+      this.theirIdentityKey,
+      theirSignature
+    )
   }
 
   encrypt(plaintext: Uint8Array) {
-    if (this.sendingKey) {
-      return encrypt(this.sendingKey, this.sendingNonce, plaintext)
-    } else {
-      throw new Error('Key exchange not performed')
-    }
+    return encrypt(this.sendingKey, this.sendingNonce, plaintext)
   }
 
   decrypt(ciphertext: Uint8Array) {
-    if (this.receivingKey) {
-      return decrypt(
-        this.receivingKey,
-        this.receivingNonce,
-        this.skippedIndexes,
-        ciphertext
-      )
-    } else {
-      throw new Error('Key exchange not performed')
-    }
+    return decrypt(
+      this.receivingKey,
+      this.receivingNonce,
+      this.skippedIndexes,
+      ciphertext
+    )
   }
 }
