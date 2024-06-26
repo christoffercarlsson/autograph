@@ -17,7 +17,8 @@ import {
   createIdentityKeyPair,
   createIdentityPublicKey,
   createSessionKeyPair,
-  createSessionPublicKey
+  createSessionPublicKey,
+  getPublicKeys
 } from './key-pair'
 
 export default class Channel {
@@ -32,12 +33,7 @@ export default class Channel {
   private receivingNonce: Uint8Array
   private skippedIndexes: Uint8Array
 
-  constructor(
-    ourIdentityKeyPair: Uint8Array,
-    ourSessionKeyPair: Uint8Array,
-    theirIdentityKey: Uint8Array,
-    theirSessionKey: Uint8Array
-  ) {
+  constructor() {
     this.ourIdentityKeyPair = createIdentityKeyPair()
     this.ourSessionKeyPair = createSessionKeyPair()
     this.theirIdentityKey = createIdentityPublicKey()
@@ -48,12 +44,19 @@ export default class Channel {
     this.sendingNonce = createNonce()
     this.receivingNonce = createNonce()
     this.skippedIndexes = createSkippedIndexes()
+  }
+
+  useKeyPairs(ourIdentityKeyPair: Uint8Array, ourSessionKeyPair: Uint8Array) {
     autograph_use_key_pairs(
       this.ourIdentityKeyPair,
       this.ourSessionKeyPair,
       ourIdentityKeyPair,
       ourSessionKeyPair
     )
+    return getPublicKeys(ourIdentityKeyPair, ourSessionKeyPair)
+  }
+
+  usePublicKeys(theirIdentityKey: Uint8Array, theirSessionKey: Uint8Array) {
     autograph_use_public_keys(
       this.theirIdentityKey,
       this.theirSessionKey,
