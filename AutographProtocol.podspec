@@ -1,7 +1,7 @@
 Pod::Spec.new do |s|
   s.name             = 'AutographProtocol'
   s.module_name      = 'Autograph'
-  s.version          = '1.0.0-alpha.2'
+  s.version          = '1.0.0-alpha.3'
   s.summary          = 'The Autograph Protocol'
   s.description      = <<-DESC
                         Autograph is an open, modular cryptographic protocol that implements a
