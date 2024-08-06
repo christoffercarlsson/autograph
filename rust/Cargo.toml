@@ -1,8 +1,8 @@
 [package]
-publish = false
-name = "autograph-protocol"
+name = "autograph_protocol"
 description = "A Rust implementation of the Autograph protocol"
 version = "1.0.0-alpha.2"
+license = "Unlicense"
 authors = ["Christoffer Carlsson <cc@christofferc.com>"]
 edition = "2021"
 keywords = [
@@ -26,19 +26,19 @@ repository = "https://github.com/christoffercarlsson/autograph"
 
 [lib]
 name = "autograph_protocol"
-path = "rust/src/lib.rs"
+path = "src/lib.rs"
 
 [[test]]
 name = "channel"
-path = "rust/tests/channel.rs"
+path = "tests/channel.rs"
 
 [[test]]
 name = "key_pair"
-path = "rust/tests/key_pair.rs"
+path = "tests/key_pair.rs"
 
 [[bench]]
 name = "main"
-path = "rust/benchmarks/main.rs"
+path = "benchmarks/main.rs"
 harness = false
 
 [dependencies]
