@@ -10,17 +10,7 @@ keywords = [
     "identity",
     "cryptography",
     "privacy",
-    "authentication",
-    "freedom",
-    "verification",
-    "ed25519",
-    "hkdf",
-    "x25519",
-    "chacha20-poly1305",
-    "elliptic-curves",
-    "ownership",
-    "decentralization",
-    "diffie-hellman"
+    "authentication" 
   ]
 repository = "https://github.com/christoffercarlsson/autograph"
 
