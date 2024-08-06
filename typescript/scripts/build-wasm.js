@@ -3,8 +3,8 @@ import { exit } from 'node:process'
 import { copyFile } from 'node:fs/promises'
 
 const run = async () => {
-  await execa('/bin/bash', ['cplusplus/scripts/build.sh', '-w'])
-  await copyFile('cplusplus/build/autograph.js', 'typescript/wasm/autograph.js')
+  await execa('/bin/bash', ['../cplusplus/scripts/build.sh', '-w'])
+  await copyFile('../cplusplus/build/autograph.js', './wasm/autograph.js')
 }
 
 run().catch((error) => {
