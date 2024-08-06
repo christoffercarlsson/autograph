@@ -1,11 +1,7 @@
-import org.jetbrains.kotlin.gradle.plugin.mpp.pm20.util.archivesName
-
 plugins {
-    id("com.android.library")
-    id("org.jetbrains.kotlin.android")
+    id("com.android.library") version "8.2.2"
+    id("org.jetbrains.kotlin.android") version "2.0.0"
 }
-
-project.archivesName.set("autograph")
 
 android {
     namespace = "sh.autograph"
