@@ -1,7 +1,7 @@
 module.exports = {
   clearMocks: true,
   collectCoverage: false,
-  collectCoverageFrom: ['typescript/dist/src/**/*.js'],
+  collectCoverageFrom: ['dist/src/**/*.js'],
   coverageDirectory: 'coverage',
   coverageReporters: ['json', 'json-summary', 'html', 'text-summary'],
   coverageThreshold: {
@@ -12,5 +12,5 @@ module.exports = {
       lines: 80
     }
   },
-  testMatch: ['**/typescript/dist/tests/**/*.{test,spec}.js']
+  testMatch: ['**/dist/tests/**/*.{test,spec}.js']
 }

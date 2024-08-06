@@ -7,8 +7,8 @@ const run = async () => {
   const sharedOptions = {
     format: 'esm',
     minify: false,
-    outbase: 'typescript',
-    outdir: 'typescript/dist',
+    outbase: '.',
+    outdir: 'dist',
     platform: 'browser',
     plugins: [sourceMapPlugin],
     sourcemap: true
@@ -16,18 +16,18 @@ const run = async () => {
   await build({
     ...sharedOptions,
     bundle: true,
-    entryPoints: ['typescript/src/autograph.ts']
+    entryPoints: ['src/autograph.ts']
   })
   await build({
     ...sharedOptions,
     bundle: true,
-    entryPoints: ['typescript/src/autograph.ts'],
+    entryPoints: ['src/autograph.ts'],
     format: 'cjs',
     outExtension: { '.js': '.cjs' }
   })
   await build({
     ...sharedOptions,
-    entryPoints: await globby('typescript/tests/**/*.test.ts')
+    entryPoints: await globby('tests/**/*.test.ts')
   })
 }
 

@@ -1,6 +1,6 @@
 {
   "name": "autograph-protocol",
-  "version": "1.0.0-alpha.2",
+  "version": "1.0.0-alpha.3",
   "description": "A TypeScript implementation of the Autograph protocol",
   "author": "Christoffer Carlsson <cc@christofferc.com>",
   "bugs": {
@@ -32,11 +32,11 @@
   "engines": {
     "node": ">=20.14.0"
   },
-  "exports": "./typescript/dist/src/autograph.js",
-  "main": "./typescript/dist/src/autograph.cjs",
+  "exports": "./dist/src/autograph.js",
+  "main": "./dist/src/autograph.cjs",
   "files": [
-    "typescript/dist/src/**/*.{js,cjs}",
-    "typescript/types.d.ts"
+    "dist/src/**/*.{js,cjs}",
+    "types.d.ts"
   ],
   "homepage": "https://github.com/christoffercarlsson/autograph#readme",
   "keywords": [
@@ -62,14 +62,14 @@
     "url": "git+https://github.com/christoffercarlsson/autograph.git"
   },
   "scripts": {
-    "build": "rimraf typescript/dist && node typescript/scripts/build.js",
-    "build:wasm": "node typescript/scripts/build-wasm.js",
+    "build": "rimraf dist && node scripts/build.js",
+    "build:wasm": "node scripts/build-wasm.js",
     "format": "prettier --loglevel silent --write ./typescript",
-    "lint": "eslint ./typescript",
+    "lint": "eslint .",
     "prepack": "npm run build",
-    "test": "npm run build && rimraf typescript/coverage && NODE_OPTIONS='--experimental-vm-modules --no-warnings' npx jest --no-cache"
+    "test": "npm run build && rimraf coverage && NODE_OPTIONS='--experimental-vm-modules --no-warnings' npx jest --no-cache"
   },
   "sideEffects": false,
   "type": "module",
-  "types": "typescript/types.d.ts"
+  "types": "types.d.ts"
 }
