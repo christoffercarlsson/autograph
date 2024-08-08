@@ -18,7 +18,9 @@ import {
   createIdentityPublicKey,
   createSessionKeyPair,
   createSessionPublicKey,
-  getPublicKeys
+  getPublicKeys,
+  getIdentityPublicKey,
+  getSessionPublicKey
 } from './key-pair'
 
 export default class Channel {
@@ -46,6 +48,10 @@ export default class Channel {
     this.skippedIndexes = createSkippedIndexes()
   }
 
+  useSkippedIndexes(count: number) {
+    this.skippedIndexes = createSkippedIndexes(count)
+  }
+
   useKeyPairs(ourIdentityKeyPair: Uint8Array, ourSessionKeyPair: Uint8Array) {
     autograph_use_key_pairs(
       this.ourIdentityKeyPair,
@@ -63,6 +69,37 @@ export default class Channel {
       theirIdentityKey,
       theirSessionKey
     )
+  }
+
+  useTheirPublicKeys(
+    theirIdentityKey: Uint8Array,
+    theirSessionKey: Uint8Array
+  ) {
+    return this.usePublicKeys(theirIdentityKey, theirSessionKey)
+  }
+
+  getOurPublicKeys() {
+    return getPublicKeys(this.ourIdentityKeyPair, this.ourSessionKeyPair)
+  }
+
+  getOurIdentityKey() {
+    return getIdentityPublicKey(this.ourIdentityKeyPair)
+  }
+
+  getOurSessionKey() {
+    return getSessionPublicKey(this.ourSessionKeyPair)
+  }
+
+  getTheirPublicKeys() {
+    return [this.theirIdentityKey, this.theirSessionKey]
+  }
+
+  getTheirIdentityKey() {
+    return this.theirIdentityKey
+  }
+
+  getTheirSessionKey() {
+    return this.theirSessionKey
   }
 
   authenticate() {
