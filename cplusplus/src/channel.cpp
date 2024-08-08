@@ -36,12 +36,16 @@ Channel::Channel()
       receivingNonce(createNonce()),
       skippedIndexes(createSkippedIndexes(std::nullopt)) {}
 
+void Channel::useSkippedIndexes(const uint16_t count) {
+  this->skippedIndexes = createSkippedIndexes(count);
+}
+
 std::tuple<Bytes, Bytes> Channel::useKeyPairs(const Bytes &ourIdentityKeyPair,
                                               const Bytes &ourSessionKeyPair) {
   autograph_use_key_pairs(this->ourIdentityKeyPair.data(),
                           this->ourSessionKeyPair.data(),
                           ourIdentityKeyPair.data(), ourSessionKeyPair.data());
-  return Autograph::getPublicKeys(ourIdentityKeyPair, ourSessionKeyPair);
+  return this->getOurPublicKeys();
 }
 
 void Channel::usePublicKeys(const Bytes &theirIdentityKey,
@@ -50,6 +54,31 @@ void Channel::usePublicKeys(const Bytes &theirIdentityKey,
                             this->theirSessionKey.data(),
                             theirIdentityKey.data(), theirSessionKey.data());
 }
+
+void Channel::useTheirPublicKeys(const Bytes &theirIdentityKey,
+                                 const Bytes &theirSessionKey) {
+  return this->usePublicKeys(theirIdentityKey, theirSessionKey);
+}
+
+std::tuple<Bytes, Bytes> Channel::getOurPublicKeys() const {
+  return Autograph::getPublicKeys(ourIdentityKeyPair, ourSessionKeyPair);
+}
+
+Bytes Channel::getOurIdentityKey() const {
+  return Autograph::getIdentityPublicKey(ourIdentityKeyPair);
+}
+
+Bytes Channel::getOurSessionKey() const {
+  return Autograph::getSessionPublicKey(ourSessionKeyPair);
+}
+
+std::tuple<Bytes, Bytes> Channel::getTheirPublicKeys() const {
+  return {theirIdentityKey, theirSessionKey};
+}
+
+Bytes Channel::getTheirIdentityKey() const { return theirIdentityKey; }
+
+Bytes Channel::getTheirSessionKey() const { return theirSessionKey; }
 
 std::tuple<bool, Bytes> Channel::authenticate() const {
   return Autograph::authenticate(ourIdentityKeyPair, theirIdentityKey);
