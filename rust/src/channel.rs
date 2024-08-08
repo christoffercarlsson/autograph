@@ -1,7 +1,7 @@
 use crate::{
     core::{
-        authenticate, certify, decrypt, encrypt, get_public_keys, key_exchange, verify,
-        verify_key_exchange,
+        authenticate, certify, decrypt, encrypt, get_identity_public_key, get_public_keys,
+        get_session_public_key, key_exchange, verify, verify_key_exchange,
     },
     error::Error,
     key_exchange::create_transcript,
@@ -27,8 +27,8 @@ pub struct Channel {
     skipped_indexes: Vec<u8>,
 }
 
-impl Channel {
-    pub fn new() -> Self {
+impl Default for Channel {
+    fn default() -> Self {
         Self {
             our_identity_key_pair: create_identity_key_pair::<CorePrimitives>(),
             our_session_key_pair: create_session_key_pair::<CorePrimitives>(),
@@ -42,6 +42,16 @@ impl Channel {
             skipped_indexes: create_skipped_indexes(None),
         }
     }
+}
+
+impl Channel {
+    pub fn new() -> Self {
+        Self::default()
+    }
+
+    pub fn use_skipped_indexes(&mut self, count: u16) {
+        self.skipped_indexes = create_skipped_indexes(Some(count))
+    }
 
     pub fn use_key_pairs(
         &mut self,
@@ -52,7 +62,7 @@ impl Channel {
             .copy_from_slice(our_identity_key_pair);
         self.our_session_key_pair
             .copy_from_slice(our_session_key_pair);
-        get_public_keys(our_identity_key_pair, our_session_key_pair)
+        self.get_our_public_keys()
     }
 
     pub fn use_public_keys(&mut self, their_identity_key: &[u8], their_session_key: &[u8]) {
@@ -62,6 +72,33 @@ impl Channel {
 
     pub fn use_their_public_keys(&mut self, their_identity_key: &[u8], their_session_key: &[u8]) {
         self.use_public_keys(their_identity_key, their_session_key);
+    }
+
+    pub fn get_our_public_keys(&self) -> (Vec<u8>, Vec<u8>) {
+        get_public_keys(&self.our_identity_key_pair, &self.our_session_key_pair)
+    }
+
+    pub fn get_our_identity_key(&self) -> Vec<u8> {
+        get_identity_public_key(&self.our_identity_key_pair)
+    }
+
+    pub fn get_our_session_key(&self) -> Vec<u8> {
+        get_session_public_key(&self.our_session_key_pair)
+    }
+
+    pub fn get_their_public_keys(&self) -> (Vec<u8>, Vec<u8>) {
+        (
+            self.their_identity_key.clone(),
+            self.their_session_key.clone(),
+        )
+    }
+
+    pub fn get_their_identity_key(&self) -> Vec<u8> {
+        self.their_identity_key.clone()
+    }
+
+    pub fn get_their_session_key(&self) -> Vec<u8> {
+        self.their_session_key.clone()
     }
 
     pub fn authenticate(&self) -> Result<Vec<u8>, Error> {
