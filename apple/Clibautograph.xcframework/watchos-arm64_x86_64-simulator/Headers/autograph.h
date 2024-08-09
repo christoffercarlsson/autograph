@@ -83,12 +83,12 @@ size_t autograph_ciphertext_size(const size_t plaintext_size);
 
 size_t autograph_plaintext_size(const size_t ciphertext_size);
 
-void autograph_use_key_pairs(uint8_t *identity_key_pair,
+void autograph_set_key_pairs(uint8_t *identity_key_pair,
                              uint8_t *session_key_pair,
                              const uint8_t *our_identity_key_pair,
                              const uint8_t *our_session_key_pair);
 
-void autograph_use_public_keys(uint8_t *identity_key, uint8_t *session_key,
+void autograph_set_public_keys(uint8_t *identity_key, uint8_t *session_key,
                                const uint8_t *their_identity_key,
                                const uint8_t *their_session_key);
 
@@ -152,15 +152,18 @@ class Channel {
  public:
   Channel();
 
-  void useSkippedIndexes(const uint16_t count);
+  void setSkippedIndexes(const uint16_t count);
 
-  std::tuple<Bytes, Bytes> useKeyPairs(const Bytes &ourIdentityKeyPair,
+  std::tuple<Bytes, Bytes> setKeyPairs(const Bytes &ourIdentityKeyPair,
                                        const Bytes &ourSessionKeyPair);
 
-  void usePublicKeys(const Bytes &theirIdentityKey,
+  std::tuple<Bytes, Bytes> setOurKeyPairs(const Bytes &ourIdentityKeyPair,
+                                          const Bytes &ourSessionKeyPair);
+
+  void setPublicKeys(const Bytes &theirIdentityKey,
                      const Bytes &theirSessionKey);
 
-  void useTheirPublicKeys(const Bytes &theirIdentityKey,
+  void setTheirPublicKeys(const Bytes &theirIdentityKey,
                           const Bytes &theirSessionKey);
 
   std::tuple<Bytes, Bytes> getOurPublicKeys() const;

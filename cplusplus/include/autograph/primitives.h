@@ -9,6 +9,8 @@
 extern "C" {
 #endif
 
+bool autograph_primitive_ready();
+
 size_t autograph_primitive_identity_private_key_size();
 
 size_t autograph_primitive_identity_public_key_size();

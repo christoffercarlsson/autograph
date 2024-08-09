@@ -17,14 +17,14 @@ public class Channel {
             System.loadLibrary("autograph")
         }
 
-        private external fun autographUseKeyPairs(
+        private external fun autographSetKeyPairs(
             identityKeyPair: ByteArray,
             sessionKeyPair: ByteArray,
             ourIdentityKeyPair: ByteArray,
             ourSessionKeyPair: ByteArray,
         )
 
-        private external fun autographUsePublicKeys(
+        private external fun autographSetPublicKeys(
             identityKey: ByteArray,
             sessionKey: ByteArray,
             theirIdentityKey: ByteArray,
@@ -32,15 +32,15 @@ public class Channel {
         )
     }
 
-    fun useSkippedIndexes(count: Int) {
+    fun setSkippedIndexes(count: Int) {
         this.skippedIndexes = Message.createSkippedIndexes(count)
     }
 
-    fun useKeyPairs(
+    fun setKeyPairs(
         ourIdentityKeyPair: ByteArray,
         ourSessionKeyPair: ByteArray,
     ): Pair<ByteArray, ByteArray> {
-        autographUseKeyPairs(
+        autographSetKeyPairs(
             this.ourIdentityKeyPair,
             this.ourSessionKeyPair,
             ourIdentityKeyPair,
@@ -49,11 +49,18 @@ public class Channel {
         return this.getOurPublicKeys()
     }
 
-    fun usePublicKeys(
+    fun setOurKeyPairs(
+        ourIdentityKeyPair: ByteArray,
+        ourSessionKeyPair: ByteArray,
+    ): Pair<ByteArray, ByteArray> {
+       return this.setKeyPairs(ourIdentityKeyPair, ourSessionKeyPair) 
+    }
+
+    fun setPublicKeys(
         theirIdentityKey: ByteArray,
         theirSessionKey: ByteArray,
     ) {
-        autographUsePublicKeys(
+        autographSetPublicKeys(
             this.theirIdentityKey,
             this.theirSessionKey,
             theirIdentityKey,
@@ -61,11 +68,11 @@ public class Channel {
         )
     }
 
-    fun useTheirPublicKeys(
+    fun setTheirPublicKeys(
         theirIdentityKey: ByteArray,
         theirSessionKey: ByteArray,
     ) {
-        return this.usePublicKeys(theirIdentityKey, theirSessionKey)
+        return this.setPublicKeys(theirIdentityKey, theirSessionKey)
     }
 
     fun getOurPublicKeys(): Pair<ByteArray, ByteArray> {

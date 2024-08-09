@@ -1,3 +1,5 @@
+#ifndef AUTOGRAPH_CUSTOM_PRIMITIVES
+
 #include "primitives.h"
 
 #include "autograph.h"
@@ -19,9 +21,7 @@ constexpr size_t TAG_SIZE = 16;
 
 extern "C" {
 
-#ifndef AUTOGRAPH_CUSTOM_PRIMITIVES
-
-bool autograph_ready() { return sodium_init() >= 0; }
+bool autograph_primitive_ready() { return sodium_init() >= 0; }
 
 size_t autograph_primitive_identity_private_key_size() {
   return IDENTITY_PRIVATE_KEY_SIZE;
@@ -126,12 +126,6 @@ bool autograph_primitive_decrypt(uint8_t *plaintext, const uint8_t *key,
                                                    NULL, 0, nonce, key) == 0;
 }
 
-#endif  // !AUTOGRAPH_CUSTOM_PRIMITIVES
-
 }  // extern "C"
 
-namespace Autograph {
-
-bool ready() { return autograph_ready(); }
-
-}  // namespace Autograph
+#endif  // !AUTOGRAPH_CUSTOM_PRIMITIVES

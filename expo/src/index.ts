@@ -211,26 +211,33 @@ export class Channel {
     this.skippedIndexes = createSkippedIndexes()
   }
 
-  useSkippedIndexes(count: number) {
+  setSkippedIndexes(count: number) {
     this.skippedIndexes = createSkippedIndexes(count)
   }
 
-  useKeyPairs(ourIdentityKeyPair: Uint8Array, ourSessionKeyPair: Uint8Array) {
+  setKeyPairs(ourIdentityKeyPair: Uint8Array, ourSessionKeyPair: Uint8Array) {
     this.ourIdentityKeyPair = ourIdentityKeyPair
     this.ourSessionKeyPair = ourSessionKeyPair
     return this.getOurPublicKeys()
   }
 
-  usePublicKeys(theirIdentityKey: Uint8Array, theirSessionKey: Uint8Array) {
+  setOurKeyPairs(
+    ourIdentityKeyPair: Uint8Array,
+    ourSessionKeyPair: Uint8Array
+  ) {
+    return this.setKeyPairs(ourIdentityKeyPair, ourSessionKeyPair)
+  }
+
+  setPublicKeys(theirIdentityKey: Uint8Array, theirSessionKey: Uint8Array) {
     this.theirIdentityKey = theirIdentityKey
     this.theirSessionKey = theirSessionKey
   }
 
-  useTheirPublicKeys(
+  setTheirPublicKeys(
     theirIdentityKey: Uint8Array,
     theirSessionKey: Uint8Array
   ) {
-    return this.usePublicKeys(theirIdentityKey, theirSessionKey)
+    return this.setPublicKeys(theirIdentityKey, theirSessionKey)
   }
 
   getOurPublicKeys() {
@@ -245,7 +252,7 @@ export class Channel {
     return getSessionPublicKey(this.ourSessionKeyPair)
   }
 
-  getTheirPublicKeys() {
+  getTheirPublicKeys(): [Uint8Array, Uint8Array] {
     return [this.theirIdentityKey, this.theirSessionKey]
   }
 

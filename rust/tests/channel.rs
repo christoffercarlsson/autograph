@@ -127,13 +127,13 @@ fn test_channel() {
     let mut b = Channel::new();
 
     let (alice_identity_key, alice_session_key) =
-        a.use_key_pairs(&alice_identity_key_pair, &alice_session_key_pair);
+        a.set_key_pairs(&alice_identity_key_pair, &alice_session_key_pair);
 
     let (bob_identity_key, bob_session_key) =
-        b.use_key_pairs(&bob_identity_key_pair, &bob_session_key_pair);
+        b.set_key_pairs(&bob_identity_key_pair, &bob_session_key_pair);
 
-    a.use_public_keys(&bob_identity_key, &bob_session_key);
-    b.use_public_keys(&alice_identity_key, &alice_session_key);
+    a.set_public_keys(&bob_identity_key, &bob_session_key);
+    b.set_public_keys(&alice_identity_key, &alice_session_key);
 
     test_key_exchange(&mut a, &mut b, &alice_handshake, &bob_handshake);
     test_authenticate(&a, &b, &safety_number);

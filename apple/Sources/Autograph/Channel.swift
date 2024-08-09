@@ -26,15 +26,15 @@ public class Channel {
         skippedIndexes = createSkippedIndexes(nil)
     }
 
-    public func useSkippedIndexes(_ count: UInt16) {
+    public func setSkippedIndexes(_ count: UInt16) {
         skippedIndexes = createSkippedIndexes(count)
     }
 
-    public func useKeyPairs(
+    public func setKeyPairs(
         _ ourIdentityKeyPair: [UInt8],
         _ ourSessionKeyPair: [UInt8]
     ) -> ([UInt8], [UInt8]) {
-        autograph_use_key_pairs(
+        autograph_set_key_pairs(
             &self.ourIdentityKeyPair,
             &self.ourSessionKeyPair,
             ourIdentityKeyPair,
@@ -43,11 +43,18 @@ public class Channel {
         return getOurPublicKeys()
     }
 
-    public func usePublicKeys(
+    public func setOurKeyPairs(
+        _ ourIdentityKeyPair: [UInt8],
+        _ ourSessionKeyPair: [UInt8]
+    ) -> ([UInt8], [UInt8]) {
+        return setKeyPairs(ourIdentityKeyPair, ourSessionKeyPair)
+    }
+
+    public func setPublicKeys(
         _ theirIdentityKey: [UInt8],
         _ theirSessionKey: [UInt8]
     ) {
-        autograph_use_public_keys(
+        autograph_set_public_keys(
             &self.theirIdentityKey,
             &self.theirSessionKey,
             theirIdentityKey,
@@ -55,11 +62,11 @@ public class Channel {
         )
     }
 
-    public func useTheirPublicKeys(
+    public func setTheirPublicKeys(
         _ theirIdentityKey: [UInt8],
         _ theirSessionKey: [UInt8]
     ) {
-        return usePublicKeys(theirIdentityKey, theirSessionKey)
+        return setPublicKeys(theirIdentityKey, theirSessionKey)
     }
 
     public func getOurPublicKeys() -> ([UInt8], [UInt8]) {

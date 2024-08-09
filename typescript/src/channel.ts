@@ -5,7 +5,7 @@ import {
   keyExchange,
   verifyKeyExchange
 } from './key-exchange'
-import { autograph_use_key_pairs, autograph_use_public_keys } from './clib'
+import { autograph_set_key_pairs, autograph_set_public_keys } from './clib'
 import {
   createNonce,
   createSecretKey,
@@ -48,12 +48,12 @@ export default class Channel {
     this.skippedIndexes = createSkippedIndexes()
   }
 
-  useSkippedIndexes(count: number) {
+  setSkippedIndexes(count: number) {
     this.skippedIndexes = createSkippedIndexes(count)
   }
 
-  useKeyPairs(ourIdentityKeyPair: Uint8Array, ourSessionKeyPair: Uint8Array) {
-    autograph_use_key_pairs(
+  setKeyPairs(ourIdentityKeyPair: Uint8Array, ourSessionKeyPair: Uint8Array) {
+    autograph_set_key_pairs(
       this.ourIdentityKeyPair,
       this.ourSessionKeyPair,
       ourIdentityKeyPair,
@@ -62,8 +62,15 @@ export default class Channel {
     return getPublicKeys(ourIdentityKeyPair, ourSessionKeyPair)
   }
 
-  usePublicKeys(theirIdentityKey: Uint8Array, theirSessionKey: Uint8Array) {
-    autograph_use_public_keys(
+  setOurKeyPairs(
+    ourIdentityKeyPair: Uint8Array,
+    ourSessionKeyPair: Uint8Array
+  ) {
+    return this.setKeyPairs(ourIdentityKeyPair, ourSessionKeyPair)
+  }
+
+  setPublicKeys(theirIdentityKey: Uint8Array, theirSessionKey: Uint8Array) {
+    autograph_set_public_keys(
       this.theirIdentityKey,
       this.theirSessionKey,
       theirIdentityKey,
@@ -71,11 +78,11 @@ export default class Channel {
     )
   }
 
-  useTheirPublicKeys(
+  setTheirPublicKeys(
     theirIdentityKey: Uint8Array,
     theirSessionKey: Uint8Array
   ) {
-    return this.usePublicKeys(theirIdentityKey, theirSessionKey)
+    return this.setPublicKeys(theirIdentityKey, theirSessionKey)
   }
 
   getOurPublicKeys() {
@@ -90,7 +97,7 @@ export default class Channel {
     return getSessionPublicKey(this.ourSessionKeyPair)
   }
 
-  getTheirPublicKeys() {
+  getTheirPublicKeys(): [Uint8Array, Uint8Array] {
     return [this.theirIdentityKey, this.theirSessionKey]
   }
 

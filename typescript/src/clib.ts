@@ -272,14 +272,14 @@ export const autograph_ciphertext_size = (plaintext_size: number) =>
 export const autograph_plaintext_size = (ciphertext_size: number) =>
   call('autograph_plaintext_size', 'number', ciphertext_size) as number
 
-export const autograph_use_key_pairs = (
+export const autograph_set_key_pairs = (
   identity_key_pair: Uint8Array,
   session_key_pair: Uint8Array,
   our_identity_key_pair: Uint8Array,
   our_session_key_pair: Uint8Array
 ) =>
   call(
-    'autograph_use_key_pairs',
+    'autograph_set_key_pairs',
     null,
     identity_key_pair,
     session_key_pair,
@@ -287,14 +287,14 @@ export const autograph_use_key_pairs = (
     our_session_key_pair
   )
 
-export const autograph_use_public_keys = (
+export const autograph_set_public_keys = (
   identity_key: Uint8Array,
   session_key: Uint8Array,
   their_identity_key: Uint8Array,
   their_session_key: Uint8Array
 ) =>
   call(
-    'autograph_use_public_keys',
+    'autograph_set_public_keys',
     null,
     identity_key,
     session_key,

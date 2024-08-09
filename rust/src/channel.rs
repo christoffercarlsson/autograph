@@ -49,11 +49,11 @@ impl Channel {
         Self::default()
     }
 
-    pub fn use_skipped_indexes(&mut self, count: u16) {
+    pub fn set_skipped_indexes(&mut self, count: u16) {
         self.skipped_indexes = create_skipped_indexes(Some(count))
     }
 
-    pub fn use_key_pairs(
+    pub fn set_key_pairs(
         &mut self,
         our_identity_key_pair: &[u8],
         our_session_key_pair: &[u8],
@@ -65,13 +65,21 @@ impl Channel {
         self.get_our_public_keys()
     }
 
-    pub fn use_public_keys(&mut self, their_identity_key: &[u8], their_session_key: &[u8]) {
+    pub fn set_our_key_pairs(
+        &mut self,
+        our_identity_key_pair: &[u8],
+        our_session_key_pair: &[u8],
+    ) -> (Vec<u8>, Vec<u8>) {
+        self.set_key_pairs(our_identity_key_pair, our_session_key_pair)
+    }
+
+    pub fn set_public_keys(&mut self, their_identity_key: &[u8], their_session_key: &[u8]) {
         self.their_identity_key.copy_from_slice(their_identity_key);
         self.their_session_key.copy_from_slice(their_session_key);
     }
 
-    pub fn use_their_public_keys(&mut self, their_identity_key: &[u8], their_session_key: &[u8]) {
-        self.use_public_keys(their_identity_key, their_session_key);
+    pub fn set_their_public_keys(&mut self, their_identity_key: &[u8], their_session_key: &[u8]) {
+        self.set_public_keys(their_identity_key, their_session_key);
     }
 
     pub fn get_our_public_keys(&self) -> (Vec<u8>, Vec<u8>) {

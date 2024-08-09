@@ -29,18 +29,18 @@ export default function App() {
       const a = new Autograph.Channel()
       const b = new Autograph.Channel()
 
-      const [aliceIdentityKey, aliceSessionKey] = a.useKeyPairs(
+      const [aliceIdentityKey, aliceSessionKey] = a.setKeyPairs(
         aliceIdentityKeyPair,
         aliceSessionKeyPair
       )
 
-      const [bobIdentityKey, bobSessionKey] = b.useKeyPairs(
+      const [bobIdentityKey, bobSessionKey] = b.setKeyPairs(
         bobIdentityKeyPair,
         bobSessionKeyPair
       )
 
-      a.usePublicKeys(bobIdentityKey, bobSessionKey)
-      b.usePublicKeys(aliceIdentityKey, aliceSessionKey)
+      a.setPublicKeys(bobIdentityKey, bobSessionKey)
+      b.setPublicKeys(aliceIdentityKey, aliceSessionKey)
 
       const handshakeAlice = a.keyExchange(true)
       const handshakeBob = b.keyExchange(false)

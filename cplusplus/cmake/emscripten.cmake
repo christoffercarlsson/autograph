@@ -28,8 +28,8 @@ set(AUTOGRAPH_EXPORTED_FUNCTIONS
     autograph_transcript_size
     autograph_ciphertext_size
     autograph_plaintext_size
-    autograph_use_key_pairs
-    autograph_use_public_keys
+    autograph_set_key_pairs
+    autograph_set_public_keys
     calloc
     free)
 

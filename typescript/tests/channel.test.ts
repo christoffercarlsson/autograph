@@ -1,4 +1,4 @@
-import { Channel, getPublicKeys, ready } from '../src/autograph'
+import { Channel, ready } from '../src/autograph'
 
 describe('Channel', () => {
   const aliceHandshake = Uint8Array.from([
@@ -141,18 +141,18 @@ describe('Channel', () => {
     a = new Channel()
     b = new Channel()
 
-    const [aliceIdentityKey, aliceSessionKey] = a.useKeyPairs(
+    const [aliceIdentityKey, aliceSessionKey] = a.setKeyPairs(
       aliceIdentityKeyPair,
       aliceSessionKeyPair
     )
 
-    const [bobIdentityKey, bobSessionKey] = b.useKeyPairs(
+    const [bobIdentityKey, bobSessionKey] = b.setKeyPairs(
       bobIdentityKeyPair,
       bobSessionKeyPair
     )
 
-    a.usePublicKeys(bobIdentityKey, bobSessionKey)
-    b.usePublicKeys(aliceIdentityKey, aliceSessionKey)
+    a.setPublicKeys(bobIdentityKey, bobSessionKey)
+    b.setPublicKeys(aliceIdentityKey, aliceSessionKey)
 
     handshakeAlice = a.keyExchange(true)
     handshakeBob = b.keyExchange(false)

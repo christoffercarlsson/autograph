@@ -1147,11 +1147,11 @@ class ChannelTest {
         a = Channel()
         b = Channel()
 
-        val (aliceIdentityKey, aliceSessionKey) = a.useKeyPairs(aliceIdentityKeyPair, aliceSessionKeyPair)
-        val (bobIdentityKey, bobSessionKey) = b.useKeyPairs(bobIdentityKeyPair, bobSessionKeyPair)
+        val (aliceIdentityKey, aliceSessionKey) = a.setKeyPairs(aliceIdentityKeyPair, aliceSessionKeyPair)
+        val (bobIdentityKey, bobSessionKey) = b.setKeyPairs(bobIdentityKeyPair, bobSessionKeyPair)
 
-        a.usePublicKeys(bobIdentityKey, bobSessionKey)
-        b.usePublicKeys(aliceIdentityKey, aliceSessionKey)
+        a.setPublicKeys(bobIdentityKey, bobSessionKey)
+        b.setPublicKeys(aliceIdentityKey, aliceSessionKey)
 
         val handshakeAlice = a.keyExchange(true)
         val handshakeBob = b.keyExchange(false)

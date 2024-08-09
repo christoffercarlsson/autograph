@@ -134,12 +134,12 @@ TEST_CASE("Channel", "[channel]") {
   Autograph::Channel b;
 
   auto [aliceIdentityKey, aliceSessionKey] =
-      a.useKeyPairs(aliceIdentityKeyPair, aliceSessionKeyPair);
+      a.setKeyPairs(aliceIdentityKeyPair, aliceSessionKeyPair);
   auto [bobIdentityKey, bobSessionKey] =
-      b.useKeyPairs(bobIdentityKeyPair, bobSessionKeyPair);
+      b.setKeyPairs(bobIdentityKeyPair, bobSessionKeyPair);
 
-  a.usePublicKeys(bobIdentityKey, bobSessionKey);
-  b.usePublicKeys(aliceIdentityKey, aliceSessionKey);
+  a.setPublicKeys(bobIdentityKey, bobSessionKey);
+  b.setPublicKeys(aliceIdentityKey, aliceSessionKey);
 
   auto [aliceKeyExchange, handshakeAlice] = a.keyExchange(true);
   auto [bobKeyExchange, handshakeBob] = b.keyExchange(false);

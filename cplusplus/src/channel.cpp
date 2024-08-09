@@ -2,7 +2,7 @@
 
 extern "C" {
 
-void autograph_use_key_pairs(uint8_t *identity_key_pair,
+void autograph_set_key_pairs(uint8_t *identity_key_pair,
                              uint8_t *session_key_pair,
                              const uint8_t *our_identity_key_pair,
                              const uint8_t *our_session_key_pair) {
@@ -12,7 +12,7 @@ void autograph_use_key_pairs(uint8_t *identity_key_pair,
           autograph_session_key_pair_size());
 }
 
-void autograph_use_public_keys(uint8_t *identity_key, uint8_t *session_key,
+void autograph_set_public_keys(uint8_t *identity_key, uint8_t *session_key,
                                const uint8_t *their_identity_key,
                                const uint8_t *their_session_key) {
   memmove(identity_key, their_identity_key,
@@ -36,28 +36,33 @@ Channel::Channel()
       receivingNonce(createNonce()),
       skippedIndexes(createSkippedIndexes(std::nullopt)) {}
 
-void Channel::useSkippedIndexes(const uint16_t count) {
+void Channel::setSkippedIndexes(const uint16_t count) {
   this->skippedIndexes = createSkippedIndexes(count);
 }
 
-std::tuple<Bytes, Bytes> Channel::useKeyPairs(const Bytes &ourIdentityKeyPair,
+std::tuple<Bytes, Bytes> Channel::setKeyPairs(const Bytes &ourIdentityKeyPair,
                                               const Bytes &ourSessionKeyPair) {
-  autograph_use_key_pairs(this->ourIdentityKeyPair.data(),
+  autograph_set_key_pairs(this->ourIdentityKeyPair.data(),
                           this->ourSessionKeyPair.data(),
                           ourIdentityKeyPair.data(), ourSessionKeyPair.data());
   return this->getOurPublicKeys();
 }
 
-void Channel::usePublicKeys(const Bytes &theirIdentityKey,
+std::tuple<Bytes, Bytes> Channel::setOurKeyPairs(
+    const Bytes &ourIdentityKeyPair, const Bytes &ourSessionKeyPair) {
+  return this->setKeyPairs(ourIdentityKeyPair, ourSessionKeyPair);
+}
+
+void Channel::setPublicKeys(const Bytes &theirIdentityKey,
                             const Bytes &theirSessionKey) {
-  autograph_use_public_keys(this->theirIdentityKey.data(),
+  autograph_set_public_keys(this->theirIdentityKey.data(),
                             this->theirSessionKey.data(),
                             theirIdentityKey.data(), theirSessionKey.data());
 }
 
-void Channel::useTheirPublicKeys(const Bytes &theirIdentityKey,
+void Channel::setTheirPublicKeys(const Bytes &theirIdentityKey,
                                  const Bytes &theirSessionKey) {
-  return this->usePublicKeys(theirIdentityKey, theirSessionKey);
+  return this->setPublicKeys(theirIdentityKey, theirSessionKey);
 }
 
 std::tuple<Bytes, Bytes> Channel::getOurPublicKeys() const {

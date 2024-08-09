@@ -4,19 +4,19 @@
 #include "primitives.h"
 #include "sodium.h"
 
-constexpr uint8_t PADDING_BLOCK_SIZE = 16;
 constexpr uint8_t PADDING_BYTE = 128;
+constexpr size_t PADDING_BLOCK_SIZE = 16;
 constexpr size_t DEFAULT_SKIPPED_INDEXES_COUNT = 128;
 
 extern "C" {
 
+void zeroize(uint8_t *data, const size_t data_size) {
+  sodium_memzero(data, data_size);
+}
+
 size_t calculate_padded_size(const size_t plaintext_size) {
   return plaintext_size + PADDING_BLOCK_SIZE -
          (plaintext_size % PADDING_BLOCK_SIZE);
-}
-
-void zeroize(uint8_t *data, const size_t data_size) {
-  sodium_memzero(data, data_size);
 }
 
 void pad(uint8_t *padded, const size_t padded_size, const uint8_t *plaintext,
