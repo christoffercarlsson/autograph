@@ -32,6 +32,10 @@ public class Channel {
         )
     }
 
+    fun useSkippedIndexes(count: Int) {
+        this.skippedIndexes = Message.createSkippedIndexes(count)
+    }
+
     fun useKeyPairs(
         ourIdentityKeyPair: ByteArray,
         ourSessionKeyPair: ByteArray,
@@ -42,7 +46,7 @@ public class Channel {
             ourIdentityKeyPair,
             ourSessionKeyPair,
         )
-        return KeyPair.getPublicKeys(ourIdentityKeyPair, ourSessionKeyPair)
+        return this.getOurPublicKeys()
     }
 
     fun usePublicKeys(
@@ -55,6 +59,37 @@ public class Channel {
             theirIdentityKey,
             theirSessionKey,
         )
+    }
+
+    fun useTheirPublicKeys(
+        theirIdentityKey: ByteArray,
+        theirSessionKey: ByteArray,
+    ) {
+        return this.usePublicKeys(theirIdentityKey, theirSessionKey)
+    }
+
+    fun getOurPublicKeys(): Pair<ByteArray, ByteArray> {
+        return KeyPair.getPublicKeys(this.ourIdentityKeyPair, this.ourSessionKeyPair)
+    }
+
+    fun getOurIdentityKey(): ByteArray {
+        return KeyPair.getIdentityPublicKey(this.ourIdentityKeyPair)
+    }
+
+    fun getOurSessionKey(): ByteArray {
+        return KeyPair.getSessionPublicKey(this.ourSessionKeyPair)
+    }
+
+    fun getTheirPublicKeys(): Pair<ByteArray, ByteArray> {
+        return Pair(this.theirIdentityKey, this.theirSessionKey)
+    }
+
+    fun getTheirIdentityKey(): ByteArray {
+        return this.theirIdentityKey
+    }
+
+    fun getTheirSessionKey(): ByteArray {
+        return this.theirSessionKey
     }
 
     fun authenticate(): ByteArray {
