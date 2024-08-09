@@ -152,11 +152,28 @@ class Channel {
  public:
   Channel();
 
+  void useSkippedIndexes(const uint16_t count);
+
   std::tuple<Bytes, Bytes> useKeyPairs(const Bytes &ourIdentityKeyPair,
                                        const Bytes &ourSessionKeyPair);
 
   void usePublicKeys(const Bytes &theirIdentityKey,
                      const Bytes &theirSessionKey);
+
+  void useTheirPublicKeys(const Bytes &theirIdentityKey,
+                          const Bytes &theirSessionKey);
+
+  std::tuple<Bytes, Bytes> getOurPublicKeys() const;
+
+  Bytes getOurIdentityKey() const;
+
+  Bytes getOurSessionKey() const;
+
+  std::tuple<Bytes, Bytes> getTheirPublicKeys() const;
+
+  Bytes getTheirIdentityKey() const;
+
+  Bytes getTheirSessionKey() const;
 
   std::tuple<bool, Bytes> authenticate() const;
 
