@@ -26,6 +26,10 @@ public class Channel {
         skippedIndexes = createSkippedIndexes(nil)
     }
 
+    public func useSkippedIndexes(_ count: UInt16) {
+        skippedIndexes = createSkippedIndexes(count)
+    }
+
     public func useKeyPairs(
         _ ourIdentityKeyPair: [UInt8],
         _ ourSessionKeyPair: [UInt8]
@@ -36,7 +40,7 @@ public class Channel {
             ourIdentityKeyPair,
             ourSessionKeyPair
         )
-        return getPublicKeys(ourIdentityKeyPair, ourSessionKeyPair)
+        return getOurPublicKeys()
     }
 
     public func usePublicKeys(
@@ -49,6 +53,37 @@ public class Channel {
             theirIdentityKey,
             theirSessionKey
         )
+    }
+
+    public func useTheirPublicKeys(
+        _ theirIdentityKey: [UInt8],
+        _ theirSessionKey: [UInt8]
+    ) {
+        return usePublicKeys(theirIdentityKey, theirSessionKey)
+    }
+
+    public func getOurPublicKeys() -> ([UInt8], [UInt8]) {
+        return getPublicKeys(ourIdentityKeyPair, ourSessionKeyPair)
+    }
+
+    public func getOurIdentityKey() -> [UInt8] {
+        return getIdentityPublicKey(ourIdentityKeyPair)
+    }
+
+    public func getOurSessionKey() -> [UInt8] {
+        return getSessionPublicKey(ourSessionKeyPair)
+    }
+
+    public func getTheirPublicKeys() -> ([UInt8], [UInt8]) {
+        return (theirIdentityKey, theirSessionKey)
+    }
+
+    public func getTheirIdentityKey() -> [UInt8] {
+        return theirIdentityKey
+    }
+
+    public func getTheirSessionKey() -> [UInt8] {
+        return theirSessionKey
     }
 
     public func authenticate() throws -> [UInt8] {
