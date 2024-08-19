@@ -1,8 +1,11 @@
 use crate::{
-    auth, cert, error::Error, key_exchange as ke, key_pair, message, primitives::CorePrimitives,
+    auth, cert, channel, error::Error, key_exchange as ke, key_pair, message,
+    primitives::CorePrimitives,
 };
 use alloc::vec::Vec;
-use rand_core::{CryptoRng, RngCore};
+use rand_core::CryptoRngCore;
+
+pub type CoreChannel = channel::Channel<CorePrimitives>;
 
 pub fn authenticate(
     our_identity_key_pair: &[u8],
@@ -35,7 +38,7 @@ pub fn key_exchange(
     our_session_key_pair: &[u8],
     their_identity_key: &[u8],
     their_session_key: &[u8],
-) -> Result<(Vec<u8>, Vec<u8>, Vec<u8>, Vec<u8>), Error> {
+) -> Result<ke::KeyExchangeResult, Error> {
     ke::key_exchange::<CorePrimitives>(
         is_initiator,
         our_identity_key_pair,
@@ -59,11 +62,11 @@ pub fn verify_key_exchange(
     )
 }
 
-pub fn generate_session_key_pair<T: RngCore + CryptoRng>(csprng: T) -> Result<Vec<u8>, Error> {
+pub fn generate_session_key_pair<T: CryptoRngCore>(csprng: T) -> Result<Vec<u8>, Error> {
     key_pair::generate_session_key_pair::<T, CorePrimitives>(csprng)
 }
 
-pub fn generate_identity_key_pair<T: RngCore + CryptoRng>(csprng: T) -> Result<Vec<u8>, Error> {
+pub fn generate_identity_key_pair<T: CryptoRngCore>(csprng: T) -> Result<Vec<u8>, Error> {
     key_pair::generate_identity_key_pair::<T, CorePrimitives>(csprng)
 }
 
@@ -79,7 +82,7 @@ pub fn get_public_keys(identity_key_pair: &[u8], session_key_pair: &[u8]) -> (Ve
     key_pair::get_public_keys::<CorePrimitives>(identity_key_pair, session_key_pair)
 }
 
-pub fn generate_secret_key<T: RngCore + CryptoRng>(csprng: T) -> Result<Vec<u8>, Error> {
+pub fn generate_secret_key<T: CryptoRngCore>(csprng: T) -> Result<Vec<u8>, Error> {
     message::generate_secret_key::<T, CorePrimitives>(csprng)
 }
 

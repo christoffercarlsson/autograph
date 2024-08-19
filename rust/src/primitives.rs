@@ -4,8 +4,8 @@ use chacha20poly1305::{
 };
 use ed25519_dalek::{Signature, Signer, SigningKey, Verifier, VerifyingKey};
 use hkdf::Hkdf;
-use rand_core::{CryptoRng, RngCore};
-use sha2::{Digest as ShaDigest, Sha512};
+use rand_core::CryptoRngCore;
+use sha2::{Digest as ShaDigest, Sha256, Sha512};
 use x25519_dalek::{PublicKey, StaticSecret};
 
 pub trait SigningPrimitive {
@@ -13,7 +13,7 @@ pub trait SigningPrimitive {
     const IDENTITY_PUBLIC_KEY_SIZE: usize;
     const SIGNATURE_SIZE: usize;
 
-    fn key_pair_identity<T: RngCore + CryptoRng>(csprng: T, key_pair: &mut [u8]) -> bool;
+    fn key_pair_identity<T: CryptoRngCore>(csprng: T, key_pair: &mut [u8]) -> bool;
 
     fn sign(signature: &mut [u8], key_pair: &[u8], message: &[u8]) -> bool;
 
@@ -25,7 +25,7 @@ pub trait DiffieHellmanPrimitive {
     const SESSION_PUBLIC_KEY_SIZE: usize;
     const SHARED_SECRET_SIZE: usize;
 
-    fn key_pair_session<T: RngCore + CryptoRng>(csprng: T, key_pair: &mut [u8]) -> bool;
+    fn key_pair_session<T: CryptoRngCore>(csprng: T, key_pair: &mut [u8]) -> bool;
 
     fn diffie_hellman(
         shared_secret: &mut [u8],
@@ -35,7 +35,7 @@ pub trait DiffieHellmanPrimitive {
 }
 
 pub trait KeyDerivationPrimitive {
-    fn kdf(okm: &mut [u8], shared_secret: &[u8]) -> bool;
+    fn kdf(okm: &mut [u8], ikm: &[u8], info: &[u8]) -> bool;
 }
 
 pub trait HashingPrimitive {
@@ -49,7 +49,7 @@ pub trait AEADPrimitive {
     const NONCE_SIZE: usize;
     const TAG_SIZE: usize;
 
-    fn generate_key<T: RngCore + CryptoRng>(csprng: T, secret_key: &mut [u8]) -> bool;
+    fn generate_key<T: CryptoRngCore>(csprng: T, secret_key: &mut [u8]) -> bool;
 
     fn encrypt(ciphertext: &mut [u8], key: &[u8], nonce: &[u8], plaintext: &[u8]) -> bool;
 
@@ -63,7 +63,7 @@ impl SigningPrimitive for CorePrimitives {
     const IDENTITY_PUBLIC_KEY_SIZE: usize = 32;
     const SIGNATURE_SIZE: usize = 64;
 
-    fn key_pair_identity<T: RngCore + CryptoRng>(mut csprng: T, key_pair: &mut [u8]) -> bool {
+    fn key_pair_identity<T: CryptoRngCore>(mut csprng: T, key_pair: &mut [u8]) -> bool {
         let signing_key = SigningKey::generate(&mut csprng);
         let private_key = signing_key.to_bytes();
         let public_key = signing_key.verifying_key().to_bytes();
@@ -114,7 +114,7 @@ impl DiffieHellmanPrimitive for CorePrimitives {
     const SESSION_PUBLIC_KEY_SIZE: usize = 32;
     const SHARED_SECRET_SIZE: usize = 32;
 
-    fn key_pair_session<T: RngCore + CryptoRng>(csprng: T, key_pair: &mut [u8]) -> bool {
+    fn key_pair_session<T: CryptoRngCore>(csprng: T, key_pair: &mut [u8]) -> bool {
         let secret = StaticSecret::random_from_rng(csprng);
         let private_key = secret.to_bytes();
         let dalek_public_key = PublicKey::from(&secret);
@@ -146,11 +146,10 @@ impl DiffieHellmanPrimitive for CorePrimitives {
 }
 
 impl KeyDerivationPrimitive for CorePrimitives {
-    fn kdf(okm: &mut [u8], shared_secret: &[u8]) -> bool {
-        let salt = [0; 64];
-        let info: [u8; 9] = [97, 117, 116, 111, 103, 114, 97, 112, 104];
-        let h = Hkdf::<Sha512>::new(Some(&salt), shared_secret);
-        h.expand(&info, okm).is_ok()
+    fn kdf(okm: &mut [u8], ikm: &[u8], info: &[u8]) -> bool {
+        let salt = [0; 32];
+        let h = Hkdf::<Sha256>::new(Some(&salt), ikm);
+        h.expand(info, okm).is_ok()
     }
 }
 
@@ -170,9 +169,9 @@ impl AEADPrimitive for CorePrimitives {
     const NONCE_SIZE: usize = 12;
     const TAG_SIZE: usize = 16;
 
-    fn generate_key<T: RngCore + CryptoRng>(csprng: T, secret_key: &mut [u8]) -> bool {
+    fn generate_key<T: CryptoRngCore>(csprng: T, secret_key: &mut [u8]) -> bool {
         let key = ChaCha20Poly1305::generate_key(csprng);
-        secret_key.copy_from_slice(&key[..Self::SECRET_KEY_SIZE]);
+        secret_key.copy_from_slice(&key);
         true
     }
 

@@ -7,48 +7,37 @@ use crate::{
 };
 use alloc::{vec, vec::Vec};
 
-pub fn create_transcript<P: DiffieHellmanPrimitive>() -> Vec<u8> {
-    let size = P::SESSION_PUBLIC_KEY_SIZE * 2;
-    vec![0; size]
-}
-
-fn create_shared_secret<P: DiffieHellmanPrimitive>() -> Vec<u8> {
-    vec![0; P::SHARED_SECRET_SIZE]
-}
-
-fn create_okm<P: AEADPrimitive>() -> Vec<u8> {
-    let size = P::SECRET_KEY_SIZE * 2;
-    vec![0; size]
-}
-
-fn calculate_secret_keys<P: AEADPrimitive>(is_initiator: bool, okm: &[u8]) -> (Vec<u8>, Vec<u8>) {
-    let mut sending_key = create_secret_key::<P>();
-    let mut receiving_key = create_secret_key::<P>();
-    if is_initiator {
-        sending_key.copy_from_slice(&okm[..P::SECRET_KEY_SIZE]);
-        receiving_key.copy_from_slice(&okm[P::SECRET_KEY_SIZE..]);
-    } else {
-        sending_key.copy_from_slice(&okm[P::SECRET_KEY_SIZE..]);
-        receiving_key.copy_from_slice(&okm[..P::SECRET_KEY_SIZE]);
-    }
-    (sending_key, receiving_key)
-}
-
-fn derive_secret_keys<P: DiffieHellmanPrimitive + KeyDerivationPrimitive + AEADPrimitive>(
+fn derive_secret_keys<
+    P: SigningPrimitive + DiffieHellmanPrimitive + KeyDerivationPrimitive + AEADPrimitive,
+>(
     is_initiator: bool,
+    our_identity_key_pair: &[u8],
     our_session_key_pair: &[u8],
+    their_identity_key: &[u8],
     their_session_key: &[u8],
 ) -> Result<(Vec<u8>, Vec<u8>), Error> {
-    let mut shared_secret = create_shared_secret::<P>();
-    let mut okm = create_okm::<P>();
-    let dh_success = P::diffie_hellman(&mut shared_secret, our_session_key_pair, their_session_key);
-    let kdf_success = P::kdf(&mut okm, &shared_secret);
-    let (sending_key, receiving_key) = calculate_secret_keys::<P>(is_initiator, &okm);
-    if dh_success && kdf_success {
-        Ok((sending_key, receiving_key))
-    } else {
-        Err(Error::KeyExchange)
+    let our_identity_key = get_identity_public_key::<P>(our_identity_key_pair);
+    let mut shared_secret = vec![0; P::SHARED_SECRET_SIZE];
+    if !P::diffie_hellman(&mut shared_secret, our_session_key_pair, their_session_key) {
+        return Err(Error::KeyExchange);
     }
+    let mut a = create_secret_key::<P>();
+    let mut b = create_secret_key::<P>();
+    if !P::kdf(&mut a, &shared_secret, &our_identity_key) {
+        return Err(Error::KeyExchange);
+    }
+    if !P::kdf(&mut b, &shared_secret, their_identity_key) {
+        return Err(Error::KeyExchange);
+    }
+    if is_initiator {
+        Ok((a, b))
+    } else {
+        Ok((b, a))
+    }
+}
+
+pub fn create_transcript<P: DiffieHellmanPrimitive>() -> Vec<u8> {
+    vec![0; P::SESSION_PUBLIC_KEY_SIZE * 2]
 }
 
 fn calculate_transcript<P: DiffieHellmanPrimitive>(
@@ -68,9 +57,12 @@ fn calculate_transcript<P: DiffieHellmanPrimitive>(
     transcript
 }
 
-type Transcript = Vec<u8>;
-type Signature = Vec<u8>;
-type SecretKey = Vec<u8>;
+pub struct KeyExchangeResult {
+    pub transcript: Vec<u8>,
+    pub signature: Vec<u8>,
+    pub sending_key: Vec<u8>,
+    pub receiving_key: Vec<u8>,
+}
 
 pub fn key_exchange<
     P: SigningPrimitive + DiffieHellmanPrimitive + KeyDerivationPrimitive + AEADPrimitive,
@@ -80,13 +72,23 @@ pub fn key_exchange<
     our_session_key_pair: &[u8],
     their_identity_key: &[u8],
     their_session_key: &[u8],
-) -> Result<(Transcript, Signature, SecretKey, SecretKey), Error> {
+) -> Result<KeyExchangeResult, Error> {
     let transcript =
         calculate_transcript::<P>(is_initiator, our_session_key_pair, their_session_key);
     let signature = certify::<P>(our_identity_key_pair, their_identity_key, Some(&transcript))?;
-    let (sending_key, receiving_key) =
-        derive_secret_keys::<P>(is_initiator, our_session_key_pair, their_session_key)?;
-    Ok((transcript, signature, sending_key, receiving_key))
+    let (sending_key, receiving_key) = derive_secret_keys::<P>(
+        is_initiator,
+        our_identity_key_pair,
+        our_session_key_pair,
+        their_identity_key,
+        their_session_key,
+    )?;
+    Ok(KeyExchangeResult {
+        transcript,
+        signature,
+        sending_key,
+        receiving_key,
+    })
 }
 
 pub fn verify_key_exchange<P: SigningPrimitive>(

@@ -18,11 +18,10 @@ mod key_pair;
 mod message;
 mod primitives;
 
-pub use channel::Channel;
 pub use core::{
     authenticate, certify, create_nonce, decrypt, encrypt, generate_identity_key_pair,
     generate_secret_key, generate_session_key_pair, get_identity_public_key, get_public_keys,
-    get_session_public_key, key_exchange, verify, verify_key_exchange,
+    get_session_public_key, key_exchange, verify, verify_key_exchange, CoreChannel as Channel,
 };
 pub use error::Error;
 pub use message::create_skipped_indexes;
