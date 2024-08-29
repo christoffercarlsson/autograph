@@ -29,7 +29,7 @@ func CalculateUnpaddedSize(padded *[]byte) int {
 	if size == 0 || (size%int(c.PADDING_BLOCK_SIZE)) > 0 {
 		return 0
 	}
-	for i := size - 1; i > (size - int(c.PADDING_BLOCK_SIZE)); i -= 1 {
+	for i := size - 1; i >= (size - int(c.PADDING_BLOCK_SIZE)); i -= 1 {
 		byte := (*padded)[i]
 		if byte == c.PADDING_BYTE {
 			return i
