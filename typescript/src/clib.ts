@@ -105,14 +105,22 @@ export const autograph_get_session_public_key = (
 export const autograph_authenticate = (
   safety_number: Uint8Array,
   our_identity_key_pair: Uint8Array,
-  their_identity_key: Uint8Array
+  our_id: Uint8Array,
+  our_id_size: number,
+  their_identity_key: Uint8Array,
+  their_id: Uint8Array,
+  their_id_size: number
 ) =>
   call(
     'autograph_authenticate',
     'boolean',
     safety_number,
     our_identity_key_pair,
-    their_identity_key
+    our_id,
+    our_id_size,
+    their_identity_key,
+    their_id,
+    their_id_size
   ) as boolean
 
 export const autograph_certify = (
