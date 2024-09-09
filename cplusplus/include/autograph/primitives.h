@@ -38,7 +38,8 @@ bool autograph_primitive_diffie_hellman(uint8_t *shared_secret,
                                         const uint8_t *our_key_pair,
                                         const uint8_t *their_public_key);
 
-bool autograph_primitive_kdf(uint8_t *okm, const uint8_t *shared_secret);
+bool autograph_primitive_kdf(uint8_t *key, const uint8_t *shared_secret,
+                             const uint8_t *info, const size_t info_size);
 
 size_t autograph_primitive_digest_size();
 

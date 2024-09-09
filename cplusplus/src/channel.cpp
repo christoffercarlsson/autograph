@@ -51,8 +51,10 @@ void Channel::usePublicKeys(const Bytes &theirIdentityKey,
                             theirIdentityKey.data(), theirSessionKey.data());
 }
 
-std::tuple<bool, Bytes> Channel::authenticate() const {
-  return Autograph::authenticate(ourIdentityKeyPair, theirIdentityKey);
+std::tuple<bool, Bytes> Channel::authenticate(const Bytes &ourId,
+                                              const Bytes &theirId) const {
+  return Autograph::authenticate(ourIdentityKeyPair, ourId, theirIdentityKey,
+                                 theirId);
 }
 
 std::tuple<bool, Bytes> Channel::certify(

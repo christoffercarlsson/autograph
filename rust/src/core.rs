@@ -6,9 +6,16 @@ use rand_core::{CryptoRng, RngCore};
 
 pub fn authenticate(
     our_identity_key_pair: &[u8],
+    our_id: &[u8],
     their_identity_key: &[u8],
+    their_id: &[u8],
 ) -> Result<Vec<u8>, Error> {
-    auth::authenticate::<CorePrimitives>(our_identity_key_pair, their_identity_key)
+    auth::authenticate::<CorePrimitives>(
+        our_identity_key_pair,
+        our_id,
+        their_identity_key,
+        their_id,
+    )
 }
 
 pub fn certify(

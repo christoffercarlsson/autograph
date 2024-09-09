@@ -35,7 +35,7 @@ pub trait DiffieHellmanPrimitive {
 }
 
 pub trait KeyDerivationPrimitive {
-    fn kdf(okm: &mut [u8], shared_secret: &[u8]) -> bool;
+    fn kdf(key: &mut [u8], shared_secret: &[u8], info: &[u8]) -> bool;
 }
 
 pub trait HashingPrimitive {
@@ -146,11 +146,10 @@ impl DiffieHellmanPrimitive for CorePrimitives {
 }
 
 impl KeyDerivationPrimitive for CorePrimitives {
-    fn kdf(okm: &mut [u8], shared_secret: &[u8]) -> bool {
+    fn kdf(key: &mut [u8], shared_secret: &[u8], info: &[u8]) -> bool {
         let salt = [0; 64];
-        let info: [u8; 9] = [97, 117, 116, 111, 103, 114, 97, 112, 104];
         let h = Hkdf::<Sha512>::new(Some(&salt), shared_secret);
-        h.expand(&info, okm).is_ok()
+        h.expand(info, key).is_ok()
     }
 }
 

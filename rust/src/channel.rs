@@ -64,8 +64,13 @@ impl Channel {
         self.use_public_keys(their_identity_key, their_session_key);
     }
 
-    pub fn authenticate(&self) -> Result<Vec<u8>, Error> {
-        authenticate(&self.our_identity_key_pair, &self.their_identity_key)
+    pub fn authenticate(&self, our_id: &[u8], their_id: &[u8]) -> Result<Vec<u8>, Error> {
+        authenticate(
+            &self.our_identity_key_pair,
+            our_id,
+            &self.their_identity_key,
+            their_id,
+        )
     }
 
     pub fn certify(&self, data: Option<&[u8]>) -> Result<Vec<u8>, Error> {
@@ -120,5 +125,11 @@ impl Channel {
             &mut self.skipped_indexes,
             ciphertext,
         )
+    }
+}
+
+impl Default for Channel {
+    fn default() -> Self {
+        Self::new()
     }
 }

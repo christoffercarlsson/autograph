@@ -51,10 +51,15 @@ public class Channel {
         )
     }
 
-    public func authenticate() throws -> [UInt8] {
+    public func authenticate(
+        _ ourId: [UInt8],
+        _ theirId: [UInt8]
+    ) throws -> [UInt8] {
         try Autograph.authenticate(
             ourIdentityKeyPair,
-            theirIdentityKey
+            ourId,
+            theirIdentityKey,
+            theirId
         )
     }
 

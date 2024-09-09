@@ -57,8 +57,11 @@ public class Channel {
         )
     }
 
-    fun authenticate(): ByteArray {
-        return Auth.authenticate(ourIdentityKeyPair, theirIdentityKey)
+    fun authenticate(
+        ourId: ByteArray,
+        theirId: ByteArray,
+    ): ByteArray {
+        return Auth.authenticate(ourIdentityKeyPair, ourId, theirIdentityKey, theirId)
     }
 
     fun certify(data: ByteArray?): ByteArray {

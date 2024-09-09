@@ -11,17 +11,21 @@ internal class Auth {
         private external fun autographAuthenticate(
             safetyNumber: ByteArray,
             ourIdentityKeyPair: ByteArray,
+            ourId: ByteArray,
             theirIdentityKey: ByteArray,
+            theirId: ByteArray,
         ): Boolean
 
         fun createSafetyNumber(): ByteArray = ByteArray(autographSafetyNumberSize())
 
         fun authenticate(
             ourIdentityKeyPair: ByteArray,
+            ourId: ByteArray,
             theirIdentityKey: ByteArray,
+            theirId: ByteArray,
         ): ByteArray {
             val safetyNumber = createSafetyNumber()
-            val success = autographAuthenticate(safetyNumber, ourIdentityKeyPair, theirIdentityKey)
+            val success = autographAuthenticate(safetyNumber, ourIdentityKeyPair, ourId, theirIdentityKey, theirId)
             if (!success) {
                 throw RuntimeException("Authentication failed")
             }
@@ -32,7 +36,9 @@ internal class Auth {
 
 public fun authenticate(
     ourIdentityKeyPair: ByteArray,
+    ourId: ByteArray,
     theirIdentityKey: ByteArray,
+    theirId: ByteArray,
 ): ByteArray {
-    return Auth.authenticate(ourIdentityKeyPair, theirIdentityKey)
+    return Auth.authenticate(ourIdentityKeyPair, ourId, theirIdentityKey, theirId)
 }

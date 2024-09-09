@@ -65,8 +65,13 @@ export default class Channel {
     )
   }
 
-  authenticate() {
-    return authenticate(this.ourIdentityKeyPair, this.theirIdentityKey)
+  authenticate(ourId: Uint8Array, theirId: Uint8Array) {
+    return authenticate(
+      this.ourIdentityKeyPair,
+      ourId,
+      this.theirIdentityKey,
+      theirId
+    )
   }
 
   certify(data?: Uint8Array) {
