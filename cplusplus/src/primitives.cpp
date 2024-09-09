@@ -84,7 +84,8 @@ bool autograph_primitive_hash(uint8_t *digest, const uint8_t *message,
 
 extern void zeroize(uint8_t *data, const size_t data_size);
 
-bool autograph_primitive_kdf(uint8_t *okm, const uint8_t *shared_secret) {
+bool autograph_primitive_kdf(uint8_t *key, const uint8_t *shared_secret,
+                             const uint8_t *info, const size_t info_size) {
   uint8_t prk[64];
   uint8_t salt[64];
   zeroize(salt, 64);
@@ -93,9 +94,8 @@ bool autograph_primitive_kdf(uint8_t *okm, const uint8_t *shared_secret) {
           autograph_primitive_shared_secret_size()) != 0) {
     return false;
   }
-  uint8_t info[9] = {97, 117, 116, 111, 103, 114, 97, 112, 104};
-  return crypto_kdf_hkdf_sha512_expand(okm, autograph_secret_key_size() * 2,
-                                       (char *)info, sizeof info, prk) == 0;
+  return crypto_kdf_hkdf_sha512_expand(key, autograph_secret_key_size(),
+                                       (char *)info, info_size, prk) == 0;
 }
 
 size_t autograph_primitive_secret_key_size() { return SECRET_KEY_SIZE; }
