@@ -23,7 +23,10 @@ void autograph_get_session_public_key(uint8_t *public_key,
 
 bool autograph_authenticate(uint8_t *safety_number,
                             const uint8_t *our_identity_key_pair,
-                            const uint8_t *their_identity_key);
+                            const uint8_t *our_id, const size_t our_id_size,
+                            const uint8_t *their_identity_key,
+                            const uint8_t *their_id,
+                            const size_t their_id_size);
 
 bool autograph_certify(uint8_t *signature, const uint8_t *our_identity_key_pair,
                        const uint8_t *their_identity_key, const uint8_t *data,
@@ -117,7 +120,9 @@ std::tuple<Bytes, Bytes> getPublicKeys(const Bytes &identityKeyPair,
                                        const Bytes &sessionKeyPair);
 
 std::tuple<bool, Bytes> authenticate(const Bytes &ourIdentityKeyPair,
-                                     const Bytes &theirIdentityKey);
+                                     const Bytes &ourId,
+                                     const Bytes &theirIdentityKey,
+                                     const Bytes &theirId);
 
 std::tuple<bool, Bytes> certify(const Bytes &ourIdentityKeyPair,
                                 const Bytes &theirIdentityKey,
@@ -158,7 +163,8 @@ class Channel {
   void usePublicKeys(const Bytes &theirIdentityKey,
                      const Bytes &theirSessionKey);
 
-  std::tuple<bool, Bytes> authenticate() const;
+  std::tuple<bool, Bytes> authenticate(const Bytes &ourId,
+                                       const Bytes &theirId) const;
 
   std::tuple<bool, Bytes> certify(const std::optional<Bytes> &data) const;
 
