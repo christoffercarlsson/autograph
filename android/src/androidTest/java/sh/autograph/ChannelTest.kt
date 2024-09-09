@@ -1143,7 +1143,7 @@ class ChannelTest {
             )
 
         ready()
-        
+
         a = Channel()
         b = Channel()
 
@@ -1165,8 +1165,10 @@ class ChannelTest {
 
     @Test
     fun testAuthenticate() {
-        val aliceSafetyNumber = a.authenticate()
-        val bobSafetyNumber = b.authenticate()
+        val aliceId = byteArrayOf(1, 2, 3)
+        val bobId = byteArrayOf(98, 111, 98)
+        val aliceSafetyNumber = a.authenticate(aliceId, bobId)
+        val bobSafetyNumber = b.authenticate(bobId, aliceId)
         assertArrayEquals(aliceSafetyNumber, safetyNumber)
         assertArrayEquals(bobSafetyNumber, safetyNumber)
     }
