@@ -1,49 +1,35 @@
-use alloc::{vec, vec::Vec};
+use stedy::{
+    ed25519_sign, ed25519_verify, Ed25519KeyPair, Ed25519PublicKey, Ed25519Signature, Vec,
+    ED25519_PUBLIC_KEY_SIZE,
+};
 
-use crate::{error::Error, primitives::SigningPrimitive};
+use crate::Error;
 
-fn create_subject<P: SigningPrimitive>(data: &[u8]) -> Vec<u8> {
-    let max_size = (u32::MAX as usize) - P::IDENTITY_PUBLIC_KEY_SIZE;
-    let data_size = if data.len() > max_size {
-        max_size
-    } else {
-        data.len()
-    };
-    vec![0; data_size + P::IDENTITY_PUBLIC_KEY_SIZE]
-}
-
-fn calculate_subject<P: SigningPrimitive>(public_key: &[u8], data: &[u8]) -> Vec<u8> {
-    let mut subject = create_subject::<P>(data);
-    let key_offset = subject.len() - P::IDENTITY_PUBLIC_KEY_SIZE;
-    subject[..key_offset].copy_from_slice(&data[..key_offset]);
-    subject[key_offset..].copy_from_slice(public_key);
+fn calculate_subject(public_key: &Ed25519PublicKey, data: Option<&[u8]>) -> Vec<u8> {
+    let mut subject = data.unwrap_or_default().to_vec();
+    let max_size = usize::MAX - ED25519_PUBLIC_KEY_SIZE;
+    if subject.len() > max_size {
+        subject.truncate(max_size);
+    }
+    subject.extend_from_slice(public_key);
     subject
 }
 
-fn create_signature<P: SigningPrimitive>() -> Vec<u8> {
-    vec![0; P::SIGNATURE_SIZE]
+pub fn certify(
+    our_identity_key_pair: &Ed25519KeyPair,
+    their_identity_key: &Ed25519PublicKey,
+    data: Option<&[u8]>,
+) -> Result<Ed25519Signature, Error> {
+    let subject = calculate_subject(their_identity_key, data);
+    ed25519_sign(our_identity_key_pair, &subject).or(Err(Error::Certification))
 }
 
-pub fn certify<P: SigningPrimitive>(
-    our_identity_key_pair: &[u8],
-    their_identity_key: &[u8],
+pub fn verify(
+    owner_identity_key: &Ed25519PublicKey,
+    certifier_identity_key: &Ed25519PublicKey,
+    signature: &Ed25519Signature,
     data: Option<&[u8]>,
-) -> Result<Vec<u8>, Error> {
-    let mut signature = create_signature::<P>();
-    let subject = calculate_subject::<P>(their_identity_key, data.unwrap_or_default());
-    if !P::sign(&mut signature, our_identity_key_pair, &subject) {
-        Err(Error::Certification)
-    } else {
-        Ok(signature)
-    }
-}
-
-pub fn verify<P: SigningPrimitive>(
-    owner_identity_key: &[u8],
-    certifier_identity_key: &[u8],
-    signature: &[u8],
-    data: Option<&[u8]>,
-) -> bool {
-    let subject = calculate_subject::<P>(owner_identity_key, data.unwrap_or_default());
-    P::verify(certifier_identity_key, signature, &subject)
+) -> Result<(), Error> {
+    let subject = calculate_subject(owner_identity_key, data);
+    ed25519_verify(certifier_identity_key, signature, &subject).or(Err(Error::Verification))
 }
