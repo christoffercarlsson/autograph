@@ -1,0 +1,10 @@
+[submodule "cplusplus/catch2"]
+	path = cplusplus/catch2
+	url = https://github.com/catchorg/Catch2
+[submodule "cplusplus/libsodium"]
+	path = cplusplus/libsodium
+	url = https://github.com/jedisct1/libsodium
+	branch = stable
+[submodule "cplusplus/benchmark"]
+	path = cplusplus/benchmark
+	url = https://github.com/google/benchmark.git

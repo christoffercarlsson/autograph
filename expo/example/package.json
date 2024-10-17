@@ -1,0 +1,31 @@
+{
+  "name": "expo-autograph-example",
+  "version": "1.0.0",
+  "main": "expo/AppEntry.js",
+  "scripts": {
+    "start": "expo start",
+    "android": "expo run:android",
+    "ios": "expo run:ios",
+    "web": "expo start --web"
+  },
+  "dependencies": {
+    "expo": "~51.0.13",
+    "react": "18.2.0",
+    "react-native": "0.74.2",
+    "react-native-web": "~0.19.10",
+    "react-dom": "18.2.0",
+    "@expo/metro-runtime": "~3.2.1",
+    "stedy": "^0.19.2"
+  },
+  "devDependencies": {
+    "@babel/core": "^7.20.0",
+    "@types/react": "~18.2.45",
+    "typescript": "^5.1.3"
+  },
+  "private": true,
+  "expo": {
+    "autolinking": {
+      "nativeModulesDir": ".."
+    }
+  }
+}
