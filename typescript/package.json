@@ -1,0 +1,75 @@
+{
+  "name": "autograph-protocol",
+  "version": "1.0.0-alpha.3",
+  "description": "A TypeScript implementation of the Autograph protocol",
+  "author": "Christoffer Carlsson <cc@christofferc.com>",
+  "bugs": {
+    "url": "https://github.com/christoffercarlsson/autograph/issues"
+  },
+  "devDependencies": {
+    "@jest/globals": "^29.3.1",
+    "@types/jest": "^29.2.2",
+    "@types/node": "^20.12.13",
+    "@typescript-eslint/eslint-plugin": "^7.11.0",
+    "@typescript-eslint/parser": "^7.11.0",
+    "esbuild": "^0.21.4",
+    "esbuild-plugin-exclude-vendor-source-maps": "^0.2.0",
+    "eslint": "^8.57.0",
+    "eslint-config-prettier": "^9.1.0",
+    "eslint-config-standard": "^17.0.0",
+    "eslint-import-resolver-typescript": "^3.5.2",
+    "eslint-plugin-import": "^2.26.0",
+    "eslint-plugin-jest": "^28.5.0",
+    "eslint-plugin-node": "^11.1.0",
+    "eslint-plugin-promise": "^6.1.1",
+    "execa": "^9.1.0",
+    "globby": "^14.0.1",
+    "jest": "^29.3.1",
+    "prettier": "^3.2.5",
+    "rimraf": "^5.0.0",
+    "typescript": "^5.0.4"
+  },
+  "engines": {
+    "node": ">=20.14.0"
+  },
+  "exports": "./dist/src/autograph.js",
+  "main": "./dist/src/autograph.cjs",
+  "files": [
+    "dist/src/**/*.{js,cjs}",
+    "types.d.ts"
+  ],
+  "homepage": "https://github.com/christoffercarlsson/autograph#readme",
+  "keywords": [
+    "security",
+    "identity",
+    "cryptography",
+    "privacy",
+    "authentication",
+    "freedom",
+    "verification",
+    "ed25519",
+    "hkdf",
+    "x25519",
+    "chacha20-poly1305",
+    "elliptic-curves",
+    "ownership",
+    "decentralization",
+    "diffie-hellman"
+  ],
+  "license": "Unlicense",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/christoffercarlsson/autograph.git"
+  },
+  "scripts": {
+    "build": "rimraf dist && node scripts/build.js",
+    "build:wasm": "node scripts/build-wasm.js",
+    "format": "prettier --loglevel silent --write ./typescript",
+    "lint": "eslint .",
+    "prepack": "npm run build",
+    "test": "npm run build && rimraf coverage && NODE_OPTIONS='--experimental-vm-modules --no-warnings' npx jest --no-cache"
+  },
+  "sideEffects": false,
+  "type": "module",
+  "types": "types.d.ts"
+}
