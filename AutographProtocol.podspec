@@ -1,7 +1,7 @@
 Pod::Spec.new do |s|
   s.name             = 'AutographProtocol'
   s.module_name      = 'Autograph'
-  s.version          = '1.0.0-alpha.3'
+  s.version          = '1.0.0-alpha.4'
   s.summary          = 'The Autograph Protocol'
   s.description      = <<-DESC
                         Autograph is an open, modular cryptographic protocol that implements a
@@ -10,7 +10,7 @@ Pod::Spec.new do |s|
                         DESC
   s.homepage         = 'https://autograph.sh'
   s.license          = { :type => 'Unlicense', :file => 'LICENSE' }
-  s.author           = { 'Christoffer Carlsson' => 'cc@christofferc.com' }
+  s.author           = { 'Christoffer Carlsson' => 'cc@christoffercarlsson.se' }
   s.source           = { :git => 'https://github.com/christoffercarlsson/autograph.git', :tag => s.version }
 
   s.ios.deployment_target = '13.4'

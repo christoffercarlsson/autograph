@@ -16,7 +16,7 @@ Pod::Spec.new do |s|
   s.static_framework = true
 
   s.dependency 'ExpoModulesCore'
-  s.dependency 'AutographProtocol', '1.0.0-alpha.2'
+  s.dependency 'AutographProtocol', '1.0.0-alpha.4'
 
   # Swift/Objective-C compatibility
   s.pod_target_xcconfig = {
