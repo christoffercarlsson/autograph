@@ -21,11 +21,14 @@ public class ExpoAutographModule: Module {
             } catch {}
         }
 
-        Function("authenticate") { (ourIdentityKeyPair: Data, theirIdentityKey: Data) -> [String: Any?] in
+        Function("authenticate") {
+            (ourIdentityKeyPair: Data, theirIdentityKey: Data) -> [String: Any?] in
             do {
                 let safetyNumber = try Autograph.authenticate(
                     ourIdentityKeyPair.toBytes(),
-                    theirIdentityKey.toBytes()
+                    [1, 2, 3],
+                    theirIdentityKey.toBytes(),
+                    [4, 5, 6]
                 )
                 return [
                     "success": true,
@@ -39,7 +42,8 @@ public class ExpoAutographModule: Module {
             }
         }
 
-        Function("certify") { (ourIdentityKeyPair: Data, theirIdentityKey: Data, data: Data) -> [String: Any?] in
+        Function("certify") {
+            (ourIdentityKeyPair: Data, theirIdentityKey: Data, data: Data) -> [String: Any?] in
             do {
                 let signature = try Autograph.certify(
                     ourIdentityKeyPair.toBytes(),
@@ -55,7 +59,8 @@ public class ExpoAutographModule: Module {
             }
         }
 
-        Function("verify") { (ownerIdentityKey: Data, certifierIdentityKey: Data, signature: Data, data: Data) in
+        Function("verify") {
+            (ownerIdentityKey: Data, certifierIdentityKey: Data, signature: Data, data: Data) in
             Autograph.verify(
                 ownerIdentityKey.toBytes(),
                 certifierIdentityKey.toBytes(),
@@ -64,12 +69,14 @@ public class ExpoAutographModule: Module {
             )
         }
 
-        Function("keyExchange") { (
-            isInitiator: Bool,
-            ourIdentityKeyPair: Data,
-            ourSessionKeyPair: Data,
-            theirIdentityKey: Data,
-            theirSessionKey: Data) -> [String: Any?] in
+        Function("keyExchange") {
+            (
+                isInitiator: Bool,
+                ourIdentityKeyPair: Data,
+                ourSessionKeyPair: Data,
+                theirIdentityKey: Data,
+                theirSessionKey: Data
+            ) -> [String: Any?] in
             do {
                 let (
                     transcript,
@@ -101,11 +108,13 @@ public class ExpoAutographModule: Module {
             }
         }
 
-        Function("verifyKeyExchange") { (
-            transcript: Data,
-            ourIdentityKeyPair: Data,
-            theirIdentityKey: Data,
-            theirSignature: Data) -> Bool in
+        Function("verifyKeyExchange") {
+            (
+                transcript: Data,
+                ourIdentityKeyPair: Data,
+                theirIdentityKey: Data,
+                theirSignature: Data
+            ) -> Bool in
             do {
                 try Autograph.verifyKeyExchange(
                     transcript.toBytes(),
@@ -159,10 +168,13 @@ public class ExpoAutographModule: Module {
             return Data(publicKey)
         }
 
-        Function("getPublicKeys") { (identityKeyPair: Data, sessionKeyPair: Data) -> [String: Data] in
-            let identityKey = Autograph
+        Function("getPublicKeys") {
+            (identityKeyPair: Data, sessionKeyPair: Data) -> [String: Data] in
+            let identityKey =
+                Autograph
                 .getIdentityPublicKey(identityKeyPair.toBytes())
-            let sessionKey = Autograph
+            let sessionKey =
+                Autograph
                 .getSessionPublicKey(sessionKeyPair.toBytes())
             return [
                 "identityKey": Data(identityKey),
@@ -219,7 +231,8 @@ public class ExpoAutographModule: Module {
             }
         }
 
-        Function("decrypt") { (key: Data, nonce: Data, skippedIndexes: Data, ciphertext: Data) -> [String: Any?] in
+        Function("decrypt") {
+            (key: Data, nonce: Data, skippedIndexes: Data, ciphertext: Data) -> [String: Any?] in
             do {
                 var n = nonce.toBytes()
                 var indexes = skippedIndexes.toBytes()

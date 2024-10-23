@@ -38,7 +38,9 @@ class ExpoAutographModule : Module() {
                     val safetyNumber =
                         authenticate(
                             ourIdentityKeyPair,
+                            byteArrayOf(1, 2, 3),
                             theirIdentityKey,
+                            byteArrayOf(4, 5, 6),
                         )
                     mapOf(
                         "success" to true,
