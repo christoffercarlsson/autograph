@@ -1,4 +1,0 @@
-module Clibautograph {
-  header "autograph.h"
-  export *
-}

@@ -1,0 +1,30 @@
+[package]
+name = "autograph_protocol"
+description = "The Autograph protocol"
+version = "1.0.0-beta.1"
+license = "Unlicense"
+authors = ["Christoffer Carlsson <cc@christoffercarlsson.se>"]
+edition = "2021"
+keywords = [
+    "authentication",
+    "cryptography",
+    "identity",
+    "privacy",
+    "security",
+]
+repository = "https://github.com/christoffercarlsson/autograph"
+
+[lib]
+name = "autograph"
+
+[dependencies]
+ed25519-dalek = { version = "2.1.1", default-features = false }
+stedy = { version = "=1.0.0-beta.3", default-features = false }
+x25519-dalek = { version = "2.0.1", default-features = false, features = ["static_secrets"] }
+
+[dev-dependencies]
+criterion = "0.5.1"
+
+[[bench]]
+name = "autograph"
+harness = false
