@@ -1,7 +1,7 @@
 [package]
 name = "autograph_protocol"
 description = "The Autograph protocol"
-version = "1.0.0-beta.1"
+version = "1.0.0-beta.2"
 license = "Unlicense"
 authors = ["Christoffer Carlsson <cc@christoffercarlsson.se>"]
 edition = "2021"
@@ -28,3 +28,7 @@ criterion = "0.5.1"
 [[bench]]
 name = "autograph"
 harness = false
+
+[features]
+default = ["getrandom"]
+getrandom = ["stedy/getrandom"]

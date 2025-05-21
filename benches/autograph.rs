@@ -1,20 +1,23 @@
 use autograph::{
-    authenticate, issue, key_exchange, key_pair, receive, send, verify, verify_key_exchange,
-    Channel, Ed25519Signer, Signer,
+    auth::authenticate,
+    channel::Channel,
+    cred::{issue, receive, send, verify, Message},
+    session::{calculate_key_pair, key_exchange, verify_key_exchange},
+    Ed25519Signer, Signer,
 };
 use criterion::{criterion_group, criterion_main, Criterion};
 
 pub fn benchmark(c: &mut Criterion) {
-    let signer = Signer::from([
+    let signer = Ed25519Signer::from_bytes([
         51, 45, 77, 34, 55, 79, 178, 70, 245, 26, 9, 86, 12, 200, 101, 230, 7, 253, 207, 52, 39,
         155, 55, 88, 138, 98, 168, 237, 13, 228, 108, 85,
     ]);
 
-    let our_identity_key = signer.public_key().unwrap();
+    let our_identity_key = signer.get_identity_key().unwrap();
 
     let our_id = [10, 168, 165, 73, 24, 165, 2, 173, 121, 222, 4];
 
-    let (our_private_key, our_public_key) = key_pair([
+    let (our_private_key, our_public_key) = calculate_key_pair([
         136, 157, 80, 54, 187, 219, 65, 70, 252, 214, 35, 87, 11, 147, 73, 212, 4, 135, 30, 229,
         37, 30, 185, 243, 3, 212, 39, 116, 93, 181, 30, 226,
     ]);
@@ -47,13 +50,13 @@ pub fn benchmark(c: &mut Criterion) {
 
     let data = [72, 101, 108, 108, 111, 32, 87, 111, 114, 108, 100];
 
-    let credential_message = [
-        0, 0, 0, 1, 16, 126, 98, 217, 210, 113, 99, 188, 218, 117, 22, 211, 221, 241, 13, 7, 237,
-        94, 43, 231, 248, 40, 209, 82, 253, 69, 176, 89, 5, 187, 92, 180, 142, 195, 57, 220, 189,
-        200, 31, 205, 131, 93, 111, 90, 142, 242, 51, 161, 109, 255, 226, 43, 94, 122, 129, 206,
-        227, 149, 50, 184, 123, 204, 33, 228, 87, 81, 63, 192, 226, 80, 39, 16, 26, 64, 67, 180,
-        145, 29, 47, 64, 145, 42, 160, 79, 32, 5, 30, 72, 48, 50, 171, 178, 87, 175, 175, 102, 146,
-        60, 38, 206, 88, 42, 135, 114, 128, 15, 216, 242, 28, 113, 14, 87,
+    let message: Message = [
+        0, 0, 0, 0, 0, 0, 0, 1, 16, 126, 98, 217, 210, 113, 99, 188, 218, 117, 22, 211, 221, 241,
+        13, 7, 237, 94, 43, 231, 248, 40, 209, 82, 253, 69, 176, 89, 5, 187, 92, 180, 142, 195, 57,
+        220, 189, 200, 31, 205, 131, 93, 111, 90, 142, 242, 51, 161, 109, 255, 226, 43, 94, 122,
+        129, 206, 227, 149, 50, 184, 123, 204, 33, 228, 87, 81, 63, 192, 226, 80, 39, 16, 26, 64,
+        67, 180, 145, 29, 47, 64, 145, 42, 160, 79, 32, 5, 30, 72, 48, 50, 171, 178, 87, 175, 175,
+        102, 146, 60, 38, 206, 88, 42, 135, 114, 128, 15, 216, 242, 28, 113, 14, 87,
     ];
 
     c.bench_function("authenticate", |b| {
@@ -119,19 +122,10 @@ pub fn benchmark(c: &mut Criterion) {
     });
 
     c.bench_function("verify", |b| {
-        b.iter(|| {
-            verify(
-                &our_identity_key,
-                Some(&data),
-                &channel,
-                &credential_message,
-            )
-        })
+        b.iter(|| verify(&our_identity_key, Some(&data), &channel, &message))
     });
 
-    c.bench_function("receive", |b| {
-        b.iter(|| receive(&credential_message, &channel))
-    });
+    c.bench_function("receive", |b| b.iter(|| receive(&message, &channel)));
 }
 
 criterion_group!(benchmarks, benchmark);

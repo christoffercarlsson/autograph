@@ -1,34 +1,54 @@
-use crate::protocol::{ChaCha20Poly1305, Ed25519Signer, Hkdf, Sha512Hasher, X25519};
+use crate::protocol::{
+    Aead, DiffieHellman, Digest, Hasher, IdentityKey, IdentityPrivateKey, IdentitySecretKey, Kdf,
+    Nonce, PrivateKey, PublicKey, SecretKey, Seed, SharedSecret, Signature, Signer, Tag,
+    DIGEST_SIZE,
+};
 use ed25519_dalek::Signer as DalekSigner;
 
-pub struct Cipher;
+pub struct ChaCha20Poly1305;
 
-impl ChaCha20Poly1305 for Cipher {
+impl Aead for ChaCha20Poly1305 {
     fn encrypt(
-        key: &[u8; 32],
-        nonce: &[u8; 12],
+        key: &SecretKey,
+        nonce: &Nonce,
         associated_data: Option<&[u8]>,
         message: &mut [u8],
-    ) -> [u8; 16] {
+    ) -> Tag {
         stedy::chacha20poly1305_encrypt(key, nonce, associated_data, message)
     }
 
     fn decrypt(
-        key: &[u8; 32],
-        nonce: &[u8; 12],
+        key: &SecretKey,
+        nonce: &Nonce,
         associated_data: Option<&[u8]>,
         message: &mut [u8],
-        tag: &[u8; 16],
+        tag: &Tag,
     ) -> bool {
         stedy::chacha20poly1305_decrypt(key, nonce, associated_data, message, tag).is_ok()
     }
 }
 
-pub struct Hasher {
+pub struct X25519;
+
+impl DiffieHellman for X25519 {
+    fn calculate_key_pair(seed: Seed) -> (PrivateKey, PublicKey) {
+        let private_key = x25519_dalek::StaticSecret::from(seed);
+        let public_key = x25519_dalek::PublicKey::from(&private_key);
+        (private_key.to_bytes(), public_key.to_bytes())
+    }
+
+    fn calculate_shared_secret(private_key: &PrivateKey, public_key: &PublicKey) -> SharedSecret {
+        let private_key = x25519_dalek::StaticSecret::from(*private_key);
+        let public_key = x25519_dalek::PublicKey::from(*public_key);
+        private_key.diffie_hellman(&public_key).to_bytes()
+    }
+}
+
+pub struct Sha512Hasher {
     inner: stedy::Sha512,
 }
 
-impl Sha512Hasher for Hasher {
+impl Hasher for Sha512Hasher {
     fn new() -> Self {
         Self {
             inner: stedy::Sha512::new(),
@@ -39,46 +59,26 @@ impl Sha512Hasher for Hasher {
         self.inner.update(message);
     }
 
-    fn digest(self) -> [u8; 64] {
+    fn finalize(self) -> Digest {
         self.inner.finalize()
     }
 }
 
-pub struct DiffieHellman;
+pub struct Hkdf;
 
-impl X25519 for DiffieHellman {
-    fn key_pair(seed: [u8; 32]) -> ([u8; 32], [u8; 32]) {
-        let private_key = x25519_dalek::StaticSecret::from(seed);
-        let public_key = x25519_dalek::PublicKey::from(&private_key);
-        (private_key.to_bytes(), public_key.to_bytes())
-    }
-
-    fn key_exchange(private_key: &[u8; 32], public_key: &[u8; 32]) -> [u8; 32] {
-        let private_key = x25519_dalek::StaticSecret::from(*private_key);
-        let public_key = x25519_dalek::PublicKey::from(*public_key);
-        private_key.diffie_hellman(&public_key).to_bytes()
+impl Kdf for Hkdf {
+    fn derive_key(ikm: &[u8], context: &[u8], okm: &mut [u8]) {
+        stedy::hkdf_sha512(ikm, Some(&[0u8; DIGEST_SIZE]), Some(context), okm);
     }
 }
 
-pub struct Kdf;
-
-impl Hkdf for Kdf {
-    fn kdf(ikm: &[u8], context: &[u8]) -> [u8; 32] {
-        let mut okm = [0u8; 32];
-        let salt = [0u8; 64];
-        stedy::hkdf_sha512(ikm, Some(&salt), Some(context), &mut okm);
-        okm
-    }
+pub struct Ed25519Signer {
+    private_key: IdentityPrivateKey,
+    public_key: IdentityKey,
 }
 
-#[repr(C)]
-pub struct Signer {
-    private_key: [u8; 32],
-    public_key: [u8; 32],
-}
-
-impl Signer {
-    pub fn new(private_key: [u8; 32], public_key: [u8; 32]) -> Self {
+impl Ed25519Signer {
+    pub fn new(private_key: IdentityPrivateKey, public_key: IdentityKey) -> Self {
         Self {
             private_key,
             public_key,
@@ -86,31 +86,51 @@ impl Signer {
     }
 }
 
-impl Ed25519Signer for Signer {
-    fn public_key(&self) -> Option<[u8; 32]> {
+impl Signer for Ed25519Signer {
+    fn from_bytes(secret: IdentitySecretKey) -> Self {
+        let signing_key = ed25519_dalek::SigningKey::from_bytes(&secret);
+        let verifying_key = signing_key.verifying_key();
+        Self::new(signing_key.to_bytes(), verifying_key.to_bytes())
+    }
+
+    fn get_identity_key(&self) -> Option<IdentityKey> {
         Some(self.public_key)
     }
 
-    fn sign(&self, message: &[u8]) -> Option<[u8; 64]> {
+    fn sign(&self, subject: &[u8]) -> Option<Signature> {
         let signing_key = ed25519_dalek::SigningKey::from_bytes(&self.private_key);
-        let signature: [u8; 64] = signing_key.sign(message).into();
+        let signature: Signature = signing_key.sign(subject).into();
         Some(signature)
     }
 
-    fn verify(message: &[u8], public_key: &[u8; 32], signature: &[u8; 64]) -> bool {
+    fn verify(subject: &[u8], public_key: &IdentityKey, signature: &Signature) -> bool {
         if let Ok(verifying_key) = ed25519_dalek::VerifyingKey::from_bytes(public_key) {
             let signature = ed25519_dalek::Signature::from_bytes(signature);
-            verifying_key.verify_strict(message, &signature).is_ok()
+            verifying_key.verify_strict(subject, &signature).is_ok()
         } else {
             false
         }
     }
 }
 
-impl From<[u8; 32]> for Signer {
-    fn from(value: [u8; 32]) -> Self {
-        let signing_key = ed25519_dalek::SigningKey::from_bytes(&value);
-        let verifying_key = signing_key.verifying_key();
-        Self::new(signing_key.to_bytes(), verifying_key.to_bytes())
+pub struct Ed25519Verifier;
+
+impl Signer for Ed25519Verifier {
+    #[allow(unused_variables)]
+    fn from_bytes(secret: IdentitySecretKey) -> Self {
+        Self
+    }
+
+    fn get_identity_key(&self) -> Option<IdentityKey> {
+        None
+    }
+
+    #[allow(unused_variables)]
+    fn sign(&self, subject: &[u8]) -> Option<Signature> {
+        None
+    }
+
+    fn verify(subject: &[u8], public_key: &IdentityKey, signature: &Signature) -> bool {
+        Ed25519Signer::verify(subject, public_key, signature)
     }
 }
