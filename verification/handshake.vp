@@ -1,0 +1,74 @@
+attacker[active]
+
+principal Alice[
+    knows private ika
+    knows private dka
+    ipka = G^ika
+    dpka = G^dka
+    knows public ctx
+]
+
+principal Bob[
+    knows private ikb
+    knows private dkb
+    ipkb = G^ikb
+    dpkb = G^dkb
+    knows public ctx
+]
+
+principal Bob[
+    knows private ekb
+    epkb = G^ekb
+    sb = SIGN(ikb, HASH(dpkb, epkb))
+]
+
+principal Alice[
+    generates eka
+    epka = G^eka
+]
+
+Bob -> Alice: [ipkb], [dpkb], epkb, sb
+
+principal Alice[
+    _ = SIGNVERIF(ipkb, HASH(dpkb, epkb), sb)?
+    sida = HASH(dpkb, epkb, dpka, epka)
+    sa = SIGN(ika, sida)
+    ska = HKDF(nil, HASH(dpkb^eka, epkb^dka), ctx)
+]
+
+principal Alice[
+    generates m1
+    c1 = AEAD_ENC(ska, m1, nil)
+]
+
+Alice -> Bob: [ipka], [dpka], epka, sa, c1
+
+principal Bob[
+    sidb = HASH(dpkb, epkb, dpka, epka)
+    _ = SIGNVERIF(ipka, sidb, sa)?
+    skb = HKDF(nil, HASH(epka^dkb, dpka^ekb), ctx)
+]
+
+principal Bob[
+    _m1 = AEAD_DEC(skb, c1, nil)?
+]
+
+principal Bob[
+    generates m2
+    c2 = AEAD_ENC(skb, m2, nil)
+]
+
+Bob -> Alice: c2
+
+principal Alice[
+    _m2 = AEAD_DEC(ska, c2, nil)?
+]
+
+queries[
+    authentication? Bob -> Alice: epkb
+    authentication? Alice -> Bob: epka
+    confidentiality? m1
+    confidentiality? m2
+    freshness? ska
+    freshness? skb
+]
