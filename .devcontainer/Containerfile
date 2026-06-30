@@ -1,0 +1,18 @@
+FROM ghcr.io/christoffercarlsson/devcontainers/rust@sha256:85ffb955f8b729b78bffaf004d5d56b9d2a133f5d913e6d3da0ca8dfdc9fab45 AS builder
+
+ARG VERIFPAL_VERSION=0.52.0
+
+USER dev
+
+RUN git clone --depth 1 --branch "v${VERIFPAL_VERSION}" \
+        https://github.com/symbolicsoft/verifpal /tmp/verifpal \
+    && cd /tmp/verifpal \
+    && cargo build --release
+
+FROM ghcr.io/christoffercarlsson/devcontainers/rust@sha256:85ffb955f8b729b78bffaf004d5d56b9d2a133f5d913e6d3da0ca8dfdc9fab45 AS runtime
+
+COPY --from=builder /tmp/verifpal/target/release/verifpal /usr/local/bin/verifpal
+
+ENTRYPOINT ["/usr/local/sbin/entrypoint"]
+
+LABEL org.opencontainers.image.source=https://github.com/christoffercarlsson/autograph

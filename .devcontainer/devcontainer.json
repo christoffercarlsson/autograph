@@ -1,0 +1,20 @@
+{
+  "name": "autograph",
+  "build": {
+    "dockerfile": "Containerfile",
+    "args": {
+      "VERIFPAL_VERSION": "0.52.0"
+    }
+  },
+  "workspaceFolder": "/workspace",
+  "workspaceMount": "source=${localWorkspaceFolder},target=/workspace,type=bind",
+  "customizations": {
+    "vscode": {
+      "extensions": [
+        "symbolicsoft.verifpal",
+        "rust-lang.rust-analyzer"
+      ]
+    }
+  },
+  "remoteUser": "dev"
+}
