@@ -364,6 +364,7 @@ impl<const W: usize> ReceivingWindow<W> {
     const BITS: u64 = (W as u64).saturating_mul(64);
 
     fn new() -> Self {
+        assert!(W > 0, "Window size W must be non-zero");
         Self {
             top: 0,
             bitmap: [0u64; W],
@@ -566,7 +567,7 @@ mod tests {
 
     type Credential = super::Credential<Sha512, Ed25519Signer>;
     type Handshake<'a> = super::Handshake<'a, X25519, Sha512, Hkdf<Sha512>, Ed25519Signer>;
-    type Channel<const W: usize> = super::Channel<ChaCha20Poly1305, Hkdf<Sha512>, W>;
+    type Channel = super::Channel<ChaCha20Poly1305, Hkdf<Sha512>, 1>;
 
     const ALICE_IDENTITY_PRIVATE_KEY: [u8; 32] = [
         67, 201, 60, 206, 157, 93, 211, 96, 218, 86, 91, 65, 153, 204, 246, 45, 29, 32, 69, 14,
@@ -762,13 +763,13 @@ mod tests {
             97, 255, 193, 254, 153, 139, 199, 109, 61, 189, 1, 113, 229, 156, 176, 168, 246, 53,
             137, 158, 171, 199, 79, 15, 69, 156, 87, 254, 251, 88, 110, 0,
         ];
-        let a = Channel::<1>::new(
+        let a = Channel::new(
             &SECRET_KEY,
             &ALICE_IDENTITY_PUBLIC_KEY,
             &BOB_IDENTITY_PUBLIC_KEY,
         )
         .unwrap();
-        let mut b = Channel::<2>::new(
+        let mut b = Channel::new(
             &SECRET_KEY,
             &BOB_IDENTITY_PUBLIC_KEY,
             &ALICE_IDENTITY_PUBLIC_KEY,
@@ -803,7 +804,7 @@ mod tests {
 
     #[test]
     fn test_channel_replay() {
-        let mut channel = Channel::<1>::new(
+        let mut channel = Channel::new(
             &SECRET_KEY,
             &BOB_IDENTITY_PUBLIC_KEY,
             &ALICE_IDENTITY_PUBLIC_KEY,
