@@ -4,7 +4,7 @@ version = "0.1.0"
 edition = "2024"
 publish = false
 
-description = "A modular and open cryptographic protocol for decentralized identity, ownership, and communication"
+description = "A composable cryptographic protocol for sovereign identity, ownership, and secure communication"
 repository = "https://github.com/christoffercarlsson/autograph"
 keywords = [
   "cryptography",
@@ -18,8 +18,4 @@ authors = ["Christoffer Carlsson <cc@christoffercarlsson.com>"]
 license = "MIT"
 
 [dev-dependencies]
-stedy = {
-  git = "https://github.com/christoffercarlsson/stedy",
-  branch = "v1.0.0-beta.5",
-  features = ["getrandom"]
-}
+stedy = { git = "https://github.com/christoffercarlsson/stedy", branch = "v1.0.0-beta.5", features = ["getrandom"] }

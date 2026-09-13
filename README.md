@@ -1,8 +1,8 @@
 # Autograph
 
-A modular and open cryptographic protocol for decentralized identity, ownership,
-and communication.
+A composable cryptographic protocol for sovereign identity, ownership, and
+secure communication.
 
 > [!WARNING]\
-> The security of this library has yet to be independently audited. USE AT YOUR
-> OWN RISK!
+> The protocol design and the implementation have yet to be independently
+> audited. USE AT YOUR OWN RISK!
