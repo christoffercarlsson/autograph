@@ -1,0 +1,52 @@
+attacker[active]
+
+principal Alice[
+	knows private session_key
+	knows public ctx_alice
+	knows public ctx_bob
+]
+
+principal Bob[
+	knows private session_key
+	knows public ctx_alice
+	knows public ctx_bob
+]
+
+principal Alice[
+	sending_key_alice = HKDF(nil, session_key, ctx_alice)
+	receiving_key_alice = HKDF(nil, session_key, ctx_bob)
+]
+
+principal Bob[
+	sending_key_bob = HKDF(nil, session_key, ctx_bob)
+	receiving_key_bob = HKDF(nil, session_key, ctx_alice)
+]
+
+principal Alice[
+	generates nonce1, message1
+	ciphertext1 = AEAD_ENC(sending_key_alice, nonce1, message1, nil)
+]
+
+Alice -> Bob: nonce1, ciphertext1
+
+principal Bob[
+	_message1 = AEAD_DEC(receiving_key_bob, nonce1, ciphertext1, nil)?
+]
+
+principal Bob[
+	generates nonce2, message2
+	ciphertext2 = AEAD_ENC(sending_key_bob, nonce2, message2, nil)
+]
+
+Bob -> Alice: nonce2, ciphertext2
+
+principal Alice[
+	_message2 = AEAD_DEC(receiving_key_alice, nonce2, ciphertext2, nil)?
+]
+
+queries[
+	confidentiality? message1
+	authentication? Alice -> Bob: ciphertext1
+	confidentiality? message2
+	authentication? Bob -> Alice: ciphertext2
+]

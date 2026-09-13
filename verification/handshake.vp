@@ -1,74 +1,83 @@
 attacker[active]
 
 principal Alice[
-    knows private ika
-    knows private dka
-    ipka = G^ika
-    dpka = G^dka
-    knows public ctx
+	knows public certification_ctx, handshake_ctx, session_ctx
 ]
 
 principal Bob[
-    knows private ikb
-    knows private dkb
-    ipkb = G^ikb
-    dpkb = G^dkb
-    knows public ctx
+	knows public certification_ctx, handshake_ctx, session_ctx
+	knows private identity_private_key_bob
+	identity_key_bob = PUBKEY(identity_private_key_bob)
 ]
 
 principal Bob[
-    knows private ekb
-    epkb = G^ekb
-    sb = SIGN(ikb, HASH(dpkb, epkb))
+	generates ephemeral_private_key_bob
+	ephemeral_key_bob = PUBKEY(ephemeral_private_key_bob)
+]
+
+principal Bob[
+	certification_sig = SIGN(identity_private_key_bob, HASH(certification_ctx, ephemeral_key_bob))
+]
+
+Bob -> Alice: [identity_key_bob], ephemeral_key_bob, certification_sig
+
+principal Alice[
+	_ = SIGNVERIF(identity_key_bob, HASH(certification_ctx, ephemeral_key_bob), certification_sig)?
 ]
 
 principal Alice[
-    generates eka
-    epka = G^eka
-]
-
-Bob -> Alice: [ipkb], [dpkb], epkb, sb
-
-principal Alice[
-    _ = SIGNVERIF(ipkb, HASH(dpkb, epkb), sb)?
-    sida = HASH(dpkb, epkb, dpka, epka)
-    sa = SIGN(ika, sida)
-    ska = HKDF(nil, HASH(dpkb^eka, epkb^dka), ctx)
+	generates ephemeral_private_key_alice
+	ephemeral_key_alice = PUBKEY(ephemeral_private_key_alice)
 ]
 
 principal Alice[
-    generates m1
-    c1 = AEAD_ENC(ska, m1, nil)
+	ikm_alice = DH_KEX(ephemeral_key_bob, ephemeral_private_key_alice)
+	secret_key_alice = HKDF(nil, ikm_alice, handshake_ctx)
+	session_key_alice = HKDF(nil, ikm_alice, session_ctx)
+	sending_key_alice = HKDF(nil, session_key_alice, ephemeral_key_alice)
+	receiving_key_alice = HKDF(nil, session_key_alice, ephemeral_key_bob)
 ]
-
-Alice -> Bob: [ipka], [dpka], epka, sa, c1
-
-principal Bob[
-    sidb = HASH(dpkb, epkb, dpka, epka)
-    _ = SIGNVERIF(ipka, sidb, sa)?
-    skb = HKDF(nil, HASH(epka^dkb, dpka^ekb), ctx)
-]
-
-principal Bob[
-    _m1 = AEAD_DEC(skb, c1, nil)?
-]
-
-principal Bob[
-    generates m2
-    c2 = AEAD_ENC(skb, m2, nil)
-]
-
-Bob -> Alice: c2
 
 principal Alice[
-    _m2 = AEAD_DEC(ska, c2, nil)?
+	generates nonce1, message1
+	ciphertext1 = AEAD_ENC(sending_key_alice, nonce1, message1, nil)
+]
+
+Alice -> Bob: [ephemeral_key_alice], nonce1, ciphertext1
+
+principal Bob[
+	ikm_bob = DH_KEX(ephemeral_key_alice, ephemeral_private_key_bob)
+	secret_key_bob = HKDF(nil, ikm_bob, handshake_ctx)
+	session_key_bob = HKDF(nil, ikm_bob, session_ctx)
+	sending_key_bob = HKDF(nil, session_key_bob, ephemeral_key_bob)
+	receiving_key_bob = HKDF(nil, session_key_bob, ephemeral_key_alice)
+]
+
+principal Bob[
+	_message1 = AEAD_DEC(receiving_key_bob, nonce1, ciphertext1, nil)?
+]
+
+principal Bob[
+	generates nonce2, message2
+	ciphertext2 = AEAD_ENC(sending_key_bob, nonce2, message2, nil)
+]
+
+Bob -> Alice: nonce2, ciphertext2
+
+principal Alice[
+	_message2 = AEAD_DEC(receiving_key_alice, nonce2, ciphertext2, nil)?
+]
+
+phase[1]
+
+principal Bob[
+	leaks identity_private_key_bob
 ]
 
 queries[
-    authentication? Bob -> Alice: epkb
-    authentication? Alice -> Bob: epka
-    confidentiality? m1
-    confidentiality? m2
-    freshness? ska
-    freshness? skb
+	confidentiality? message1
+	authentication? Alice -> Bob: ciphertext1
+	confidentiality? message2
+	authentication? Bob -> Alice: ciphertext2
+	equivalence? secret_key_alice, secret_key_bob
 ]
