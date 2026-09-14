@@ -3,7 +3,7 @@
   "build": {
     "dockerfile": "Containerfile",
     "args": {
-      "VERIFPAL_VERSION": "0.52.0"
+      "VERIFPAL_VERSION": "1.4.8"
     }
   },
   "workspaceFolder": "/workspace",
