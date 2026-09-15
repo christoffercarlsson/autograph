@@ -15,6 +15,11 @@ principal Alice[
 	public_key_alice = PUBKEY(private_key_alice)
 ]
 
+principal Alice[
+	generates ephemeral_private_key_alice1
+	ephemeral_key_alice1 = PUBKEY(ephemeral_private_key_alice1)
+]
+
 principal Bob[
 	knows private private_key_bob
 	public_key_bob = PUBKEY(private_key_bob)
@@ -33,11 +38,6 @@ Bob -> Alice: [identity_key_bob], public_key_bob, ephemeral_key_bob1, certificat
 
 principal Alice[
 	_ = SIGNVERIF(identity_key_bob, HASH(certification_ctx, ephemeral_key_bob1), certification_sig)?
-]
-
-principal Alice[
-	generates ephemeral_private_key_alice1
-	ephemeral_key_alice1 = PUBKEY(ephemeral_private_key_alice1)
 ]
 
 principal Alice[
