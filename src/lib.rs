@@ -529,4 +529,57 @@ mod tests {
         let result = channel.receive(&NONCE, None, &mut message2, &TAG);
         assert!(result.is_none());
     }
+
+    #[test]
+    fn test_channel_close_open() {
+        const NONCE: [u8; 12] = [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0];
+        const TAG: [u8; 16] = [
+            46, 105, 140, 232, 225, 193, 69, 214, 241, 241, 226, 165, 250, 93, 232, 159,
+        ];
+        let mut message = [
+            182, 212, 230, 162, 168, 195, 22, 242, 46, 124, 207, 163, 80, 28, 47, 34, 215, 183,
+            130, 175, 46, 131, 226, 179, 100, 243, 246, 45, 136, 197, 58, 184,
+        ];
+        let mut channel = Channel::new(
+            &SECRET_KEY,
+            &BOB_IDENTITY_PUBLIC_KEY,
+            &ALICE_IDENTITY_PUBLIC_KEY,
+        )
+        .unwrap();
+        assert!(channel.receive(&NONCE, None, &mut message, &TAG).is_some());
+        let mut buffer = [0u8; Channel::SIZE + 7];
+        let state = channel.close(&NONCE, &mut buffer).unwrap();
+        assert_eq!(state.len(), Channel::SIZE);
+        let (mut channel, nonce) = Channel::open(
+            &SECRET_KEY,
+            &BOB_IDENTITY_PUBLIC_KEY,
+            &ALICE_IDENTITY_PUBLIC_KEY,
+            &buffer,
+        )
+        .unwrap();
+        assert_eq!(nonce, NONCE);
+        let mut replay = [
+            182, 212, 230, 162, 168, 195, 22, 242, 46, 124, 207, 163, 80, 28, 47, 34, 215, 183,
+            130, 175, 46, 131, 226, 179, 100, 243, 246, 45, 136, 197, 58, 184,
+        ];
+        assert!(channel.receive(&nonce, None, &mut replay, &TAG).is_none());
+        let mut short = [0u8; 8];
+        assert!(
+            Channel::open(
+                &SECRET_KEY,
+                &BOB_IDENTITY_PUBLIC_KEY,
+                &ALICE_IDENTITY_PUBLIC_KEY,
+                &short
+            )
+            .is_none()
+        );
+        let (channel, nonce) = Channel::open(
+            &SECRET_KEY,
+            &BOB_IDENTITY_PUBLIC_KEY,
+            &ALICE_IDENTITY_PUBLIC_KEY,
+            &buffer,
+        )
+        .unwrap();
+        assert!(channel.close(&nonce, &mut short).is_none());
+    }
 }

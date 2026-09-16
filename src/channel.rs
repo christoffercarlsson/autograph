@@ -11,6 +11,8 @@ pub struct Channel<A: Aead, K: Kdf, const W: usize> {
 }
 
 impl<A: Aead, K: Kdf, const W: usize> Channel<A, K, W> {
+    pub const SIZE: usize = { A::Nonce::SIZE + 8 + 8 * W };
+
     pub fn new(
         session_key: &[u8],
         sending_context: &[u8],
@@ -26,9 +28,29 @@ impl<A: Aead, K: Kdf, const W: usize> Channel<A, K, W> {
         Some(Self {
             sending_key,
             receiving_key,
-            receiving_window: ReceivingWindow::<W>::new(),
+            receiving_window: ReceivingWindow::<W>::new()?,
             _marker: PhantomData,
         })
+    }
+
+    pub fn close<'a>(self, nonce: &A::Nonce, state: &'a mut [u8]) -> Option<&'a [u8]> {
+        let (sending_nonce, window) = state.split_at_mut_checked(A::Nonce::SIZE)?;
+        sending_nonce.copy_from_slice(nonce.as_ref());
+        self.receiving_window.close(window)?;
+        state.get(..Self::SIZE)
+    }
+
+    pub fn open(
+        session_key: &[u8],
+        sending_context: &[u8],
+        receiving_context: &[u8],
+        state: &[u8],
+    ) -> Option<(Self, A::Nonce)> {
+        let mut channel = Self::new(session_key, sending_context, receiving_context)?;
+        let (sending_nonce, window) = state.split_at_checked(A::Nonce::SIZE)?;
+        let nonce = A::Nonce::try_from_slice(sending_nonce).ok()?;
+        channel.receiving_window = ReceivingWindow::<W>::open(window)?;
+        Some((channel, nonce))
     }
 
     pub fn send(
@@ -69,13 +91,42 @@ struct ReceivingWindow<const W: usize> {
 
 impl<const W: usize> ReceivingWindow<W> {
     const BITS: u64 = (W as u64).saturating_mul(64);
+    const SIZE: usize = 8 + 8 * W;
 
-    fn new() -> Self {
-        assert!(W > 0, "Window size W must be non-zero");
-        Self {
+    fn new() -> Option<Self> {
+        if W == 0 {
+            return None;
+        }
+        Some(Self {
             top: 0,
             bitmap: [0u64; W],
+        })
+    }
+
+    fn close<'a>(&self, bytes: &'a mut [u8]) -> Option<&'a [u8]> {
+        let (state, _) = bytes.split_at_mut_checked(Self::SIZE)?;
+        let (top_bytes, bitmap_bytes) = state.split_at_mut(8);
+        let (chunks, _) = bitmap_bytes.as_chunks_mut::<8>();
+        top_bytes.copy_from_slice(&self.top.to_le_bytes());
+        for (word, chunk) in self.bitmap.iter().zip(chunks) {
+            *chunk = word.to_le_bytes();
         }
+        Some(state)
+    }
+
+    fn open(bytes: &[u8]) -> Option<Self> {
+        let (state, _) = bytes.split_at_checked(Self::SIZE)?;
+        let (top_bytes, bitmap_bytes) = state.split_at(8);
+        let top = u64::from_le_bytes(top_bytes.try_into().ok()?);
+        let (chunks, _) = bitmap_bytes.as_chunks::<8>();
+        let mut bitmap = [0u64; W];
+        for (word, chunk) in bitmap.iter_mut().zip(chunks) {
+            *word = u64::from_le_bytes(*chunk);
+        }
+        let mut window = Self::new()?;
+        window.top = top;
+        window.bitmap = bitmap;
+        Some(window)
     }
 
     fn mark(&mut self, counter: u64) -> bool {
