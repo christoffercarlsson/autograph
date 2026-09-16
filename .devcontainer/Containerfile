@@ -1,13 +1,13 @@
-FROM ghcr.io/christoffercarlsson/devcontainers/rust@sha256:42aca334f7fffde2d3a26eb8a48552fe2a34ac823ea4f3940146684181cffb99 AS builder
+FROM ghcr.io/christoffercarlsson/devcontainers/rust@sha256:fb378b967dbf72c3701524352f112ee31271c4c4678de144a8d67edcd623f39f AS builder
 
-ARG VERIFPAL_VERSION=1.4.8
+ARG VERIFPAL_VERSION=1.4.11
 
 RUN git clone --depth 1 --branch "v${VERIFPAL_VERSION}" \
         https://github.com/symbolicsoft/verifpal /tmp/verifpal \
     && cd /tmp/verifpal \
     && cargo build --release
 
-FROM ghcr.io/christoffercarlsson/devcontainers/rust@sha256:42aca334f7fffde2d3a26eb8a48552fe2a34ac823ea4f3940146684181cffb99 AS runtime
+FROM ghcr.io/christoffercarlsson/devcontainers/rust@sha256:fb378b967dbf72c3701524352f112ee31271c4c4678de144a8d67edcd623f39f AS runtime
 
 COPY --from=builder /tmp/verifpal/target/release/verifpal /usr/local/bin/verifpal
 
