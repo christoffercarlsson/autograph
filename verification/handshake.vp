@@ -1,11 +1,13 @@
 attacker[active]
 
 principal Alice[
-	knows public certification_ctx, handshake_ctx, session_ctx
+	knows public certification_ctx, root_ctx, session_ctx
+	knows public initiator_ctx, responder_ctx
 ]
 
 principal Bob[
-	knows public certification_ctx, handshake_ctx, session_ctx
+	knows public certification_ctx, root_ctx, session_ctx
+	knows public initiator_ctx, responder_ctx
 	knows private identity_private_key_bob
 	identity_key_bob = PUBKEY(identity_private_key_bob)
 ]
@@ -32,10 +34,16 @@ principal Alice[
 
 principal Alice[
 	ikm_alice = DH_KEX(ephemeral_key_bob, ephemeral_private_key_alice)
-	secret_key_alice = HKDF(nil, ikm_alice, handshake_ctx)
+	secret_key_alice = HKDF(nil, ikm_alice, root_ctx)
 	session_key_alice = HKDF(nil, ikm_alice, session_ctx)
 	sending_key_alice = HKDF(nil, session_key_alice, ephemeral_key_alice)
 	receiving_key_alice = HKDF(nil, session_key_alice, ephemeral_key_bob)
+]
+
+principal Alice[
+	initiator_key_alice = HKDF(nil, session_key_alice, initiator_ctx)
+	responder_key_alice = HKDF(nil, session_key_alice, responder_ctx)
+	code_alice = MAC(initiator_key_alice, CONCAT(identity_key_bob, ephemeral_key_alice))
 ]
 
 principal Alice[
@@ -43,14 +51,21 @@ principal Alice[
 	ciphertext1 = AEAD_ENC(sending_key_alice, nonce1, message1, nil)
 ]
 
-Alice -> Bob: [ephemeral_key_alice], nonce1, ciphertext1
+Alice -> Bob: [ephemeral_key_alice], code_alice, nonce1, ciphertext1
 
 principal Bob[
 	ikm_bob = DH_KEX(ephemeral_key_alice, ephemeral_private_key_bob)
-	secret_key_bob = HKDF(nil, ikm_bob, handshake_ctx)
+	secret_key_bob = HKDF(nil, ikm_bob, root_ctx)
 	session_key_bob = HKDF(nil, ikm_bob, session_ctx)
 	sending_key_bob = HKDF(nil, session_key_bob, ephemeral_key_bob)
 	receiving_key_bob = HKDF(nil, session_key_bob, ephemeral_key_alice)
+]
+
+principal Bob[
+	initiator_key_bob = HKDF(nil, session_key_bob, initiator_ctx)
+	responder_key_bob = HKDF(nil, session_key_bob, responder_ctx)
+	_ = ASSERT(code_alice, MAC(initiator_key_bob, CONCAT(identity_key_bob, ephemeral_key_alice)))?
+	code_bob = MAC(responder_key_bob, CONCAT(identity_key_bob, ephemeral_key_alice))
 ]
 
 principal Bob[
@@ -62,9 +77,10 @@ principal Bob[
 	ciphertext2 = AEAD_ENC(sending_key_bob, nonce2, message2, nil)
 ]
 
-Bob -> Alice: nonce2, ciphertext2
+Bob -> Alice: code_bob, nonce2, ciphertext2
 
 principal Alice[
+	_ = ASSERT(code_bob, MAC(responder_key_alice, CONCAT(identity_key_bob, ephemeral_key_alice)))?
 	_message2 = AEAD_DEC(receiving_key_alice, nonce2, ciphertext2, nil)?
 ]
 
@@ -76,8 +92,10 @@ principal Bob[
 
 queries[
 	confidentiality? message1
+	authentication? Alice -> Bob: code_alice
 	authentication? Alice -> Bob: ciphertext1
 	confidentiality? message2
+	authentication? Bob -> Alice: code_bob
 	authentication? Bob -> Alice: ciphertext2
 	equivalence? secret_key_alice, secret_key_bob
 ]

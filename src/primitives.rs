@@ -1,8 +1,14 @@
+use core::array::TryFromSliceError;
+
 #[allow(private_bounds)]
 pub trait ByteArray: AsRef<[u8]> + AsMut<[u8]> + Eq + Ord + Sealed {
     const SIZE: usize;
 
     fn new() -> Self;
+
+    fn try_from_slice(bytes: &[u8]) -> Result<Self, TryFromSliceError>
+    where
+        Self: Sized;
 }
 
 impl<const N: usize> ByteArray for [u8; N] {
@@ -10,6 +16,10 @@ impl<const N: usize> ByteArray for [u8; N] {
 
     fn new() -> Self {
         [0u8; N]
+    }
+
+    fn try_from_slice(bytes: &[u8]) -> Result<Self, TryFromSliceError> {
+        Self::try_from(bytes)
     }
 }
 
@@ -71,7 +81,7 @@ pub trait Hasher: Digest {
     fn new() -> Self;
 }
 
-pub trait Mac: Digest {
+pub trait Mac: Clone + Digest {
     fn new(key: &[u8]) -> Option<Self>
     where
         Self: Sized;

@@ -1,11 +1,11 @@
 attacker[active]
 
 principal Alice[
-	knows public certification_ctx, handshake_ctx, session_ctx
+	knows public certification_ctx, root_ctx, session_ctx
 ]
 
 principal Bob[
-	knows public certification_ctx, handshake_ctx, session_ctx
+	knows public certification_ctx, root_ctx, session_ctx
 	knows private identity_private_key_bob
 	identity_key_bob = PUBKEY(identity_private_key_bob)
 ]
@@ -42,7 +42,7 @@ principal Alice[
 
 principal Alice[
 	ikm_alice1 = DH_KEX(ephemeral_key_bob1, private_key_alice)
-	secret_key_alice1 = HKDF(nil, ikm_alice1, handshake_ctx)
+	secret_key_alice1 = HKDF(nil, ikm_alice1, root_ctx)
 	_session_key_alice1 = HKDF(nil, ikm_alice1, session_ctx)
 	_sending_key_alice1 = HKDF(nil, _session_key_alice1, public_key_alice)
 	_receiving_key_alice1 = HKDF(nil, _session_key_alice1, ephemeral_key_bob1)
@@ -50,7 +50,7 @@ principal Alice[
 
 principal Alice[
 	ikm_alice2 = DH_KEX(public_key_bob, ephemeral_private_key_alice1)
-	secret_key_alice2 = HKDF(secret_key_alice1, ikm_alice2, handshake_ctx)
+	secret_key_alice2 = HKDF(secret_key_alice1, ikm_alice2, root_ctx)
 	_session_key_alice2 = HKDF(secret_key_alice1, ikm_alice2, session_ctx)
 	_sending_key_alice2 = HKDF(nil, _session_key_alice2, ephemeral_key_alice1)
 	_receiving_key_alice2 = HKDF(nil, _session_key_alice2, public_key_bob)
@@ -58,7 +58,7 @@ principal Alice[
 
 principal Alice[
 	ikm_alice3 = DH_KEX(ephemeral_key_bob1, ephemeral_private_key_alice1)
-	secret_key_alice3 = HKDF(secret_key_alice2, ikm_alice3, handshake_ctx)
+	secret_key_alice3 = HKDF(secret_key_alice2, ikm_alice3, root_ctx)
 	session_key_alice3 = HKDF(secret_key_alice2, ikm_alice3, session_ctx)
 	sending_key_alice3 = HKDF(nil, session_key_alice3, ephemeral_key_alice1)
 	receiving_key_alice3 = HKDF(nil, session_key_alice3, ephemeral_key_bob1)
@@ -77,7 +77,7 @@ Alice -> Bob: [public_key_alice], ephemeral_key_alice1, nonce1, ciphertext1
 
 principal Bob[
 	ikm_bob1 = DH_KEX(public_key_alice, ephemeral_private_key_bob1)
-	secret_key_bob1 = HKDF(nil, ikm_bob1, handshake_ctx)
+	secret_key_bob1 = HKDF(nil, ikm_bob1, root_ctx)
 	_session_key_bob1 = HKDF(nil, ikm_bob1, session_ctx)
 	_sending_key_bob1 = HKDF(nil, _session_key_bob1, ephemeral_key_bob1)
 	_receiving_key_bob1 = HKDF(nil, _session_key_bob1, public_key_alice)
@@ -85,7 +85,7 @@ principal Bob[
 
 principal Bob[
 	ikm_bob2 = DH_KEX(ephemeral_key_alice1, private_key_bob)
-	secret_key_bob2 = HKDF(secret_key_bob1, ikm_bob2, handshake_ctx)
+	secret_key_bob2 = HKDF(secret_key_bob1, ikm_bob2, root_ctx)
 	_session_key_bob2 = HKDF(secret_key_bob1, ikm_bob2, session_ctx)
 	_sending_key_bob2 = HKDF(nil, _session_key_bob2, public_key_bob)
 	_receiving_key_bob2 = HKDF(nil, _session_key_bob2, ephemeral_key_alice1)
@@ -93,7 +93,7 @@ principal Bob[
 
 principal Bob[
 	ikm_bob3 = DH_KEX(ephemeral_key_alice1, ephemeral_private_key_bob1)
-	secret_key_bob3 = HKDF(secret_key_bob2, ikm_bob3, handshake_ctx)
+	secret_key_bob3 = HKDF(secret_key_bob2, ikm_bob3, root_ctx)
 	session_key_bob3 = HKDF(secret_key_bob2, ikm_bob3, session_ctx)
 	sending_key_bob3 = HKDF(nil, session_key_bob3, ephemeral_key_bob1)
 	receiving_key_bob3 = HKDF(nil, session_key_bob3, ephemeral_key_alice1)
@@ -106,7 +106,7 @@ principal Bob[
 
 principal Bob[
 	ikm_bob4 = DH_KEX(ephemeral_key_alice1, ephemeral_private_key_bob2)
-	secret_key_bob4 = HKDF(secret_key_bob3, ikm_bob4, handshake_ctx)
+	secret_key_bob4 = HKDF(secret_key_bob3, ikm_bob4, root_ctx)
 	session_key_bob4 = HKDF(secret_key_bob3, ikm_bob4, session_ctx)
 	sending_key_bob4 = HKDF(nil, session_key_bob4, ephemeral_key_bob2)
 	receiving_key_bob4 = HKDF(nil, session_key_bob4, ephemeral_key_alice1)
@@ -144,7 +144,7 @@ Bob -> Alice: ephemeral_key_bob2, nonce3, ciphertext3
 
 principal Alice[
 	ikm_alice4 = DH_KEX(ephemeral_key_bob2, ephemeral_private_key_alice1)
-	secret_key_alice4 = HKDF(secret_key_alice3, ikm_alice4, handshake_ctx)
+	secret_key_alice4 = HKDF(secret_key_alice3, ikm_alice4, root_ctx)
 	session_key_alice4 = HKDF(secret_key_alice3, ikm_alice4, session_ctx)
 	sending_key_alice4 = HKDF(nil, session_key_alice4, ephemeral_key_alice1)
 	receiving_key_alice4 = HKDF(nil, session_key_alice4, ephemeral_key_bob2)
@@ -157,7 +157,7 @@ principal Alice[
 
 principal Alice[
 	ikm_alice5 = DH_KEX(ephemeral_key_bob2, ephemeral_private_key_alice2)
-	secret_key_alice5 = HKDF(secret_key_alice4, ikm_alice5, handshake_ctx)
+	secret_key_alice5 = HKDF(secret_key_alice4, ikm_alice5, root_ctx)
 	session_key_alice5 = HKDF(secret_key_alice4, ikm_alice5, session_ctx)
 	sending_key_alice5 = HKDF(nil, session_key_alice5, ephemeral_key_alice2)
 	receiving_key_alice5 = HKDF(nil, session_key_alice5, ephemeral_key_bob2)
@@ -184,7 +184,7 @@ Alice -> Bob: ephemeral_key_alice2, nonce4, ciphertext4
 
 principal Bob[
 	ikm_bob5 = DH_KEX(ephemeral_key_alice2, ephemeral_private_key_bob2)
-	secret_key_bob5 = HKDF(secret_key_bob4, ikm_bob5, handshake_ctx)
+	secret_key_bob5 = HKDF(secret_key_bob4, ikm_bob5, root_ctx)
 	session_key_bob5 = HKDF(secret_key_bob4, ikm_bob5, session_ctx)
 	sending_key_bob5 = HKDF(nil, session_key_bob5, ephemeral_key_bob2)
 	receiving_key_bob5 = HKDF(nil, session_key_bob5, ephemeral_key_alice2)

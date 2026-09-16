@@ -13,7 +13,7 @@ static ENDORSEMENT_CONTEXT: &[u8; 20] = b"autograph/endorse/v1";
 static PRESENTATION_CONTEXT: &[u8; 20] = b"autograph/present/v1";
 
 impl<H: Hasher, S: Signer> Credential<H, S> {
-    pub fn authenticate(signer: &S, their_public_key: &S::PublicKey) -> Option<H::Output> {
+    pub fn authenticate(signer: &S, their_public_key: &S::PublicKey) -> Option<H> {
         let public_key = signer.public_key()?;
         let mut hasher = H::new();
         hasher.update(AUTHENTICATION_CONTEXT);
@@ -24,7 +24,7 @@ impl<H: Hasher, S: Signer> Credential<H, S> {
             hasher.update(their_public_key.as_ref());
             hasher.update(public_key.as_ref());
         }
-        Some(hasher.finalize())
+        Some(hasher)
     }
 
     pub fn claim(signer: &S, our_data: &[u8]) -> Option<S::Signature> {

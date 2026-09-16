@@ -9,7 +9,7 @@ mod primitives;
 pub use {
     channel::Channel,
     credential::Credential,
-    handshake::Handshake,
+    handshake::{Authenticator, Certificate, Handshake},
     primitives::{Aead, Csprng, Digest, Hasher, Kdf, KeyExchange, Mac, Signer},
 };
 
@@ -186,6 +186,7 @@ mod tests {
         Ed25519Signer,
         1,
     >;
+    type Certificate = super::Certificate<X25519, Ed25519Signer>;
     type Channel = super::Channel<ChaCha20Poly1305, Hkdf<Sha512>, 1>;
 
     const ALICE_IDENTITY_PRIVATE_KEY: [u8; 32] = [
@@ -251,14 +252,28 @@ mod tests {
         165, 1, 148, 204, 26, 115, 198, 118, 153, 67, 27, 81, 51, 81, 3, 93, 192, 32, 243, 175, 13,
         71, 43, 224, 48, 232, 252, 107, 153, 247, 244, 72,
     ];
-    
+
     #[test]
     fn test_authenticate() {
         let alice = Ed25519Signer::from(ALICE_IDENTITY_PRIVATE_KEY);
         let bob = Ed25519Signer::from(BOB_IDENTITY_PRIVATE_KEY);
-        let a = Credential::authenticate(&alice, &BOB_IDENTITY_PUBLIC_KEY).unwrap();
-        let b = Credential::authenticate(&bob, &ALICE_IDENTITY_PUBLIC_KEY).unwrap();
-        assert_ne!(a, [0u8; 64]);
+        let mut a = Credential::authenticate(&alice, &BOB_IDENTITY_PUBLIC_KEY).unwrap();
+        let mut b = Credential::authenticate(&bob, &ALICE_IDENTITY_PUBLIC_KEY).unwrap();
+        for hasher in [&mut a, &mut b] {
+            hasher.update(&BOB_ID);
+            hasher.update(&ALICE_ID);
+        }
+        let a = a.finalize();
+        let b = b.finalize();
+        assert_eq!(
+            a,
+            [
+                93, 196, 156, 37, 144, 249, 228, 187, 58, 4, 181, 89, 115, 60, 24, 251, 24, 188,
+                159, 75, 197, 134, 238, 46, 242, 153, 29, 142, 26, 86, 140, 216, 90, 135, 92, 44,
+                212, 3, 154, 154, 103, 209, 205, 223, 54, 98, 201, 197, 219, 14, 21, 209, 133, 113,
+                196, 125, 150, 141, 35, 70, 252, 54, 99, 8
+            ]
+        );
         assert_eq!(a, b);
     }
 
@@ -310,26 +325,52 @@ mod tests {
     }
 
     #[test]
+    fn test_certificate() {
+        let bob = Handshake::new(&BOB_PRIVATE_KEY, &BOB_PUBLIC_KEY);
+        let bob_signer = Ed25519Signer::from(BOB_IDENTITY_PRIVATE_KEY);
+        let certificate = bob.certify(&bob_signer).unwrap();
+        assert_eq!(Certificate::SIZE, 128);
+        let mut buffer = [0u8; Certificate::SIZE + 8];
+        let mut bytes = [0u8; Certificate::SIZE];
+        let serialized = certificate.serialize(&mut buffer).unwrap();
+        assert_eq!(serialized.len(), Certificate::SIZE);
+        bytes.copy_from_slice(serialized);
+        let restored: Certificate = bytes.as_ref().try_into().unwrap();
+        assert_eq!(restored.identity_key(), certificate.identity_key());
+        assert_eq!(restored.public_key(), certificate.public_key());
+        assert_eq!(restored.signature(), certificate.signature());
+        let mut short = [0u8; 8];
+        assert!(certificate.serialize(&mut short).is_none());
+        assert!(Certificate::try_from(short.as_ref()).is_err());
+        let alice = Handshake::new(&ALICE_PRIVATE_KEY, &ALICE_PUBLIC_KEY);
+        let mut secret_key = [0u8; 32];
+        let mut session_key = [0u8; 32];
+        assert!(
+            alice
+                .initiator(&restored, None, &mut secret_key, &mut session_key)
+                .is_some()
+        );
+    }
+
+    #[test]
     fn test_handshake() {
         let alice = Handshake::new(&ALICE_PRIVATE_KEY, &ALICE_PUBLIC_KEY);
         let bob = Handshake::new(&BOB_PRIVATE_KEY, &BOB_PUBLIC_KEY);
         let bob_signer = Ed25519Signer::from(BOB_IDENTITY_PRIVATE_KEY);
-        let (bob_identity_key, bob_signature) = bob.certify(&bob_signer).unwrap();
+        let certificate = bob.certify(&bob_signer).unwrap();
         let mut alice_secret_key = [0u8; 32];
         let mut alice_session_key = [0u8; 32];
         let mut bob_secret_key = [0u8; 32];
         let mut bob_session_key = [0u8; 32];
-        let (a, mut alice_mac) = alice
+        let (a, mut alice_authenticator) = alice
             .initiator(
-                &bob_identity_key,
-                &BOB_PUBLIC_KEY,
-                &bob_signature,
+                &certificate,
                 Some(&SECRET_KEY),
                 &mut alice_secret_key,
                 &mut alice_session_key,
             )
             .unwrap();
-        let (mut b, mut bob_mac) = bob
+        let (mut b, mut bob_authenticator) = bob
             .responder(
                 &bob_signer,
                 &ALICE_PUBLIC_KEY,
@@ -338,27 +379,45 @@ mod tests {
                 &mut bob_session_key,
             )
             .unwrap();
-        alice_mac.update(&BOB_ID);
-        alice_mac.update(&ALICE_ID);
-        bob_mac.update(&BOB_ID);
-        bob_mac.update(&ALICE_ID);
-        let code = bob_mac.finalize();
-        let verified = alice_mac.verify(&code);
-        assert!(verified);
+        for authenticator in [&mut alice_authenticator, &mut bob_authenticator] {
+            authenticator.update(&BOB_ID);
+            authenticator.update(&ALICE_ID);
+        }
+        let alice_mac = alice_authenticator.code();
+        let bob_mac = bob_authenticator.code();
+        let alice_auth = alice_authenticator.authenticate();
+        let bob_auth = bob_authenticator.authenticate();
         assert_eq!(
-            code,
+            alice_authenticator.authenticate(),
+            bob_authenticator.authenticate()
+        );
+        assert_ne!(alice_auth, alice_mac);
+        assert_ne!(bob_auth, bob_mac);
+        assert!(bob_authenticator.verify(&alice_mac));
+        assert!(alice_authenticator.verify(&bob_mac));
+        assert_eq!(
+            alice_mac,
             [
-                13, 87, 1, 182, 96, 217, 172, 243, 98, 60, 60, 241, 122, 198, 38, 112, 214, 149,
-                72, 84, 73, 33, 217, 210, 85, 152, 14, 246, 79, 63, 33, 32, 62, 45, 153, 209, 41,
-                172, 194, 57, 58, 170, 24, 10, 164, 236, 167, 67, 87, 225, 217, 3, 81, 93, 85, 208,
-                152, 169, 25, 85, 0, 115, 68, 231
+                168, 107, 243, 198, 134, 16, 231, 205, 195, 0, 105, 117, 151, 80, 54, 42, 72, 141,
+                176, 246, 255, 130, 2, 54, 68, 27, 189, 197, 71, 116, 124, 124, 52, 48, 219, 159,
+                40, 190, 23, 149, 2, 98, 138, 66, 240, 151, 230, 244, 95, 128, 105, 40, 242, 211,
+                27, 93, 169, 235, 241, 37, 11, 16, 41, 108
+            ]
+        );
+        assert_eq!(
+            bob_mac,
+            [
+                186, 45, 228, 146, 237, 185, 42, 79, 56, 96, 119, 218, 42, 143, 152, 17, 252, 172,
+                176, 36, 175, 164, 129, 90, 237, 73, 165, 84, 253, 116, 18, 20, 81, 154, 180, 60,
+                57, 91, 3, 3, 55, 218, 17, 190, 96, 137, 52, 218, 31, 42, 123, 215, 228, 9, 248,
+                136, 150, 103, 144, 248, 112, 107, 132, 193
             ]
         );
         assert_eq!(
             alice_secret_key,
             [
-                209, 209, 49, 217, 113, 50, 50, 164, 169, 66, 3, 162, 98, 186, 82, 96, 94, 224,
-                211, 187, 90, 248, 89, 166, 90, 154, 78, 133, 127, 47, 95, 74
+                95, 54, 62, 231, 35, 29, 73, 102, 30, 113, 51, 226, 251, 11, 175, 242, 121, 42,
+                170, 165, 117, 44, 34, 48, 230, 108, 72, 186, 145, 114, 45, 139
             ]
         );
         assert_eq!(
@@ -464,7 +523,7 @@ mod tests {
             182, 212, 230, 162, 168, 195, 22, 242, 46, 124, 207, 163, 80, 28, 47, 34, 215, 183,
             130, 175, 46, 131, 226, 179, 100, 243, 246, 45, 136, 197, 58, 184,
         ];
-        let mut message2 = message1.clone();
+        let mut message2 = message1;
         let result = channel.receive(&NONCE, None, &mut message1, &TAG);
         assert!(result.is_some());
         let result = channel.receive(&NONCE, None, &mut message2, &TAG);
